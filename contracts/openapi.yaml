@@ -1,0 +1,1603 @@
+openapi: 3.1.0
+info:
+  title: MoneyHooks API
+  version: 0.2.0-v1
+  description: |
+    Go/Echo implementation as audited from `moneyHook_api` on 2026-08-26.
+
+    This is a code-first description, not an aspirational API. Request validation tags exist in
+    the source but Echo validation is commented out, so many database-required fields are not
+    rejected until persistence. See `api-reference.md` for evidence, caveats, and known gaps.
+
+    Amount convention: write requests send a non-negative magnitude and `*_sign`; the server
+    stores their product. Several aggregate responses therefore expose expenses as negative values.
+
+    すべての業務APIは、Googleログインで発行されたFirebase IDトークンをBearer認証として
+    検証する。GET / だけはプロセスヘルスチェックとして公開する。
+servers:
+  - url: http://localhost:8080
+    description: Local Docker/development server
+tags:
+  - name: Health
+  - name: Transaction
+  - name: Fixed
+  - name: Category
+  - name: SubCategory
+  - name: Payment
+  - name: Job
+paths:
+  /:
+    get:
+      tags: [Health]
+      operationId: getHealth
+      summary: API process health check
+      security: []
+      responses:
+        '200':
+          description: Process is running
+          content:
+            text/plain:
+              schema: {type: string, const: 'Success, running'}
+
+  /api/v1/transactions:
+    post:
+      tags: [Transaction]
+      operationId: createV1Transaction
+      summary: Create a transaction for the React client
+      security: [BearerAuth: []]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/V1TransactionRequest'}
+      responses:
+        '201':
+          description: Created transaction
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/V1TransactionResponse'}
+        '400': {$ref: '#/components/responses/V1BadRequest'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '404': {$ref: '#/components/responses/V1NotFound'}
+        '422': {$ref: '#/components/responses/V1ValidationError'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/v1/transactions/{transactionId}:
+    parameters:
+      - {$ref: '#/components/parameters/TransactionId'}
+    get:
+      tags: [Transaction]
+      operationId: getV1Transaction
+      summary: Get a complete transaction resource
+      security: [BearerAuth: []]
+      responses:
+        '200':
+          description: Complete transaction for edit-form restoration
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/V1TransactionResponse'}
+        '400': {$ref: '#/components/responses/V1BadRequest'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '404': {$ref: '#/components/responses/V1NotFound'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+    patch:
+      tags: [Transaction]
+      operationId: updateV1Transaction
+      summary: Update a transaction and return its previous date
+      security: [BearerAuth: []]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/V1TransactionRequest'}
+      responses:
+        '200':
+          description: Updated transaction
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/V1TransactionUpdateResponse'}
+        '400': {$ref: '#/components/responses/V1BadRequest'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '404': {$ref: '#/components/responses/V1NotFound'}
+        '422': {$ref: '#/components/responses/V1ValidationError'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+    delete:
+      tags: [Transaction]
+      operationId: deleteV1Transaction
+      summary: Delete a transaction owned by the authenticated user
+      security: [BearerAuth: []]
+      responses:
+        '204': {description: Transaction deleted}
+        '400': {$ref: '#/components/responses/V1BadRequest'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '404': {$ref: '#/components/responses/V1NotFound'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/v1/analytics/overview:
+    get:
+      tags: [Transaction]
+      operationId: getV1AnalyticsOverview
+      summary: Get overview analytics for an exact date range
+      security: [BearerAuth: []]
+      parameters:
+        - {$ref: '#/components/parameters/V1StartDate'}
+        - {$ref: '#/components/parameters/V1EndDate'}
+        - {$ref: '#/components/parameters/V1GroupBy'}
+        - {$ref: '#/components/parameters/V1Compare'}
+      responses:
+        '200':
+          description: Overview summary, zero-filled time series, and category comparison
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/V1OverviewResponse'}
+        '400': {$ref: '#/components/responses/V1BadRequest'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/v1/analytics/categories:
+    get:
+      tags: [Transaction]
+      operationId: getV1AnalyticsCategories
+      summary: Get category and subcategory analytics for an exact date range
+      security: [BearerAuth: []]
+      parameters:
+        - {$ref: '#/components/parameters/V1StartDate'}
+        - {$ref: '#/components/parameters/V1EndDate'}
+        - {$ref: '#/components/parameters/V1GroupBy'}
+      responses:
+        '200':
+          description: Expense hierarchy, time series, and complete transaction details
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/V1CategoriesResponse'}
+        '400': {$ref: '#/components/responses/V1BadRequest'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/v1/analytics/fixed:
+    get:
+      tags: [Transaction]
+      operationId: getV1AnalyticsFixed
+      summary: Get fixed-expense analytics for an exact date range
+      security: [BearerAuth: []]
+      parameters:
+        - {$ref: '#/components/parameters/V1StartDate'}
+        - {$ref: '#/components/parameters/V1EndDate'}
+        - {$ref: '#/components/parameters/V1GroupBy'}
+      responses:
+        '200':
+          description: Fixed-expense summary, category series, and details
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/V1FixedResponse'}
+        '400': {$ref: '#/components/responses/V1BadRequest'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/v1/analytics/payments:
+    get:
+      tags: [Transaction]
+      operationId: getV1AnalyticsPayments
+      summary: Get payment-method analytics for an exact date range
+      security: [BearerAuth: []]
+      parameters:
+        - {$ref: '#/components/parameters/V1StartDate'}
+        - {$ref: '#/components/parameters/V1EndDate'}
+        - {$ref: '#/components/parameters/V1GroupBy'}
+      responses:
+        '200':
+          description: Payment totals, time series, counts, averages, and details
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/V1PaymentsResponse'}
+        '400': {$ref: '#/components/responses/V1BadRequest'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/transaction/getTimelineData:
+    get:
+      tags: [Transaction]
+      operationId: getTimelineData
+      summary: List transactions for a month
+      security: [BearerAuth: []]
+      parameters:
+        - {$ref: '#/components/parameters/Month'}
+      responses:
+        '200':
+          description: Transactions ordered by date and ID descending
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TimelineResponse'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/transaction/getMonthlySpendingData:
+    get:
+      tags: [Transaction]
+      operationId: getMonthlySpendingData
+      summary: Get six months of expense totals
+      security: [BearerAuth: []]
+      parameters:
+        - {$ref: '#/components/parameters/Month'}
+      responses:
+        '200':
+          description: Target month and previous five months, newest first; missing months are zero-filled
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/MonthlySpendingResponse'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/transaction/getTransaction/{transactionId}:
+    get:
+      tags: [Transaction]
+      operationId: getTransaction
+      summary: Get one transaction owned by the authenticated user
+      security: [BearerAuth: []]
+      parameters:
+        - {$ref: '#/components/parameters/TransactionId'}
+      responses:
+        '200':
+          description: Transaction detail (payment fields and sign are not returned)
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TransactionDetailResponse'}
+        '404':
+          description: No matching transaction for this user
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponse'}
+              example: {status: error, message: 取引データが見つかりません}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/transaction/getMonthlyFixedIncome:
+    get:
+      tags: [Transaction]
+      operationId: getMonthlyFixedIncome
+      summary: Group positive transactions by category for a month
+      description: The implementation does not filter `fixed_flg`; every positive transaction is included.
+      security: [BearerAuth: []]
+      parameters:
+        - {$ref: '#/components/parameters/Month'}
+      responses:
+        '200':
+          description: Positive transactions grouped by category
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/MonthlyFixedResponse'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/transaction/getMonthlyFixedSpending:
+    get:
+      tags: [Transaction]
+      operationId: getMonthlyFixedSpending
+      summary: Group fixed expenses by category for a month
+      security: [BearerAuth: []]
+      parameters:
+        - {$ref: '#/components/parameters/Month'}
+      responses:
+        '200':
+          description: Negative transactions with `fixed_flg=true`, grouped by category
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/MonthlyFixedResponse'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/transaction/getHome:
+    get:
+      tags: [Transaction]
+      operationId: getHome
+      summary: Get monthly expense summary for the home screen
+      description: Returns up to seven categories plus an aggregated `その他` category.
+      security: [BearerAuth: []]
+      parameters:
+        - {$ref: '#/components/parameters/Month'}
+      responses:
+        '200':
+          description: Monthly expense summary
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/HomeResponse'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/transaction/getMonthlyVariableData:
+    get:
+      tags: [Transaction]
+      operationId: getMonthlyVariableData
+      summary: Get non-fixed monthly expenses grouped by category and subcategory
+      security: [BearerAuth: []]
+      parameters:
+        - {$ref: '#/components/parameters/Month'}
+      responses:
+        '200':
+          description: Variable expense hierarchy
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/MonthlyVariableResponse'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/transaction/getTotalSpending:
+    get:
+      tags: [Transaction]
+      operationId: getTotalSpending
+      summary: Aggregate expenses over a month range
+      security: [BearerAuth: []]
+      parameters:
+        - name: category_id
+          in: query
+          required: false
+          schema: {$ref: '#/components/schemas/Identifier'}
+        - name: sub_category_id
+          in: query
+          required: false
+          schema: {$ref: '#/components/schemas/Identifier'}
+        - name: start_month
+          in: query
+          required: true
+          description: Range start passed directly to SQL; callers conventionally use the first day of a month.
+          schema: {$ref: '#/components/schemas/DateString'}
+        - name: end_month
+          in: query
+          required: true
+          description: SQL expands this date to the final day of its month.
+          schema: {$ref: '#/components/schemas/DateString'}
+      responses:
+        '200':
+          description: Expense hierarchy for the selected range
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TotalSpendingResponse'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/transaction/groupByPayment:
+    get:
+      tags: [Transaction]
+      operationId: groupTransactionsByPayment
+      summary: Group monthly expenses by payment method and compare with prior month
+      security: [BearerAuth: []]
+      parameters:
+        - {$ref: '#/components/parameters/Month'}
+      responses:
+        '200':
+          description: Payment groups and month-over-month figures
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/PaymentGroupResponse'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500':
+          description: Authenticated user resolution or `month` parsing failed
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponse'}
+
+  /api/transaction/getMonthlyWithdrawalAmount:
+    get:
+      tags: [Transaction]
+      operationId: getMonthlyWithdrawalAmount
+      summary: Calculate card/payment withdrawals due in a month
+      description: |
+        Only payment resources having a non-zero `payment_date` participate. Each resource's
+        `closing_date` determines its aggregation window.
+      security: [BearerAuth: []]
+      parameters:
+        - {$ref: '#/components/parameters/Month'}
+      responses:
+        '200':
+          description: Withdrawal estimates
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/WithdrawalResponse'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500':
+          description: Authenticated user resolution or `month` parsing failed
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponse'}
+
+  /api/transaction/getFrequentTransactionName:
+    get:
+      tags: [Transaction]
+      operationId: getFrequentTransactionNames
+      summary: List previously used transaction-name configurations by frequency
+      security: [BearerAuth: []]
+      responses:
+        '200':
+          description: De-duplicated by transaction name after database ordering by usage count
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/FrequentTransactionResponse'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/transaction/addTransaction:
+    post:
+      tags: [Transaction]
+      operationId: addTransaction
+      summary: Add one transaction
+      description: If `sub_category_id` is empty, the server finds or creates a user-owned subcategory by name.
+      security: [BearerAuth: []]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/TransactionWriteEnvelope'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '422': {$ref: '#/components/responses/MutationFailure'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/transaction/addTransactionList:
+    post:
+      tags: [Transaction]
+      operationId: addTransactionList
+      summary: Add a list of transactions
+      description: Subcategories are resolved or created before the database batch insert; the whole workflow is not wrapped in one transaction.
+      security: [BearerAuth: []]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/TransactionListWriteRequest'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '422': {$ref: '#/components/responses/MutationFailure'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/transaction/editTransaction:
+    patch:
+      tags: [Transaction]
+      operationId: editTransaction
+      summary: Edit one transaction owned by the authenticated user
+      security: [BearerAuth: []]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/TransactionEditEnvelope'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '422': {$ref: '#/components/responses/MutationFailure'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/transaction/deleteTransaction/{transactionId}:
+    delete:
+      tags: [Transaction]
+      operationId: deleteTransaction
+      summary: Delete one transaction owned by the authenticated user
+      security: [BearerAuth: []]
+      parameters:
+        - {$ref: '#/components/parameters/TransactionId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '422': {$ref: '#/components/responses/DeleteFailure'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/fixed/getFixed:
+    get:
+      tags: [Fixed]
+      operationId: getFixed
+      summary: List enabled recurring transactions
+      security: [BearerAuth: []]
+      responses:
+        '200':
+          description: Enabled recurring transactions ordered by day, sign, and amount
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/FixedListResponse'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/fixed/getDeletedFixed:
+    get:
+      tags: [Fixed]
+      operationId: getDeletedFixed
+      summary: List disabled recurring transactions
+      description: These rows are not physically deleted; `include_flg=false` is used.
+      security: [BearerAuth: []]
+      responses:
+        '200':
+          description: Disabled recurring transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/DeletedFixed'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/fixed/addFixed:
+    post:
+      tags: [Fixed]
+      operationId: addFixed
+      summary: Add a recurring transaction
+      security: [BearerAuth: []]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/FixedWriteEnvelope'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '422': {$ref: '#/components/responses/MutationFailure'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/fixed/editFixed:
+    patch:
+      tags: [Fixed]
+      operationId: editFixed
+      summary: Edit or enable/disable a recurring transaction
+      security: [BearerAuth: []]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/FixedEditEnvelope'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '422': {$ref: '#/components/responses/MutationFailure'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/fixed/deleteFixed/{monthly_transaction_id}:
+    delete:
+      tags: [Fixed]
+      operationId: deleteFixed
+      summary: Physically delete one recurring transaction owned by the authenticated user
+      security: [BearerAuth: []]
+      parameters:
+        - name: monthly_transaction_id
+          in: path
+          required: true
+          schema: {$ref: '#/components/schemas/Identifier'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '422': {$ref: '#/components/responses/DeleteFailure'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/category/getCategoryList:
+    get:
+      tags: [Category]
+      operationId: getCategoryList
+      summary: List master categories
+      security: [BearerAuth: []]
+      responses:
+        '200':
+          description: Categories ordered by database `order_num`
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/CategoryListResponse'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/category/getCategoryWithSubCategoryList:
+    get:
+      tags: [Category]
+      operationId: getCategoryWithSubCategoryList
+      summary: List categories with master/user subcategories and visibility
+      security: [BearerAuth: []]
+      responses:
+        '200':
+          description: Category/subcategory visibility tree
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/CategoryWithSubcategoryResponse'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/subCategory/getSubCategoryList/{categoryId}:
+    get:
+      tags: [SubCategory]
+      operationId: getSubCategoryList
+      summary: List visible master/user subcategories for a category
+      security: [BearerAuth: []]
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema: {$ref: '#/components/schemas/Identifier'}
+      responses:
+        '200':
+          description: Visible subcategories
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/SubcategoryListResponse'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/subCategory/editSubCategory:
+    post:
+      tags: [SubCategory]
+      operationId: editSubCategory
+      summary: Hide or expose a subcategory for the authenticated user
+      description: "`is_enable=true` removes the hidden marker; `false` creates it."
+      security: [BearerAuth: []]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/EditSubcategoryRequest'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '422': {$ref: '#/components/responses/MutationFailure'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/payment/getPayment:
+    get:
+      tags: [Payment]
+      operationId: getPaymentResources
+      summary: List payment resources owned by the authenticated user
+      description: A database NULL/zero closing day is exposed as `31`; zero payment day is exposed as null.
+      security: [BearerAuth: []]
+      responses:
+        '200':
+          description: Payment resources
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/PaymentResourceListResponse'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/payment/addPayment:
+    post:
+      tags: [Payment]
+      operationId: addPaymentResource
+      summary: Add a payment resource
+      description: If `payment_type_id` is omitted/null, type `1` is forced and date fields are ignored.
+      security: [BearerAuth: []]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/PaymentWriteRequest'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '422': {$ref: '#/components/responses/StringMutationFailure'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/payment/editPayment:
+    patch:
+      tags: [Payment]
+      operationId: editPaymentResource
+      summary: Edit a payment resource owned by the authenticated user
+      description: If `payment_type_id` is omitted/null, type `1` is forced and date fields are cleared.
+      security: [BearerAuth: []]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/PaymentEditRequest'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '422': {$ref: '#/components/responses/StringMutationFailure'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/payment/deletePayment/{paymentId}:
+    delete:
+      tags: [Payment]
+      operationId: deletePaymentResource
+      summary: Delete a payment resource owned by the authenticated user
+      security: [BearerAuth: []]
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema: {$ref: '#/components/schemas/Identifier'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '422': {$ref: '#/components/responses/StringMutationFailure'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/payment/getPaymentType:
+    get:
+      tags: [Payment]
+      operationId: getPaymentTypes
+      summary: List payment type master data
+      security: [BearerAuth: []]
+      responses:
+        '200':
+          description: Payment types ordered by database `order_num`
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/PaymentTypeListResponse'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/job/daily:
+    post:
+      tags: [Job]
+      operationId: processDailyJob
+      summary: Materialize recurring transactions due today
+      description: |
+        Intended for Google Cloud Scheduler. On the last day of a month, all enabled recurring rows
+        whose configured day is greater than or equal to today are also materialized.
+      security: [BearerAuth: []]
+      parameters:
+        - name: User-Agent
+          in: header
+          required: true
+          schema: {type: string, const: Google-Cloud-Scheduler}
+        - name: X-CloudScheduler
+          in: header
+          required: true
+          schema: {type: string, const: 'true'}
+        - name: X-CloudScheduler-JobName
+          in: header
+          required: true
+          description: Must exactly equal the server's `JOB_NAME` environment variable.
+          schema: {type: string}
+        - name: X-CloudScheduler-ScheduleTime
+          in: header
+          required: true
+          description: Must be non-empty; the value is not parsed.
+          schema: {type: string}
+      requestBody:
+        required: false
+        content:
+          application/octet-stream:
+            schema: {type: string, format: binary}
+      responses:
+        '200':
+          description: Job completed, including the no-op case
+          content:
+            text/plain:
+              schema:
+                type: string
+                enum: ['Success Jobs', 'Today is Nothing, Success Jobs']
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+        '403':
+          description: One or more scheduler headers are invalid
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponse'}
+              example: {status: error, message: Invalid Request}
+        '422':
+          description: Database batch insert failed
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponse'}
+              example: {status: error, message: Failed to insert transaction}
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Firebase ID token
+      description: All business endpoints require a verified Google-provider Firebase ID token.
+  parameters:
+    V1StartDate:
+      name: start_date
+      in: query
+      required: true
+      description: Inclusive range start.
+      schema: {$ref: '#/components/schemas/DateString'}
+    V1EndDate:
+      name: end_date
+      in: query
+      required: true
+      description: Inclusive range end. The server does not expand it to month end.
+      schema: {$ref: '#/components/schemas/DateString'}
+    V1GroupBy:
+      name: group_by
+      in: query
+      required: false
+      schema: {type: string, enum: [day, week, month], default: month}
+    V1Compare:
+      name: compare
+      in: query
+      required: false
+      schema: {type: string, enum: [none, previous_period], default: none}
+    Month:
+      name: month
+      in: query
+      required: true
+      description: Date passed directly as the range start; callers should send the first day of a month (`YYYY-MM-01`).
+      schema: {$ref: '#/components/schemas/DateString'}
+    TransactionId:
+      name: transactionId
+      in: path
+      required: true
+      schema: {$ref: '#/components/schemas/Identifier'}
+  responses:
+    V1BadRequest:
+      description: Invalid JSON, path parameter, or analysis query
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/V1ErrorResponse'}
+    V1Unauthorized:
+      description: Missing, expired, invalid, or non-Google Firebase Bearer token
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/V1ErrorResponse'}
+    V1NotFound:
+      description: Resource does not exist or is not owned by this user
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/V1ErrorResponse'}
+    V1ValidationError:
+      description: Field validation failed
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/V1ErrorResponse'}
+    V1InternalError:
+      description: Unexpected database or server failure
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/V1ErrorResponse'}
+    Success:
+      description: Mutation completed (an update/delete affecting zero rows also returns this response)
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/SuccessResponse'}
+    AuthIdentityConflict:
+      description: Firebase UID and the legacy verified-email identity belong to different users
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/V1ErrorResponse'}
+    MutationFailure:
+      description: JSON binding, related subcategory creation, or database mutation failed
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - {$ref: '#/components/schemas/ErrorResponse'}
+              - {type: string, const: error}
+    StringMutationFailure:
+      description: JSON bind failure (`error`) or database mutation failure (localized plain JSON string)
+      content:
+        application/json:
+          schema: {type: string}
+    DeleteFailure:
+      description: Database delete failed
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ErrorResponse'}
+          example: {status: error, message: 削除に失敗しました}
+  schemas:
+    V1ErrorResponse:
+      type: object
+      additionalProperties: false
+      required: [status, code, message]
+      properties:
+        status: {type: string, const: error}
+        code: {type: string}
+        message: {type: string}
+        field_errors:
+          type: object
+          additionalProperties: {type: string}
+    V1NullableTime:
+      anyOf:
+        - {type: string, pattern: '^([01][0-9]|2[0-3]):[0-5][0-9]$', examples: ['12:30']}
+        - {type: 'null'}
+    V1TransactionInput:
+      type: object
+      additionalProperties: false
+      required: [transaction_date, transaction_name, amount, sign, category_id, sub_category_id, fixed_flg]
+      properties:
+        transaction_date: {$ref: '#/components/schemas/DateString'}
+        transaction_time: {$ref: '#/components/schemas/V1NullableTime'}
+        transaction_name: {type: string, minLength: 1, maxLength: 32}
+        amount: {type: integer, format: int64, minimum: 1, maximum: 9999999}
+        sign: {type: integer, enum: [-1, 1]}
+        category_id: {$ref: '#/components/schemas/Identifier'}
+        sub_category_id: {$ref: '#/components/schemas/Identifier'}
+        fixed_flg: {type: boolean}
+        payment_id: {$ref: '#/components/schemas/NullableIdentifier'}
+    V1TransactionRequest:
+      type: object
+      additionalProperties: false
+      required: [transaction]
+      properties:
+        transaction: {$ref: '#/components/schemas/V1TransactionInput'}
+    V1TransactionResource:
+      type: object
+      additionalProperties: false
+      required: [transaction_id, transaction_date, transaction_time, transaction_name, amount, sign, signed_amount, category_id, category_name, sub_category_id, sub_category_name, fixed_flg, payment_id, payment_name]
+      properties:
+        transaction_id: {$ref: '#/components/schemas/Identifier'}
+        transaction_date: {$ref: '#/components/schemas/DateString'}
+        transaction_time: {$ref: '#/components/schemas/V1NullableTime'}
+        transaction_name: {type: string, minLength: 1, maxLength: 32}
+        amount: {type: integer, format: int64, minimum: 1, maximum: 9999999}
+        sign: {type: integer, enum: [-1, 1]}
+        signed_amount: {type: integer, format: int64}
+        category_id: {$ref: '#/components/schemas/Identifier'}
+        category_name: {type: string}
+        sub_category_id: {$ref: '#/components/schemas/Identifier'}
+        sub_category_name: {type: string}
+        fixed_flg: {type: boolean}
+        payment_id: {$ref: '#/components/schemas/NullableIdentifier'}
+        payment_name: {type: [string, 'null']}
+    V1TransactionResponse:
+      type: object
+      additionalProperties: false
+      required: [transaction]
+      properties:
+        transaction: {$ref: '#/components/schemas/V1TransactionResource'}
+    V1TransactionUpdateResponse:
+      type: object
+      additionalProperties: false
+      required: [transaction, previous_transaction_date]
+      properties:
+        transaction: {$ref: '#/components/schemas/V1TransactionResource'}
+        previous_transaction_date: {$ref: '#/components/schemas/DateString'}
+    V1AnalysisRange:
+      type: object
+      additionalProperties: false
+      required: [start_date, end_date]
+      properties:
+        start_date: {$ref: '#/components/schemas/DateString'}
+        end_date: {$ref: '#/components/schemas/DateString'}
+    V1ExpenseSeriesItem:
+      type: object
+      additionalProperties: false
+      required: [bucket, expense_amount]
+      properties:
+        bucket: {$ref: '#/components/schemas/DateString'}
+        expense_amount: {type: integer, format: int64, minimum: 0}
+    V1AnalyticsTransactionResource:
+      $ref: '#/components/schemas/V1TransactionResource'
+    V1OverviewSummary:
+      type: object
+      additionalProperties: false
+      required: [expense_amount, income_amount, net_amount, fixed_expense_amount, variable_expense_amount, monthly_average_expense]
+      properties:
+        expense_amount: {type: integer, format: int64, minimum: 0}
+        income_amount: {type: integer, format: int64, minimum: 0}
+        net_amount: {type: integer, format: int64}
+        fixed_expense_amount: {type: integer, format: int64, minimum: 0}
+        variable_expense_amount: {type: integer, format: int64, minimum: 0}
+        monthly_average_expense: {type: integer, format: int64, minimum: 0}
+    V1OverviewSeriesItem:
+      type: object
+      additionalProperties: false
+      required: [bucket, expense_amount, income_amount, net_amount, fixed_expense_amount, variable_expense_amount]
+      properties:
+        bucket: {$ref: '#/components/schemas/DateString'}
+        expense_amount: {type: integer, format: int64, minimum: 0}
+        income_amount: {type: integer, format: int64, minimum: 0}
+        net_amount: {type: integer, format: int64}
+        fixed_expense_amount: {type: integer, format: int64, minimum: 0}
+        variable_expense_amount: {type: integer, format: int64, minimum: 0}
+    V1CategoryChange:
+      type: object
+      additionalProperties: false
+      required: [category_id, category_name, current_amount, comparison_amount, difference_amount, difference_rate]
+      properties:
+        category_id: {$ref: '#/components/schemas/Identifier'}
+        category_name: {type: string}
+        current_amount: {type: integer, format: int64, minimum: 0}
+        comparison_amount: {type: integer, format: int64, minimum: 0}
+        difference_amount: {type: integer, format: int64}
+        difference_rate: {type: [number, 'null'], format: double}
+    V1OverviewResponse:
+      type: object
+      additionalProperties: false
+      required: [range, summary, series, category_changes]
+      properties:
+        range: {$ref: '#/components/schemas/V1AnalysisRange'}
+        summary: {$ref: '#/components/schemas/V1OverviewSummary'}
+        series: {type: array, items: {$ref: '#/components/schemas/V1OverviewSeriesItem'}}
+        category_changes: {type: array, items: {$ref: '#/components/schemas/V1CategoryChange'}}
+    V1SubCategoryAnalysis:
+      type: object
+      additionalProperties: false
+      required: [sub_category_id, sub_category_name, expense_amount, ratio, series, transaction_list]
+      properties:
+        sub_category_id: {$ref: '#/components/schemas/Identifier'}
+        sub_category_name: {type: string}
+        expense_amount: {type: integer, format: int64, minimum: 0}
+        ratio: {type: number, format: double, minimum: 0, maximum: 100}
+        series: {type: array, items: {$ref: '#/components/schemas/V1ExpenseSeriesItem'}}
+        transaction_list: {type: array, items: {$ref: '#/components/schemas/V1AnalyticsTransactionResource'}}
+    V1CategoryAnalysis:
+      type: object
+      additionalProperties: false
+      required: [category_id, category_name, expense_amount, ratio, series, sub_category_list, transaction_list]
+      properties:
+        category_id: {$ref: '#/components/schemas/Identifier'}
+        category_name: {type: string}
+        expense_amount: {type: integer, format: int64, minimum: 0}
+        ratio: {type: number, format: double, minimum: 0, maximum: 100}
+        series: {type: array, items: {$ref: '#/components/schemas/V1ExpenseSeriesItem'}}
+        sub_category_list: {type: array, items: {$ref: '#/components/schemas/V1SubCategoryAnalysis'}}
+        transaction_list: {type: array, items: {$ref: '#/components/schemas/V1AnalyticsTransactionResource'}}
+    V1CategoriesResponse:
+      type: object
+      additionalProperties: false
+      required: [range, total_expense_amount, category_list]
+      properties:
+        range: {$ref: '#/components/schemas/V1AnalysisRange'}
+        total_expense_amount: {type: integer, format: int64, minimum: 0}
+        category_list: {type: array, items: {$ref: '#/components/schemas/V1CategoryAnalysis'}}
+    V1FixedSummary:
+      type: object
+      additionalProperties: false
+      required: [expense_amount, monthly_average, annualized_amount, total_expense_ratio, latest_bucket_amount, previous_bucket_amount, difference_amount, difference_rate]
+      properties:
+        expense_amount: {type: integer, format: int64, minimum: 0}
+        monthly_average: {type: integer, format: int64, minimum: 0}
+        annualized_amount: {type: integer, format: int64, minimum: 0}
+        total_expense_ratio: {type: number, format: double, minimum: 0, maximum: 100}
+        latest_bucket_amount: {type: integer, format: int64, minimum: 0}
+        previous_bucket_amount: {type: integer, format: int64, minimum: 0}
+        difference_amount: {type: integer, format: int64}
+        difference_rate: {type: [number, 'null'], format: double}
+    V1FixedCategory:
+      type: object
+      additionalProperties: false
+      required: [category_id, category_name, expense_amount, ratio, monthly_average, annualized_amount, series, transaction_list]
+      properties:
+        category_id: {$ref: '#/components/schemas/Identifier'}
+        category_name: {type: string}
+        expense_amount: {type: integer, format: int64, minimum: 0}
+        ratio: {type: number, format: double, minimum: 0, maximum: 100}
+        monthly_average: {type: integer, format: int64, minimum: 0}
+        annualized_amount: {type: integer, format: int64, minimum: 0}
+        series: {type: array, items: {$ref: '#/components/schemas/V1ExpenseSeriesItem'}}
+        transaction_list: {type: array, items: {$ref: '#/components/schemas/V1AnalyticsTransactionResource'}}
+    V1FixedResponse:
+      type: object
+      additionalProperties: false
+      required: [range, summary, series, category_list]
+      properties:
+        range: {$ref: '#/components/schemas/V1AnalysisRange'}
+        summary: {$ref: '#/components/schemas/V1FixedSummary'}
+        series: {type: array, items: {$ref: '#/components/schemas/V1ExpenseSeriesItem'}}
+        category_list: {type: array, items: {$ref: '#/components/schemas/V1FixedCategory'}}
+    V1PaymentAnalysis:
+      type: object
+      additionalProperties: false
+      required: [payment_id, payment_name, payment_type_id, payment_type_name, is_payment_due_later, expense_amount, ratio, transaction_count, average_amount, series, transaction_list]
+      properties:
+        payment_id: {$ref: '#/components/schemas/NullableIdentifier'}
+        payment_name: {type: string}
+        payment_type_id: {$ref: '#/components/schemas/NullableIdentifier'}
+        payment_type_name: {type: [string, 'null']}
+        is_payment_due_later: {type: [boolean, 'null']}
+        expense_amount: {type: integer, format: int64, minimum: 0}
+        ratio: {type: number, format: double, minimum: 0, maximum: 100}
+        transaction_count: {type: integer, minimum: 1}
+        average_amount: {type: integer, format: int64, minimum: 0}
+        series: {type: array, items: {$ref: '#/components/schemas/V1ExpenseSeriesItem'}}
+        transaction_list: {type: array, items: {$ref: '#/components/schemas/V1AnalyticsTransactionResource'}}
+    V1PaymentsResponse:
+      type: object
+      additionalProperties: false
+      required: [range, total_expense_amount, payment_list]
+      properties:
+        range: {$ref: '#/components/schemas/V1AnalysisRange'}
+        total_expense_amount: {type: integer, format: int64, minimum: 0}
+        payment_list: {type: array, items: {$ref: '#/components/schemas/V1PaymentAnalysis'}}
+    Identifier:
+      type: string
+      pattern: '^[0-9]+$'
+      description: Numeric database identifier serialized as a string.
+    DateString:
+      type: string
+      format: date
+      examples: ['2026-08-01']
+    NullableIdentifier:
+      anyOf:
+        - {$ref: '#/components/schemas/Identifier'}
+        - {type: 'null'}
+    SuccessResponse:
+      type: object
+      additionalProperties: false
+      required: [status]
+      properties:
+        status: {type: string, const: success}
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required: [status, message]
+      properties:
+        status: {type: string, const: error}
+        message: {type: string}
+    TransactionWrite:
+      type: object
+      description: Fields marked required are the intended/database-viable contract; runtime request-tag validation is disabled.
+      required: [transaction_date, transaction_amount, transaction_sign, transaction_name, category_id, fixed_flg]
+      properties:
+        transaction_date: {$ref: '#/components/schemas/DateString'}
+        transaction_amount:
+          type: integer
+          format: int64
+          minimum: 0
+          description: Magnitude; stored as `transaction_amount * transaction_sign`.
+        transaction_sign: {type: integer, enum: [-1, 1]}
+        transaction_name: {type: string, maxLength: 32}
+        category_id: {$ref: '#/components/schemas/Identifier'}
+        sub_category_id:
+          type: string
+          description: Numeric ID, or empty/omitted to find/create by `sub_category_name`.
+        sub_category_name: {type: string, maxLength: 16}
+        fixed_flg: {type: boolean}
+        payment_id:
+          type: string
+          description: Numeric ID, or empty/omitted for database NULL.
+    TransactionWriteEnvelope:
+      type: object
+      additionalProperties: false
+      required: [transaction]
+      properties:
+        transaction: {$ref: '#/components/schemas/TransactionWrite'}
+    TransactionListWriteRequest:
+      type: object
+      additionalProperties: false
+      required: [transaction_list]
+      properties:
+        transaction_list:
+          type: array
+          minItems: 1
+          items: {$ref: '#/components/schemas/TransactionWrite'}
+    TransactionEdit:
+      allOf:
+        - {$ref: '#/components/schemas/TransactionWrite'}
+        - type: object
+          required: [transaction_id]
+          properties:
+            transaction_id: {$ref: '#/components/schemas/Identifier'}
+    TransactionEditEnvelope:
+      type: object
+      additionalProperties: false
+      required: [transaction]
+      properties:
+        transaction: {$ref: '#/components/schemas/TransactionEdit'}
+    TimelineResponse:
+      type: object
+      additionalProperties: false
+      required: [transaction_list]
+      properties:
+        transaction_list:
+          type: array
+          items: {$ref: '#/components/schemas/TimelineTransaction'}
+    TimelineTransaction:
+      type: object
+      additionalProperties: false
+      required: [transaction_id, transaction_name, transaction_amount, transaction_sign, transaction_date, category_id, category_name, sub_category_id, sub_category_name, fixed_flg, payment_id, payment_name]
+      properties:
+        transaction_id: {$ref: '#/components/schemas/Identifier'}
+        transaction_name: {type: string}
+        transaction_amount: {type: integer, format: int64, minimum: 0}
+        transaction_sign: {type: integer, enum: [-1, 1]}
+        transaction_date: {$ref: '#/components/schemas/DateString'}
+        category_id: {$ref: '#/components/schemas/Identifier'}
+        category_name: {type: string}
+        sub_category_id: {$ref: '#/components/schemas/Identifier'}
+        sub_category_name: {type: string}
+        fixed_flg: {type: boolean}
+        payment_id: {$ref: '#/components/schemas/NullableIdentifier'}
+        payment_name: {type: [string, 'null']}
+    MonthlySpendingResponse:
+      type: object
+      required: [monthly_total_amount_list]
+      properties:
+        monthly_total_amount_list:
+          type: array
+          items:
+            type: object
+            required: [total_amount, month]
+            properties:
+              total_amount: {type: integer, format: int64, description: Expense sum; normally zero or negative.}
+              month: {$ref: '#/components/schemas/DateString'}
+    TransactionDetailResponse:
+      type: object
+      required: [transaction]
+      properties:
+        transaction:
+          type: object
+          required: [transaction_date, transaction_name, transaction_amount, category_id, category_name, sub_category_id, sub_category_name, fixed_flg]
+          properties:
+            transaction_date: {$ref: '#/components/schemas/DateString'}
+            transaction_name: {type: string}
+            transaction_amount: {type: integer, format: int64, description: Signed stored amount.}
+            category_id: {$ref: '#/components/schemas/Identifier'}
+            category_name: {type: string}
+            sub_category_id: {$ref: '#/components/schemas/Identifier'}
+            sub_category_name: {type: string}
+            fixed_flg: {type: boolean}
+    MonthlyFixedResponse:
+      type: object
+      required: [disposable_income, monthly_fixed_list]
+      properties:
+        disposable_income: {type: integer, format: int64, description: Sum of the category totals.}
+        monthly_fixed_list:
+          type: array
+          items:
+            type: object
+            required: [category_id, category_name, total_category_amount, transaction_list]
+            properties:
+              category_id: {$ref: '#/components/schemas/Identifier'}
+              category_name: {type: string}
+              total_category_amount: {type: integer, format: int64}
+              transaction_list:
+                type: array
+                items: {$ref: '#/components/schemas/GroupedTransaction'}
+    GroupedTransaction:
+      type: object
+      required: [transaction_id, transaction_name, transaction_amount, transaction_date, sub_category_id, sub_category_name, fixed_flg, payment_id, payment_name]
+      properties:
+        transaction_id: {$ref: '#/components/schemas/Identifier'}
+        transaction_name: {type: string}
+        transaction_amount: {type: integer, format: int64}
+        transaction_date: {$ref: '#/components/schemas/DateString'}
+        sub_category_id: {$ref: '#/components/schemas/Identifier'}
+        sub_category_name: {type: string}
+        fixed_flg: {type: boolean}
+        payment_id: {$ref: '#/components/schemas/NullableIdentifier'}
+        payment_name: {type: [string, 'null']}
+    HomeResponse:
+      type: object
+      required: [balance, category_list]
+      properties:
+        balance: {type: integer, format: int64, description: Sum of expense category totals; normally non-positive.}
+        category_list:
+          type: array
+          items:
+            type: object
+            required: [category_name, category_total_amount, sub_category_list]
+            properties:
+              category_name: {type: string}
+              category_total_amount: {type: integer, format: int64}
+              sub_category_list:
+                type: array
+                items:
+                  type: object
+                  required: [sub_category_name, sub_category_total_amount]
+                  properties:
+                    sub_category_name: {type: string}
+                    sub_category_total_amount: {type: integer, format: int64}
+    MonthlyVariableResponse:
+      type: object
+      required: [total_variable, monthly_variable_list]
+      properties:
+        total_variable: {type: integer, format: int64}
+        monthly_variable_list:
+          type: array
+          items:
+            type: object
+            required: [category_id, category_name, category_total_amount, sub_category_list]
+            properties:
+              category_id: {$ref: '#/components/schemas/Identifier'}
+              category_name: {type: string}
+              category_total_amount: {type: integer, format: int64}
+              sub_category_list:
+                type: array
+                items:
+                  type: object
+                  required: [sub_category_id, sub_category_name, sub_category_total_amount, transaction_list]
+                  properties:
+                    sub_category_id: {$ref: '#/components/schemas/Identifier'}
+                    sub_category_name: {type: string}
+                    sub_category_total_amount: {type: integer, format: int64}
+                    transaction_list:
+                      type: array
+                      items:
+                        type: object
+                        required: [transaction_id, transaction_name, transaction_amount, transaction_date, payment_id, payment_name]
+                        properties:
+                          transaction_id: {$ref: '#/components/schemas/Identifier'}
+                          transaction_name: {type: string}
+                          transaction_amount: {type: integer, format: int64}
+                          transaction_date: {$ref: '#/components/schemas/DateString'}
+                          payment_id: {$ref: '#/components/schemas/NullableIdentifier'}
+                          payment_name: {type: [string, 'null']}
+    TotalSpendingResponse:
+      type: object
+      required: [total_spending, category_total_list]
+      properties:
+        total_spending: {type: integer, format: int64}
+        category_total_list:
+          type: array
+          items:
+            type: object
+            required: [category_name, category_total_amount, sub_category_list]
+            properties:
+              category_name: {type: string}
+              category_total_amount: {type: integer, format: int64}
+              sub_category_list:
+                type: array
+                items:
+                  type: object
+                  required: [sub_category_id, sub_category_name, sub_category_total_amount, transaction_list]
+                  properties:
+                    sub_category_id: {$ref: '#/components/schemas/Identifier'}
+                    sub_category_name: {type: string}
+                    sub_category_total_amount: {type: integer, format: int64}
+                    transaction_list:
+                      type: array
+                      items:
+                        type: object
+                        required: [transaction_id, transaction_name, transaction_amount]
+                        properties:
+                          transaction_id: {$ref: '#/components/schemas/Identifier'}
+                          transaction_name: {type: string}
+                          transaction_amount: {type: integer, format: int64}
+    PaymentGroupResponse:
+      type: object
+      required: [total_spending, last_month_total_spending, month_over_month_sum, payment_list]
+      properties:
+        total_spending: {type: integer, format: int64}
+        last_month_total_spending: {type: integer, format: int64}
+        month_over_month_sum: {type: [number, 'null'], format: double}
+        payment_list:
+          type: array
+          items:
+            type: object
+            required: [payment_id, payment_name, payment_amount, payment_type_id, payment_type_name, is_payment_due_later, last_month_sum, month_over_month, transaction_list]
+            properties:
+              payment_id: {$ref: '#/components/schemas/NullableIdentifier'}
+              payment_name: {type: string, description: Empty payment name is rewritten to `未分類`.}
+              payment_amount: {type: integer, format: int64}
+              payment_type_id: {$ref: '#/components/schemas/NullableIdentifier'}
+              payment_type_name: {type: string}
+              is_payment_due_later: {type: boolean}
+              last_month_sum: {type: [integer, 'null'], format: int64}
+              month_over_month: {type: [number, 'null'], format: double}
+              transaction_list:
+                type: array
+                items:
+                  type: object
+                  required: [transaction_id, transaction_name, transaction_amount, transaction_date, category_id, category_name, sub_category_id, sub_category_name, fixed_flg]
+                  properties:
+                    transaction_id: {$ref: '#/components/schemas/Identifier'}
+                    transaction_name: {type: string}
+                    transaction_amount: {type: integer, format: int64}
+                    transaction_date: {$ref: '#/components/schemas/DateString'}
+                    category_id: {$ref: '#/components/schemas/Identifier'}
+                    category_name: {type: string}
+                    sub_category_id: {$ref: '#/components/schemas/Identifier'}
+                    sub_category_name: {type: string}
+                    fixed_flg: {type: boolean}
+    WithdrawalResponse:
+      type: object
+      required: [withdrawal_list]
+      properties:
+        withdrawal_list:
+          type: array
+          items:
+            type: object
+            required: [payment_id, payment_name, payment_date, aggregation_start_date, aggregation_end_date, withdrawal_amount]
+            properties:
+              payment_id: {$ref: '#/components/schemas/Identifier'}
+              payment_name: {type: string}
+              payment_date: {type: integer}
+              aggregation_start_date: {$ref: '#/components/schemas/DateString'}
+              aggregation_end_date: {$ref: '#/components/schemas/DateString'}
+              withdrawal_amount: {type: integer, format: int64}
+    FrequentTransactionResponse:
+      type: object
+      required: [transaction_list]
+      properties:
+        transaction_list:
+          type: array
+          items:
+            type: object
+            required: [transaction_name, category_id, sub_category_id, fixed_flg, payment_id, category_name, sub_category_name]
+            properties:
+              transaction_name: {type: string}
+              category_id: {$ref: '#/components/schemas/Identifier'}
+              sub_category_id: {$ref: '#/components/schemas/Identifier'}
+              fixed_flg: {type: boolean}
+              payment_id: {$ref: '#/components/schemas/NullableIdentifier'}
+              category_name: {type: string}
+              sub_category_name: {type: string}
+    FixedWrite:
+      type: object
+      required: [monthly_transaction_name, monthly_transaction_amount, monthly_transaction_sign, monthly_transaction_date, category_id]
+      properties:
+        monthly_transaction_name: {type: string, maxLength: 32}
+        monthly_transaction_amount: {type: integer, format: int64, minimum: 0}
+        monthly_transaction_sign: {type: integer, enum: [-1, 1]}
+        monthly_transaction_date: {type: integer, description: Day of month; database has no CHECK constraint.}
+        category_id: {$ref: '#/components/schemas/Identifier'}
+        sub_category_id: {type: string, description: Numeric ID, or empty/omitted to create by name.}
+        sub_category_name: {type: string, maxLength: 16}
+        payment_id: {type: string, description: Numeric ID, or empty/omitted for database NULL.}
+    FixedWriteEnvelope:
+      type: object
+      additionalProperties: false
+      required: [monthly_transaction]
+      properties:
+        monthly_transaction: {$ref: '#/components/schemas/FixedWrite'}
+    FixedEdit:
+      allOf:
+        - {$ref: '#/components/schemas/FixedWrite'}
+        - type: object
+          required: [monthly_transaction_id, include_flg]
+          properties:
+            monthly_transaction_id: {$ref: '#/components/schemas/Identifier'}
+            include_flg: {type: boolean}
+    FixedEditEnvelope:
+      type: object
+      additionalProperties: false
+      required: [monthly_transaction]
+      properties:
+        monthly_transaction: {$ref: '#/components/schemas/FixedEdit'}
+    FixedListResponse:
+      type: object
+      required: [monthly_transaction_list]
+      properties:
+        monthly_transaction_list:
+          type: array
+          items:
+            type: object
+            required: [monthly_transaction_id, monthly_transaction_name, monthly_transaction_amount, monthly_transaction_sign, monthly_transaction_date, category_id, category_name, sub_category_id, sub_category_name, payment_id]
+            properties:
+              monthly_transaction_id: {$ref: '#/components/schemas/Identifier'}
+              monthly_transaction_name: {type: string}
+              monthly_transaction_amount: {type: integer, format: int64, minimum: 0}
+              monthly_transaction_sign: {type: integer, enum: [-1, 1]}
+              monthly_transaction_date: {type: integer}
+              category_id: {$ref: '#/components/schemas/Identifier'}
+              category_name: {type: string}
+              sub_category_id: {$ref: '#/components/schemas/Identifier'}
+              sub_category_name: {type: string}
+              payment_id: {$ref: '#/components/schemas/NullableIdentifier'}
+    DeletedFixed:
+      type: object
+      required: [monthly_transaction_id, monthly_transaction_name, monthly_transaction_amount, monthly_transaction_date, category_name, sub_category_name]
+      properties:
+        monthly_transaction_id: {$ref: '#/components/schemas/Identifier'}
+        monthly_transaction_name: {type: string}
+        monthly_transaction_amount: {type: integer, format: int64, minimum: 0}
+        monthly_transaction_date: {type: integer}
+        category_name: {type: string}
+        sub_category_name: {type: string}
+    Category:
+      type: object
+      required: [category_id, category_name]
+      properties:
+        category_id: {$ref: '#/components/schemas/Identifier'}
+        category_name: {type: string}
+    Subcategory:
+      type: object
+      required: [sub_category_id, sub_category_name]
+      properties:
+        sub_category_id: {$ref: '#/components/schemas/Identifier'}
+        sub_category_name: {type: string}
+    CategoryListResponse:
+      type: object
+      required: [category_list]
+      properties:
+        category_list:
+          type: [array, 'null']
+          items: {$ref: '#/components/schemas/Category'}
+    CategoryWithSubcategoryResponse:
+      type: object
+      required: [category_list]
+      properties:
+        category_list:
+          type: [array, 'null']
+          items:
+            allOf:
+              - {$ref: '#/components/schemas/Category'}
+              - type: object
+                required: [sub_category_list]
+                properties:
+                  sub_category_list:
+                    type: array
+                    items:
+                      allOf:
+                        - {$ref: '#/components/schemas/Subcategory'}
+                        - type: object
+                          required: [enable]
+                          properties:
+                            enable: {type: boolean}
+    SubcategoryListResponse:
+      type: object
+      required: [sub_category_list]
+      properties:
+        sub_category_list:
+          type: [array, 'null']
+          items: {$ref: '#/components/schemas/Subcategory'}
+    EditSubcategoryRequest:
+      type: object
+      additionalProperties: false
+      required: [sub_category_id, is_enable]
+      description: Runtime request-tag validation is disabled; omitted `is_enable` binds as false.
+      properties:
+        sub_category_id: {$ref: '#/components/schemas/Identifier'}
+        is_enable: {type: boolean}
+    PaymentWriteRequest:
+      type: object
+      required: [payment_name]
+      properties:
+        payment_name: {type: string, maxLength: 32}
+        payment_type_id:
+          anyOf:
+            - {$ref: '#/components/schemas/Identifier'}
+            - {type: 'null'}
+        payment_date: {type: [integer, 'null'], description: Intended day of month; no database CHECK constraint.}
+        closing_date: {type: [integer, 'null'], description: Intended day of month; no database CHECK constraint.}
+    PaymentEditRequest:
+      allOf:
+        - {$ref: '#/components/schemas/PaymentWriteRequest'}
+        - type: object
+          required: [payment_id]
+          properties:
+            payment_id: {$ref: '#/components/schemas/Identifier'}
+    PaymentResourceListResponse:
+      type: object
+      required: [payment_list]
+      properties:
+        payment_list:
+          type: array
+          items:
+            type: object
+            required: [payment_id, payment_name, payment_type_id, payment_date, closing_date]
+            properties:
+              payment_id: {$ref: '#/components/schemas/Identifier'}
+              payment_name: {type: string}
+              payment_type_id: {$ref: '#/components/schemas/Identifier'}
+              payment_date: {type: [integer, 'null']}
+              closing_date: {type: integer, description: Returned as 31 when the database value is null/zero.}
+    PaymentTypeListResponse:
+      type: object
+      required: [payment_type_list]
+      properties:
+        payment_type_list:
+          type: array
+          items:
+            type: object
+            required: [payment_type_id, payment_type_name, is_payment_due_later]
+            properties:
+              payment_type_id: {$ref: '#/components/schemas/Identifier'}
+              payment_type_name: {type: string}
+              is_payment_due_later: {type: boolean}
