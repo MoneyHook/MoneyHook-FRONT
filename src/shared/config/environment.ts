@@ -5,6 +5,19 @@ const optionalUrl = z.preprocess(
   z.string().url().optional(),
 )
 
+const optionalBoolean = z.preprocess(
+  (value) => {
+    if (value === undefined || value === '') {
+      return undefined
+    }
+    if (typeof value === 'string') {
+      return value.trim().toLowerCase()
+    }
+    return value
+  },
+  z.enum(['true', 'false']).transform((value) => value === 'true').optional(),
+)
+
 const environmentSchema = z.object({
   VITE_API_BASE_URL: z.string().url().transform((value) => value.replace(/\/$/, '')),
   VITE_FIREBASE_API_KEY: z.string().min(1),
@@ -14,6 +27,7 @@ const environmentSchema = z.object({
   VITE_FIREBASE_STORAGE_BUCKET: z.string().optional(),
   VITE_FIREBASE_MESSAGING_SENDER_ID: z.string().optional(),
   VITE_FIREBASE_AUTH_EMULATOR_URL: optionalUrl,
+  VITE_FIREBASE_DEV_USER_ENABLED: optionalBoolean,
 })
 
 export type Environment = {
@@ -26,6 +40,7 @@ export type Environment = {
     storageBucket?: string
     messagingSenderId?: string
     authEmulatorUrl?: string
+    devUserEnabled: boolean
   }
 }
 
@@ -65,6 +80,7 @@ export function getEnvironment(): Environment {
       storageBucket: result.data.VITE_FIREBASE_STORAGE_BUCKET,
       messagingSenderId: result.data.VITE_FIREBASE_MESSAGING_SENDER_ID,
       authEmulatorUrl: result.data.VITE_FIREBASE_AUTH_EMULATOR_URL,
+      devUserEnabled: result.data.VITE_FIREBASE_DEV_USER_ENABLED ?? false,
     },
   }
 
