@@ -23,7 +23,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu'
-import { Separator } from '@/shared/components/ui/separator'
 import { cn } from '@/shared/lib/utils'
 import {
   Sidebar,
@@ -38,6 +37,7 @@ import {
   SidebarProvider,
   SidebarRail,
   SidebarTrigger,
+  useSidebar,
 } from '@/shared/components/ui/sidebar'
 
 type NavigationItem = {
@@ -190,17 +190,31 @@ function MobileNavigation({ pathname }: { pathname: string }) {
   )
 }
 
+function FloatingControls() {
+  const { state } = useSidebar()
+  const triggerPosition =
+    state === 'expanded'
+      ? 'md:left-[calc(var(--sidebar-width)+0.75rem)]'
+      : 'md:left-[calc(var(--sidebar-width-icon)+0.75rem)]'
+
+  return (
+    <div className="pointer-events-none fixed inset-0 z-40">
+      <SidebarTrigger
+        aria-label="サイドバーを切り替える"
+        className={cn(
+          'pointer-events-auto fixed top-4 hidden rounded-full bg-surface-elevated shadow-sm ring-1 ring-border transition-[left,background-color] duration-200 hover:bg-muted md:inline-flex',
+          triggerPosition,
+        )}
+      />
+      <div className="pointer-events-auto fixed top-4 right-4 rounded-full bg-surface-elevated shadow-sm ring-1 ring-border">
+        <UserMenu />
+      </div>
+    </div>
+  )
+}
+
 export function AppShell() {
   const location = useLocation()
-  const isHome = location.pathname === '/app/home'
-  const isTransactions = isNavigationItemActive(
-    location.pathname,
-    '/app/transactions',
-  )
-  const currentNavigation =
-    navigationItems.find((item) =>
-      isNavigationItemActive(location.pathname, item.path),
-    ) ?? navigationItems[0]
 
   return (
     <SidebarProvider>
@@ -211,27 +225,9 @@ export function AppShell() {
         本文へ移動
       </a>
 
+      <FloatingControls />
       <DesktopSidebar pathname={location.pathname} />
       <SidebarInset id="main-content" tabIndex={-1}>
-        <header
-          className={cn(
-            'sticky top-0 z-20 h-16 items-center border-b bg-background/92 px-4 backdrop-blur md:flex md:px-6',
-            isHome ? 'hidden' : isTransactions ? 'hidden md:flex' : 'flex',
-          )}
-        >
-          <div className="flex min-w-0 items-center gap-2">
-            <SidebarTrigger className="hidden md:inline-flex" />
-            <Separator className="hidden h-5 md:block" orientation="vertical" />
-            <Brand className="md:hidden" />
-            <p className="hidden truncate text-sm font-medium md:block">
-              {currentNavigation.label}
-            </p>
-          </div>
-          <div className="ml-auto flex items-center gap-1">
-            <UserMenu />
-          </div>
-        </header>
-
         <Outlet />
         <MobileNavigation pathname={location.pathname} />
       </SidebarInset>
