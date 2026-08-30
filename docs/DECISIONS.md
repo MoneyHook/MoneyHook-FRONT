@@ -38,3 +38,4 @@
 | すべての色をsemantic color token経由で利用する | light/dark themeと状態表現の意味を一貫させるため |
 | 生の色値はtheme token定義だけに置く | コンポーネントごとの色指定とtheme不整合を防ぐため |
 | 色だけで状態や収支を区別しない | アクセシビリティと判別性を保つため |
+| グラフ描画にはRechartsを使用する | Reactとの親和性が高く、shadcn/uiのChartと既存のsemantic chart tokenを利用できるため |

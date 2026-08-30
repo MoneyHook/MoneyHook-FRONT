@@ -11,6 +11,7 @@
 | Validation | Zod |
 | Authentication | Firebase Authentication |
 | Components / CSS | shadcn/ui、Radix UI、Tailwind CSS |
+| Chart | Recharts |
 | Theme / notification | next-themes、Sonner |
 | API generation | OpenAPI、Orval |
 | Test | Vitest、React Testing Library、MSW、Playwright |
