@@ -4,13 +4,9 @@ import {
   Check,
   House,
   LogOut,
-  Monitor,
-  Moon,
   Settings,
-  Sun,
   type LucideIcon,
 } from 'lucide-react'
-import { useTheme } from 'next-themes'
 import { useMemo } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -24,8 +20,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu'
@@ -61,42 +55,6 @@ const navigationItems: NavigationItem[] = [
 
 function isNavigationItemActive(pathname: string, itemPath: string) {
   return pathname === itemPath || pathname.startsWith(`${itemPath}/`)
-}
-
-function ThemeMenu() {
-  const { setTheme, theme = 'system' } = useTheme()
-  const themeOptions = [
-    { value: 'light', label: 'ライト', icon: Sun },
-    { value: 'dark', label: 'ダーク', icon: Moon },
-    { value: 'system', label: 'システム', icon: Monitor },
-  ] as const
-
-  const SelectedIcon =
-    themeOptions.find((option) => option.value === theme)?.icon ?? Monitor
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button aria-label="表示テーマを変更" size="icon" variant="ghost">
-          <SelectedIcon aria-hidden="true" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-44">
-        <DropdownMenuLabel>表示テーマ</DropdownMenuLabel>
-        <DropdownMenuRadioGroup onValueChange={setTheme} value={theme}>
-          {themeOptions.map((option) => {
-            const Icon = option.icon
-            return (
-              <DropdownMenuRadioItem key={option.value} value={option.value}>
-                <Icon aria-hidden="true" />
-                {option.label}
-              </DropdownMenuRadioItem>
-            )
-          })}
-        </DropdownMenuRadioGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  )
 }
 
 function UserMenu() {
@@ -270,7 +228,6 @@ export function AppShell() {
             </p>
           </div>
           <div className="ml-auto flex items-center gap-1">
-            <ThemeMenu />
             <UserMenu />
           </div>
         </header>
