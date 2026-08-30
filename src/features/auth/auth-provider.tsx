@@ -11,16 +11,24 @@ import { FirebaseError } from 'firebase/app'
 import {
   GoogleAuthProvider,
   onIdTokenChanged,
+  signInWithCredential,
   signInWithPopup,
   signOut as firebaseSignOut,
   type User,
 } from 'firebase/auth'
 
-import { EnvironmentConfigurationError } from '@/shared/config/environment'
+import { EnvironmentConfigurationError, getEnvironment } from '@/shared/config/environment'
 import { getFirebaseAuth } from '@/shared/lib/firebase'
 
 import { AuthContext } from './auth-context'
 import type { AuthContextValue, AuthUser } from './model/auth'
+
+const developmentGoogleIdToken = JSON.stringify({
+  sub: 'a77a6e94-6aa2-47ea-87dd-129f580fb669',
+  email: 'developer@example.com',
+  email_verified: true,
+  name: '開発ユーザー',
+})
 
 function toAuthUser(user: User): AuthUser {
   return {
@@ -111,7 +119,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState({ status: 'initializing', user: null, error: null })
 
     try {
-      await signInWithPopup(getFirebaseAuth(), new GoogleAuthProvider())
+      const auth = getFirebaseAuth()
+      if (getEnvironment().firebase.devUserEnabled) {
+        await signInWithCredential(
+          auth,
+          GoogleAuthProvider.credential(developmentGoogleIdToken),
+        )
+      } else {
+        await signInWithPopup(auth, new GoogleAuthProvider())
+      }
     } catch (error) {
       let hasCurrentUser: boolean
       try {
