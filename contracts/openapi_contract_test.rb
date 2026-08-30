@@ -12,7 +12,9 @@ class OpenApiContractTest < Minitest::Test
     "/api/v1/analytics/overview" => %w[get],
     "/api/v1/analytics/categories" => %w[get],
     "/api/v1/analytics/fixed" => %w[get],
-    "/api/v1/analytics/payments" => %w[get]
+    "/api/v1/analytics/payments" => %w[get],
+    "/api/v1/budget" => %w[get put],
+    "/api/v1/settings" => %w[get patch]
   }.freeze
 
   def setup
@@ -41,7 +43,7 @@ class OpenApiContractTest < Minitest::Test
     end
 
     assert_equal V1_OPERATIONS, actual
-    assert_equal 8, actual.values.sum(&:length)
+    assert_equal 12, actual.values.sum(&:length)
   end
 
   def test_v1_operations_require_bearer_auth_and_declare_common_errors
