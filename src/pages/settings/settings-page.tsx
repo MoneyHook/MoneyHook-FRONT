@@ -1,6 +1,10 @@
-import { Check, Monitor, Moon, Settings, Sun } from 'lucide-react'
+import { Check, LogOut, Monitor, Moon, Settings, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
+import { useMemo } from 'react'
+import { toast } from 'sonner'
 
+import { useAuth } from '@/features/auth'
+import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar'
 import { Button } from '@/shared/components/ui/button'
 import {
   DropdownMenu,
@@ -111,6 +115,63 @@ function AccentColorPicker() {
   )
 }
 
+function AccountSettings() {
+  const { user, signOut } = useAuth()
+  const initial = useMemo(() => {
+    const source = user?.displayName?.trim() || user?.email?.trim() || 'M'
+    return source.slice(0, 1).toUpperCase()
+  }, [user])
+
+  const handleSignOut = () => {
+    void signOut().catch(() => {
+      toast.error('ログアウトできませんでした。もう一度お試しください。')
+    })
+  }
+
+  return (
+    <section
+      aria-labelledby="account-settings-title"
+      className="max-w-5xl rounded-2xl border bg-card p-5 sm:p-6"
+    >
+      <header className="space-y-1 border-b pb-5">
+        <h2 id="account-settings-title" className="text-lg font-semibold">
+          アカウント
+        </h2>
+        <p className="text-sm leading-6 text-muted-foreground">
+          ログイン中のアカウント情報を確認できます。
+        </p>
+      </header>
+      <div className="flex flex-col gap-5 pt-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
+          <Avatar size="lg">
+            {user?.photoURL ? (
+              <AvatarImage alt="" referrerPolicy="no-referrer" src={user.photoURL} />
+            ) : null}
+            <AvatarFallback>{initial}</AvatarFallback>
+          </Avatar>
+          <div className="min-w-0 space-y-0.5">
+            <p className="truncate font-medium">
+              {user?.displayName || 'MoneyHooksユーザー'}
+            </p>
+            {user?.email ? (
+              <p className="truncate text-sm text-muted-foreground">{user.email}</p>
+            ) : null}
+          </div>
+        </div>
+        <Button
+          className="w-full sm:w-auto"
+          onClick={handleSignOut}
+          type="button"
+          variant="destructive"
+        >
+          <LogOut aria-hidden="true" />
+          ログアウト
+        </Button>
+      </div>
+    </section>
+  )
+}
+
 export function SettingsPage() {
   return (
     <section
@@ -129,12 +190,13 @@ export function SettingsPage() {
             設定
           </h1>
           <p className="max-w-2xl text-sm leading-6 text-muted-foreground md:text-base">
-            MoneyHooksの表示と入力に関する設定を管理する画面です。
+            MoneyHooksのアカウントと表示に関する設定を管理する画面です。
           </p>
         </div>
       </header>
 
-      <div className="py-8 md:py-10">
+      <div className="space-y-6 py-8 md:py-10">
+        <AccountSettings />
         <section
           aria-labelledby="appearance-settings-title"
           className="max-w-5xl rounded-2xl border bg-card p-5 sm:p-6"
