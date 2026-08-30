@@ -1,16 +1,27 @@
-import { WalletCards } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 import { cn } from '@/shared/lib/utils'
 
 export function Brand({ className }: { className?: string }) {
   return (
-    <span className={cn('inline-flex items-center gap-2.5', className)}>
-      <span className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-        <WalletCards aria-hidden="true" className="size-4.5" />
-      </span>
+    <Link
+      aria-label="MoneyHooksのホームへ"
+      className={cn(
+        'inline-flex min-w-0 items-center gap-2.5 rounded-lg outline-none transition-opacity hover:opacity-80 focus-visible:ring-3 focus-visible:ring-ring/50',
+        className,
+      )}
+      to="/"
+    >
+      <img
+        alt=""
+        className="size-9 shrink-0 object-contain"
+        height="36"
+        src="/home-icon.svg"
+        width="36"
+      />
       <span className="text-[0.95rem] font-semibold tracking-[-0.025em]">
         MoneyHooks
       </span>
-    </span>
+    </Link>
   )
 }
