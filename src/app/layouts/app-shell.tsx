@@ -14,7 +14,6 @@ import { toast } from 'sonner'
 import { useAuth } from '@/features/auth'
 import { Brand } from '@/shared/components/brand'
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar'
-import { Button } from '@/shared/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,6 +26,7 @@ import { cn } from '@/shared/lib/utils'
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarHeader,
@@ -57,7 +57,7 @@ function isNavigationItemActive(pathname: string, itemPath: string) {
   return pathname === itemPath || pathname.startsWith(`${itemPath}/`)
 }
 
-function UserMenu() {
+function SidebarAccountMenu() {
   const { user, signOut } = useAuth()
   const initial = useMemo(() => {
     const source = user?.displayName?.trim() || user?.email?.trim() || 'M'
@@ -73,21 +73,25 @@ function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
+        <SidebarMenuButton
           aria-label="アカウントメニューを開く"
-          className="rounded-full"
-          size="icon"
-          variant="ghost"
+          className="h-12 group-data-[collapsible=icon]:justify-center"
+          size="lg"
         >
-          <Avatar size="sm">
+          <Avatar>
             {user?.photoURL ? (
               <AvatarImage alt="" referrerPolicy="no-referrer" src={user.photoURL} />
             ) : null}
             <AvatarFallback>{initial}</AvatarFallback>
           </Avatar>
-        </Button>
+          <span className="min-w-0 group-data-[collapsible=icon]:hidden">
+            <span className="block truncate font-medium">
+              {user?.displayName || 'MoneyHooksユーザー'}
+            </span>
+          </span>
+        </SidebarMenuButton>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-64">
+      <DropdownMenuContent align="end">
         <DropdownMenuLabel className="space-y-1">
           <span className="block truncate font-medium">
             {user?.displayName || 'MoneyHooksユーザー'}
@@ -149,6 +153,13 @@ function DesktopSidebar({ pathname }: { pathname: string }) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarAccountMenu />
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   )
@@ -202,13 +213,10 @@ function FloatingControls() {
       <SidebarTrigger
         aria-label="サイドバーを切り替える"
         className={cn(
-          'pointer-events-auto fixed top-4 hidden rounded-full bg-surface-elevated shadow-sm ring-1 ring-border transition-[left,background-color] duration-200 hover:bg-muted md:inline-flex',
+          'pointer-events-auto fixed top-4 hidden rounded-full shadow-sm transition-[left,background-color] duration-200 hover:bg-muted md:inline-flex',
           triggerPosition,
         )}
       />
-      <div className="pointer-events-auto fixed top-4 right-4 rounded-full bg-surface-elevated shadow-sm ring-1 ring-border">
-        <UserMenu />
-      </div>
     </div>
   )
 }

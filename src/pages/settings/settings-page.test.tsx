@@ -1,7 +1,28 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AccentProvider } from '@/shared/hooks/accent-provider'
+
+const authState = vi.hoisted(() => ({
+  user: {
+    displayName: 'MoneyHooksユーザー',
+    email: 'user@example.com',
+    photoURL: null,
+  },
+  signOut: vi.fn(),
+}))
+
+const toastError = vi.hoisted(() => vi.fn())
+
+vi.mock('@/features/auth', () => ({
+  useAuth: () => authState,
+}))
+
+vi.mock('sonner', () => ({
+  toast: {
+    error: toastError,
+  },
+}))
 
 import { SettingsPage } from './settings-page'
 
@@ -10,6 +31,43 @@ describe('SettingsPage', () => {
     localStorage.clear()
     document.documentElement.className = ''
     delete document.documentElement.dataset.accent
+    authState.signOut.mockReset()
+    authState.signOut.mockResolvedValue(undefined)
+    toastError.mockReset()
+  })
+
+  it('shows the signed-in account and supports logging out', () => {
+    render(
+      <AccentProvider>
+        <SettingsPage />
+      </AccentProvider>,
+    )
+
+    expect(screen.getByRole('heading', { name: 'アカウント' })).toBeInTheDocument()
+    expect(screen.getByText('MoneyHooksユーザー')).toBeInTheDocument()
+    expect(screen.getByText('user@example.com')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'ログアウト' }))
+
+    expect(authState.signOut).toHaveBeenCalledOnce()
+  })
+
+  it('shows an error toast when logging out fails', async () => {
+    authState.signOut.mockRejectedValueOnce(new Error('sign out failed'))
+
+    render(
+      <AccentProvider>
+        <SettingsPage />
+      </AccentProvider>,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'ログアウト' }))
+
+    await waitFor(() => {
+      expect(toastError).toHaveBeenCalledWith(
+        'ログアウトできませんでした。もう一度お試しください。',
+      )
+    })
   })
 
   it('provides the display theme menu on the settings page', () => {

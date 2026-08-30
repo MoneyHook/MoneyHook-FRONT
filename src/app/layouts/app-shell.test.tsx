@@ -57,16 +57,35 @@ function getFloatingSidebarTrigger() {
 describe('AppShell', () => {
   beforeEach(() => {
     setViewportWidth(1024)
+    authState.signOut.mockReset()
+    authState.signOut.mockResolvedValue(undefined)
   })
 
-  it('renders floating controls without the shared app header', () => {
+  it('renders the sidebar account menu without the shared app header', () => {
     renderAppShell()
 
     expect(screen.queryByRole('banner')).not.toBeInTheDocument()
     expect(getFloatingSidebarTrigger()).toBeInTheDocument()
-    expect(
+    const accountMenuButton = screen.getByRole('button', {
+      name: 'アカウントメニューを開く',
+    })
+    expect(accountMenuButton).toHaveTextContent('MoneyHooksユーザー')
+    expect(accountMenuButton.closest('[data-slot="sidebar-footer"]')).not.toBeNull()
+  })
+
+  it('opens the sidebar account menu and signs out from its action', async () => {
+    const user = userEvent.setup()
+    renderAppShell()
+
+    await user.click(
       screen.getByRole('button', { name: 'アカウントメニューを開く' }),
-    ).toBeInTheDocument()
+    )
+
+    expect(screen.getByText('user@example.com')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('menuitem', { name: 'ログアウト' }))
+
+    expect(authState.signOut).toHaveBeenCalledOnce()
   })
 
   it('toggles the desktop sidebar from the floating trigger', async () => {
@@ -89,13 +108,13 @@ describe('AppShell', () => {
     )
   })
 
-  it('keeps the user menu and bottom navigation on mobile', () => {
+  it('removes the floating account menu and keeps bottom navigation on mobile', () => {
     setViewportWidth(768)
     renderAppShell()
 
     expect(
-      screen.getByRole('button', { name: 'アカウントメニューを開く' }),
-    ).toBeInTheDocument()
+      screen.queryByRole('button', { name: 'アカウントメニューを開く' }),
+    ).not.toBeInTheDocument()
     expect(
       screen.getByRole('navigation', { name: 'メインナビゲーション' }),
     ).toBeInTheDocument()
