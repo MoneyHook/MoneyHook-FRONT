@@ -30,6 +30,7 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu'
 import { Separator } from '@/shared/components/ui/separator'
+import { cn } from '@/shared/lib/utils'
 import {
   Sidebar,
   SidebarContent,
@@ -233,6 +234,11 @@ function MobileNavigation({ pathname }: { pathname: string }) {
 
 export function AppShell() {
   const location = useLocation()
+  const isHome = location.pathname === '/app/home'
+  const isTransactions = isNavigationItemActive(
+    location.pathname,
+    '/app/transactions',
+  )
   const currentNavigation =
     navigationItems.find((item) =>
       isNavigationItemActive(location.pathname, item.path),
@@ -249,7 +255,12 @@ export function AppShell() {
 
       <DesktopSidebar pathname={location.pathname} />
       <SidebarInset id="main-content" tabIndex={-1}>
-        <header className="sticky top-0 z-20 flex h-16 items-center border-b bg-background/92 px-4 backdrop-blur md:px-6">
+        <header
+          className={cn(
+            'sticky top-0 z-20 h-16 items-center border-b bg-background/92 px-4 backdrop-blur md:flex md:px-6',
+            isHome ? 'hidden' : isTransactions ? 'hidden md:flex' : 'flex',
+          )}
+        >
           <div className="flex min-w-0 items-center gap-2">
             <SidebarTrigger className="hidden md:inline-flex" />
             <Separator className="hidden h-5 md:block" orientation="vertical" />
