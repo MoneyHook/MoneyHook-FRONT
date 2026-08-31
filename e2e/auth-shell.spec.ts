@@ -98,6 +98,20 @@ test('protects app routes and restores a deep link after login', async ({ page }
   ).toBeVisible()
   await page.reload()
   await expect(page.getByRole('heading', { name: '固定費サマリー' })).toBeVisible()
+  await page.getByRole('link', { name: '支払い方法', exact: true }).click()
+  await expect(
+    page.getByRole('heading', { name: '支払い方法サマリー' }),
+  ).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: '支払い方法別の支出推移' }),
+  ).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: '支払い方法の詳細' }),
+  ).toBeVisible()
+  await page.reload()
+  await expect(
+    page.getByRole('heading', { name: '支払い方法サマリー' }),
+  ).toBeVisible()
   await page.getByRole('link', { name: '概要', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'サマリー' })).toBeVisible()
 
@@ -147,6 +161,21 @@ test('keeps the analysis width stable at 1024px', async ({ page }) => {
   expect(layout.mainRight).toBeLessThanOrEqual(layout.viewportWidth)
   expect(layout.tableScrollWidth).toBeGreaterThan(layout.tableClientWidth)
   expect(layout.tableOverflowX).toBe('auto')
+
+  await page.getByRole('link', { name: '支払い方法', exact: true }).click()
+  await expect(
+    page.getByRole('heading', { name: '支払い方法サマリー' }),
+  ).toBeVisible()
+  const paymentTabWidths = await analysisTabs.evaluateAll((elements) =>
+    elements.map((element) => element.getBoundingClientRect().width),
+  )
+  const paymentLayout = await page.evaluate(() => ({
+    documentWidth: document.documentElement.scrollWidth,
+    viewportWidth: window.innerWidth,
+  }))
+
+  expect(paymentTabWidths).toEqual(overviewTabWidths)
+  expect(paymentLayout.documentWidth).toBe(paymentLayout.viewportWidth)
 
   await page.getByRole('button', { name: 'サイドバーを切り替える' }).last().click()
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(

@@ -167,3 +167,73 @@ final result: passed
 - Accepted deviation: live seeded values and category names replace mock data from the source.
 
 fixed result: passed
+
+---
+
+# Analysis Payment Methods Design QA
+
+## Evidence
+
+- Source visual truth: `/Users/yusukematsumoto/source/moneyhooks-react/images/analytics/ChatGPT Image 2026年8月28日 22_45_02.png`
+- Mobile implementation, full page: `/Users/yusukematsumoto/source/moneyhooks-react/images/analytics/implementation-analysis-payments-mobile.png`
+- Mobile implementation, viewport: `/Users/yusukematsumoto/source/moneyhooks-react/images/analytics/implementation-analysis-payments-mobile-viewport.png`
+- Intermediate implementation: `/Users/yusukematsumoto/source/moneyhooks-react/images/analytics/implementation-analysis-payments-1024.png`
+- Desktop implementation: `/Users/yusukematsumoto/source/moneyhooks-react/images/analytics/implementation-analysis-payments-desktop.png`
+- Dark-theme implementation: `/Users/yusukematsumoto/source/moneyhooks-react/images/analytics/implementation-analysis-payments-dark.png`
+- State: authenticated local development user, exact six-month API range ending August 2026, all payment methods collapsed, real API sample data.
+- Browser: Codex in-app browser at `http://localhost:3000/app/analysis?view=payments`, backed by the real Go API and Firebase Auth emulator.
+
+## Viewport and normalization
+
+- Source: 853 × 1844 px, treated as an approximately 2× mobile reference and normalized to 426 × 922 CSS px.
+- Mobile: 426 × 923 CSS px at device scale 1. The viewport capture is 426 × 923 px and the full-page capture is 426 × 1251 px; `scrollWidth === innerWidth === 426`.
+- Intermediate desktop: 1024 × 900 CSS px; full-page capture 1024 × 1542 px. All four analysis tabs remain 176 px wide and the document remains exactly 1024 px wide.
+- Desktop: 1440 × 900 CSS px; full-page capture 1440 × 1542 px. Dark theme is 1440 × 1543 px.
+- The source compresses the full dashboard into one phone image. The implementation scrolls vertically so chart labels, detail rows, and minimum interaction targets remain readable.
+
+## Full-view comparison
+
+- The source and final 426 px implementation were opened together in the same comparison input at their native pixel dimensions.
+- Information order matches: analysis header and four tabs, period, payment-method donut and legend, detail CTA, monthly multi-series trend and legend, payment-method details, and app navigation.
+- Neutral surfaces, subtle borders and shadows, red/blue/green ranked series, red expense totals, compact type badges, donut center total, and row chevrons match the source direction.
+- The implementation retains the app-owned responsive sidebar/bottom navigation and omits the generated device status bar and home indicator.
+
+## Focused comparison
+
+- Summary: total-expense center label, ranked payment methods, method icons, amounts, ratios, and the detail anchor were checked at 426, 1024, and 1440 px.
+- Trend: six exact monthly buckets, dashed horizontal grid, one line per real payment method, dynamic y-axis, accessible tooltip, and wrapping legend were checked in light and dark themes.
+- Details: payment name, type, transaction count, amount, average amount, chevron state, and divider rhythm were checked against the source structure. Expanded rows use the API-provided transactions without changing the default collapsed visual.
+
+## Required fidelity surfaces
+
+- Fonts and typography: the existing Geist/Japanese system stack, tabular numerals, weights, line heights, and compact labels remain consistent with the other analysis tabs and readable at 426 px.
+- Spacing and layout rhythm: card gaps, radii, divider spacing, chart margins, mobile navigation clearance, and desktop max width are consistent. No tested viewport has horizontal overflow.
+- Colors and tokens: all payment icons, chart series, expense values, surfaces, and states use existing semantic tokens in light and dark themes.
+- Image quality and asset fidelity: the source contains charts and payment icons rather than photographic assets. Recharts and the installed Lucide icon family are used; there are no raster placeholders, custom SVGs, CSS drawings, or generated brand-logo approximations.
+- Copy and content: source section names and data labels are preserved. Real payment names, totals, ratios, counts, and averages replace mock values.
+
+## Interaction and browser checks
+
+- Clicking a payment row writes `payment=<id>` to the URL, expands exactly five latest transactions, can expand to all 42 seeded transactions, and collapses back to the canonical URL.
+- The summary CTA writes `#payment-details` and scrolls to the detail section. Invalid payment parameters normalize to no selection in component coverage.
+- Empty, loading, API failure, and retry states are covered with MSW.
+- Browser console warnings and errors: none.
+- Authenticated E2E: 5 passed, including payment-tab navigation, reload restoration, real API rendering, and 1024 px width stability.
+
+## Comparison history
+
+1. The first normalized 426 px comparison found no actionable P0/P1/P2 visual differences. The production page is taller than the compressed mock, but preserves the same section hierarchy, readable labels, and interaction targets without overflow.
+2. The same implementation was checked at 1024 and 1440 px and in dark theme. No responsive, contrast, clipping, or token regression was found, so no visual fix iteration was required.
+
+## Findings
+
+- No actionable P0, P1, or P2 findings remain.
+- Accepted deviation: real seeded data contains three payment methods instead of the mock's six and therefore drives the number, order, proportions, and chart scale.
+- Accepted deviation: generic type icons represent card, cash, and QR payment methods; branded logos are intentionally not introduced.
+- Accepted deviation: the existing fixed six-month range and saved application accent remain authoritative instead of introducing the mock's period picker or hard-coded green accent.
+
+## Follow-up polish
+
+- P3: a future product-wide payment metadata contract could provide persistent brand-safe icons and colors instead of rank-based presentation.
+
+final result: passed

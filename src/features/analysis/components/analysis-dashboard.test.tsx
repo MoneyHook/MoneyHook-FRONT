@@ -181,6 +181,14 @@ function registerHandlers({ empty = false, failOnce = false } = {}) {
       requests.push(request.url)
       return HttpResponse.json(fixed(empty))
     }),
+    http.get('http://api.test/api/v1/analytics/payments', ({ request }) => {
+      requests.push(request.url)
+      return HttpResponse.json({
+        range: { start_date: '2026-03-01', end_date: '2026-08-31' },
+        total_expense_amount: 0,
+        payment_list: [],
+      })
+    }),
   )
   return requests
 }
@@ -239,6 +247,12 @@ describe('AnalysisDashboard', () => {
     expect(screen.getByTestId('location')).toHaveTextContent('month=2026-08-01')
     expect(requests).toHaveLength(2)
     expect(requests[1]).toContain('/api/v1/analytics/fixed')
+
+    await user.click(screen.getByRole('link', { name: '支払い方法' }))
+    expect(await screen.findByText('この期間の支出はありません')).toBeVisible()
+    expect(screen.getByTestId('location')).toHaveTextContent('view=payments')
+    expect(requests).toHaveLength(3)
+    expect(requests[2]).toContain('/api/v1/analytics/payments')
   })
 
   it('normalizes an unknown view and shows the overview', async () => {
