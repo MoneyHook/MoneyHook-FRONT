@@ -9,6 +9,7 @@ import { Skeleton } from '@/shared/components/ui/skeleton'
 
 import { useBudgetSettings } from '../api/use-budget-settings'
 import { validateBudgetAmount } from '../model/budget-settings'
+import { SettingsSection } from './settings-section'
 
 const saveErrorMessage = '予算を保存できませんでした。もう一度お試しください。'
 
@@ -52,28 +53,16 @@ export function BudgetSettings() {
   }
 
   return (
-    <section
-      aria-labelledby="budget-settings-title"
-      className="max-w-5xl rounded-2xl border bg-card p-5 sm:p-6"
+    <SettingsSection
+      description="毎月の支出上限を設定できます。設定は今月から適用されます。"
+      icon={WalletCards}
+      title="予算"
+      titleId="budget-settings-title"
     >
-      <header className="flex items-start justify-between gap-4 border-b pb-5">
-        <div className="space-y-1">
-          <h2 id="budget-settings-title" className="text-lg font-semibold">
-            予算
-          </h2>
-          <p className="text-sm leading-6 text-muted-foreground">
-            毎月の支出上限を設定できます。設定は今月から適用されます。
-          </p>
-        </div>
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-foreground">
-          <WalletCards aria-hidden="true" className="size-5" />
-        </span>
-      </header>
-
       {budgetQuery.isPending ? (
         <div
           aria-label="予算設定を読み込んでいます"
-          className="space-y-3 pt-5"
+          className="space-y-3"
           role="status"
         >
           <Skeleton className="h-4 w-24" />
@@ -83,7 +72,7 @@ export function BudgetSettings() {
       ) : null}
 
       {budgetQuery.isError ? (
-        <div className="space-y-4 pt-5">
+        <div className="space-y-4">
           <Alert variant="destructive">
             <AlertCircle aria-hidden="true" />
             <AlertTitle>予算設定を読み込めません</AlertTitle>
@@ -93,14 +82,19 @@ export function BudgetSettings() {
                 : '予算設定を取得できませんでした。'}
             </AlertDescription>
           </Alert>
-          <Button onClick={() => void budgetQuery.refetch()} type="button" variant="outline">
+          <Button
+            onClick={() => void budgetQuery.refetch()}
+            size="lg"
+            type="button"
+            variant="outline"
+          >
             もう一度試す
           </Button>
         </div>
       ) : null}
 
       {!budgetQuery.isPending && !budgetQuery.isError ? (
-        <form className="space-y-5 pt-5" noValidate onSubmit={(event) => void handleSubmit(event)}>
+        <form className="space-y-5" noValidate onSubmit={(event) => void handleSubmit(event)}>
           <div className="max-w-md space-y-2">
             <label className="text-sm font-medium" htmlFor="monthly-budget-amount">
               月額予算
@@ -137,7 +131,7 @@ export function BudgetSettings() {
               </p>
             ) : null}
           </div>
-          <Button disabled={saveMutation.isPending} type="submit">
+          <Button disabled={saveMutation.isPending} size="lg" type="submit">
             {saveMutation.isPending ? (
               <LoaderCircle aria-hidden="true" className="animate-spin" />
             ) : null}
@@ -145,6 +139,6 @@ export function BudgetSettings() {
           </Button>
         </form>
       ) : null}
-    </section>
+    </SettingsSection>
   )
 }
