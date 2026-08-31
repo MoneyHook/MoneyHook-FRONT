@@ -18,7 +18,7 @@ import {
   useGetFrequentTransactionNames,
 } from '@/shared/api/generated/transaction/transaction'
 import { useGetCategoryWithSubCategoryList } from '@/shared/api/generated/category/category'
-import { useGetPaymentResources } from '@/shared/api/generated/payment/payment'
+import { useGetPaymentResources, useGetPaymentTypes } from '@/shared/api/generated/payment/payment'
 import { ErrorState } from '@/shared/components/app-state'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
@@ -31,6 +31,7 @@ import {
 } from '@/shared/components/ui/sheet'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { getCategoryPresentation } from '@/shared/lib/category-presentation'
+import { getPaymentIconSource } from '@/shared/lib/payment-icon'
 import { cn } from '@/shared/lib/utils'
 
 import {
@@ -71,6 +72,26 @@ function CategoryIcon({ name }: { name: string }) {
   )
 }
 
+function PaymentIcon({
+  paymentName,
+  paymentTypeName,
+  sizeClassName,
+}: {
+  paymentName: string
+  paymentTypeName?: string | null
+  sizeClassName: string
+}) {
+  const iconSource = getPaymentIconSource({ paymentName, paymentTypeName })
+
+  return iconSource ? (
+    <img alt="" className={cn('shrink-0 rounded-full', sizeClassName)} height="44" src={iconSource} width="44" />
+  ) : (
+    <span className={cn('flex shrink-0 items-center justify-center rounded-full bg-chart-2/12 text-chart-2', sizeClassName)}>
+      <CreditCard aria-hidden="true" className="size-5" />
+    </span>
+  )
+}
+
 function SheetOption({
   children,
   isSelected,
@@ -101,6 +122,7 @@ export function NewTransactionView() {
   const queryClient = useQueryClient()
   const categoriesQuery = useGetCategoryWithSubCategoryList()
   const paymentsQuery = useGetPaymentResources()
+  const paymentTypesQuery = useGetPaymentTypes()
   const frequentTransactionsQuery = useGetFrequentTransactionNames()
   const createMutation = useCreateV1Transaction()
   const [form, setForm] = useState<NewTransactionFormValues>(() => createNewTransactionValues())
@@ -111,6 +133,14 @@ export function NewTransactionView() {
     categoriesQuery.data?.status === 200 ? categoriesQuery.data.data.category_list ?? [] : []
   const payments =
     paymentsQuery.data?.status === 200 ? paymentsQuery.data.data.payment_list : []
+  const paymentTypeNames = useMemo(
+    () => new Map(
+      paymentTypesQuery.data?.status === 200
+        ? paymentTypesQuery.data.data.payment_type_list.map((type) => [type.payment_type_id, type.payment_type_name])
+        : [],
+    ),
+    [paymentTypesQuery.data],
+  )
   const selectedCategory = categories.find((category) => category.category_id === form.categoryId)
   const enabledSubcategories = (selectedCategory?.sub_category_list ?? []).filter(
     (subcategory) => subcategory.enable,
@@ -381,7 +411,7 @@ export function NewTransactionView() {
           >
             <span className="font-medium">支払い方法</span>
             <span className="ml-auto flex min-w-0 items-center gap-3">
-              {selectedPayment ? <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-chart-2/12 text-chart-2"><CreditCard aria-hidden="true" className="size-5" /></span> : null}
+              {selectedPayment ? <PaymentIcon paymentName={selectedPayment.payment_name} paymentTypeName={paymentTypeNames.get(selectedPayment.payment_type_id)} sizeClassName="size-11" /> : null}
               <span className={cn('truncate text-lg font-medium', !selectedPayment && 'text-muted-foreground')}>
                 {paymentsQuery.isError ? '取得できませんでした' : selectedPayment?.payment_name ?? '選択しない'}
               </span>
@@ -444,7 +474,7 @@ export function NewTransactionView() {
             <SheetOption isSelected={form.paymentId === null} onClick={() => { setValue('paymentId', null); setSelectionSheet(null) }}><span className="font-medium">選択しない</span></SheetOption>
             {payments.map((payment) => (
               <SheetOption isSelected={form.paymentId === payment.payment_id} key={payment.payment_id} onClick={() => { setValue('paymentId', payment.payment_id); setSelectionSheet(null) }}>
-                <span className="flex size-10 items-center justify-center rounded-full bg-chart-2/12 text-chart-2"><CreditCard aria-hidden="true" className="size-5" /></span><span className="font-medium">{payment.payment_name}</span>
+                <PaymentIcon paymentName={payment.payment_name} paymentTypeName={paymentTypeNames.get(payment.payment_type_id)} sizeClassName="size-10" /><span className="font-medium">{payment.payment_name}</span>
               </SheetOption>
             ))}
           </div>

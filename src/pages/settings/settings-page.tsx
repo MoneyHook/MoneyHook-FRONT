@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 import { toast } from 'sonner'
 
 import { useAuth } from '@/features/auth'
-import { BudgetSettings, SettingsSection } from '@/features/settings'
+import { BudgetSettings, PaymentSettings, SettingsSection } from '@/features/settings'
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar'
 import { Button } from '@/shared/components/ui/button'
 import {
@@ -194,6 +194,7 @@ export function SettingsPage() {
       <div className="space-y-6 py-8 md:py-10">
         <AccountSettings />
         <BudgetSettings />
+        <PaymentSettings />
         <SettingsSection
           action={<ThemeMenu />}
           description="テーマとアクセントカラーはこのブラウザに保存されます。"

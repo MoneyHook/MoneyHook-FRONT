@@ -7,7 +7,6 @@ import {
   MoreHorizontal,
   QrCode,
   WalletCards,
-  type LucideIcon,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
@@ -26,6 +25,7 @@ import {
 
 import { ErrorState } from '@/shared/components/app-state'
 import { Skeleton } from '@/shared/components/ui/skeleton'
+import { getPaymentIconSource } from '@/shared/lib/payment-icon'
 import { cn } from '@/shared/lib/utils'
 
 import { useAnalysisPayments } from '../api/use-analysis-payments'
@@ -50,12 +50,6 @@ const paymentIconClasses = [
   'bg-chart-5/12 text-chart-5',
   'bg-muted text-muted-foreground',
 ]
-
-const paymentTypeIcons: Record<string, LucideIcon> = {
-  カード: CreditCard,
-  現金: Banknote,
-  QRペイ: QrCode,
-}
 
 function AnalysisPanel({
   children,
@@ -98,10 +92,31 @@ function PaymentIcon({
   index: number
   size?: 'default' | 'large'
 }) {
+  const iconSource = payment.id === 'unclassified'
+    ? null
+    : getPaymentIconSource({ paymentName: payment.name, paymentTypeName: payment.typeName })
   const Icon =
     payment.id === 'unclassified'
       ? MoreHorizontal
-      : paymentTypeIcons[payment.typeName ?? ''] ?? WalletCards
+      : payment.typeName === 'カード'
+        ? CreditCard
+        : payment.typeName === '現金'
+          ? Banknote
+          : payment.typeName === 'QRペイ'
+            ? QrCode
+            : WalletCards
+
+  if (iconSource) {
+    return (
+      <img
+        alt=""
+        className={cn('shrink-0 rounded-full', size === 'large' ? 'size-10 sm:size-12' : 'size-8')}
+        height={size === 'large' ? 48 : 32}
+        src={iconSource}
+        width={size === 'large' ? 48 : 32}
+      />
+    )
+  }
 
   return (
     <span

@@ -186,6 +186,7 @@ describe('AnalysisPaymentsContent', () => {
     expect(
       screen.getByRole('heading', { name: '支払い方法の詳細' }),
     ).toBeVisible()
+    expect(document.querySelector('img[src="/payment-icons/card_rakuten.svg"]')).not.toBeNull()
     expect(screen.getByRole('link', { name: '支払い方法の取引一覧を見る' })).toHaveAttribute(
       'href',
       '#payment-details',

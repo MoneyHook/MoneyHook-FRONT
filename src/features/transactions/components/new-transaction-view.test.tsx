@@ -42,7 +42,14 @@ function registerHandlers({ createStatus = 201 } = {}) {
     http.get('http://api.test/api/payment/getPayment', () =>
       HttpResponse.json({
         payment_list: [
-          { payment_id: '30', payment_name: '楽天カード', payment_type_id: '1', payment_date: 27, closing_date: 31 },
+          { payment_id: '30', payment_name: '楽天カード', payment_type_id: '2', payment_date: 27, closing_date: 31 },
+        ],
+      }),
+    ),
+    http.get('http://api.test/api/payment/getPaymentType', () =>
+      HttpResponse.json({
+        payment_type_list: [
+          { payment_type_id: '2', payment_type_name: 'カード', is_payment_due_later: true },
         ],
       }),
     ),
@@ -152,6 +159,15 @@ describe('NewTransactionView', () => {
       })
       expect(screen.getByTestId('location')).toHaveTextContent('/app/transactions?month=2026-08-01&view=list')
     })
+  })
+
+  it('shows the resolved payment icon in the selection sheet', async () => {
+    registerHandlers()
+    renderNewTransaction()
+
+    fireEvent.click(await screen.findByRole('button', { name: '支払い方法選択しない' }))
+
+    await waitFor(() => expect(document.querySelector('img[src="/payment-icons/card_rakuten.svg"]')).not.toBeNull())
   })
 
   it('keeps entered values when saving fails', async () => {
