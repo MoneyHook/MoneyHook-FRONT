@@ -142,7 +142,8 @@ describe('TransactionsView', () => {
     renderTransactions('/app/transactions?month=2024-08-01&view=calendar&date=2024-08-28')
     await screen.findByText('2024年8月28日（水）')
 
-    fireEvent.change(screen.getByLabelText('対象月'), { target: { value: '2024-07' } })
+    fireEvent.click(screen.getByRole('button', { name: '対象月' }))
+    fireEvent.click(screen.getByRole('button', { name: '2024年7月' }))
 
     await waitFor(() => {
       expect(screen.getByTestId('location')).toHaveTextContent(

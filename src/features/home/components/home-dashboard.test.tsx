@@ -186,12 +186,13 @@ describe('HomeDashboard', () => {
     expect(screen.getByRole('button', { name: '通知（未対応）' })).toBeDisabled()
   })
 
-  it('updates the month URL through the month input', async () => {
+  it('updates the month URL through the month picker', async () => {
     registerHandlers()
     renderDashboard()
     await screen.findByText('¥184,320')
 
-    fireEvent.change(screen.getByLabelText('対象月'), { target: { value: '2026-07' } })
+    fireEvent.click(screen.getByRole('button', { name: '対象月' }))
+    fireEvent.click(screen.getByRole('button', { name: '2026年7月' }))
 
     await waitFor(() => {
       expect(screen.getByTestId('location')).toHaveTextContent('?month=2026-07-01')
