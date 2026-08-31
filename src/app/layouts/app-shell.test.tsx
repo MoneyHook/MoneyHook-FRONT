@@ -66,6 +66,9 @@ describe('AppShell', () => {
 
     expect(screen.queryByRole('banner')).not.toBeInTheDocument()
     expect(getFloatingSidebarTrigger()).toBeInTheDocument()
+    expect(document.querySelector('[data-slot="sidebar-inset"]')).toHaveClass(
+      'min-w-0',
+    )
     const accountMenuButton = screen.getByRole('button', {
       name: 'アカウントメニューを開く',
     })
