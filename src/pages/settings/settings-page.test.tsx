@@ -140,6 +140,14 @@ describe('SettingsPage', () => {
     expect(authState.signOut).toHaveBeenCalledOnce()
   })
 
+  it('exposes each settings card as a labelled region', () => {
+    renderSettingsPage()
+
+    expect(screen.getByRole('region', { name: 'アカウント' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: '予算' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: '表示' })).toBeInTheDocument()
+  })
+
   it('shows an error toast when logging out fails', async () => {
     authState.signOut.mockRejectedValueOnce(new Error('sign out failed'))
 

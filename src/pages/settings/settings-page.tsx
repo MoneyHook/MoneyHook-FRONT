@@ -1,10 +1,10 @@
-import { Check, LogOut, Monitor, Moon, Settings, Sun } from 'lucide-react'
+import { Check, CircleUserRound, LogOut, Monitor, Moon, Settings, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useMemo } from 'react'
 import { toast } from 'sonner'
 
 import { useAuth } from '@/features/auth'
-import { BudgetSettings } from '@/features/settings'
+import { BudgetSettings, SettingsSection } from '@/features/settings'
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar'
 import { Button } from '@/shared/components/ui/button'
 import {
@@ -46,7 +46,7 @@ function ThemeMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button aria-label="表示テーマを変更" size="icon" variant="outline">
+        <Button aria-label="表示テーマを変更" size="icon-lg" variant="outline">
           <SelectedIcon aria-hidden="true" />
         </Button>
       </DropdownMenuTrigger>
@@ -72,14 +72,14 @@ function AccentColorPicker() {
   const { accent, setAccent } = useAccent()
 
   return (
-    <fieldset className="space-y-3 pt-6">
+    <fieldset className="space-y-3">
       <legend className="text-sm font-medium">アクセントカラー</legend>
       <p className="text-sm leading-6 text-muted-foreground">
         ボタンや選択状態など、主要なUIのアクセント色を選択できます。
       </p>
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         {accentOptions.map((option) => (
-          <label key={option.value} className="group relative block">
+          <label key={option.value} className="group relative block h-full">
             <input
               checked={accent === option.value}
               className="peer sr-only"
@@ -88,7 +88,7 @@ function AccentColorPicker() {
               type="radio"
               value={option.value}
             />
-            <span className="flex min-h-18 cursor-pointer items-center gap-3 rounded-xl border bg-background px-3 py-3 transition-colors hover:bg-muted peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50 peer-checked:border-primary peer-checked:bg-accent">
+            <span className="flex h-20 cursor-pointer items-center gap-3 rounded-xl border border-border bg-background px-3 py-3 transition-colors hover:bg-muted peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50 peer-checked:border-primary peer-checked:bg-accent">
               <span
                 aria-hidden="true"
                 className="size-5 shrink-0 rounded-full border border-foreground/15 shadow-sm"
@@ -96,8 +96,8 @@ function AccentColorPicker() {
                   backgroundColor: `var(--accent-swatch-${option.value})`,
                 }}
               />
-              <span className="min-w-0">
-                <span className="block text-sm font-medium">{option.label}</span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-medium">{option.label}</span>
                 <span className="block truncate text-xs text-muted-foreground">
                   {option.description}
                 </span>
@@ -130,19 +130,13 @@ function AccountSettings() {
   }
 
   return (
-    <section
-      aria-labelledby="account-settings-title"
-      className="max-w-5xl rounded-2xl border bg-card p-5 sm:p-6"
+    <SettingsSection
+      description="ログイン中のアカウント情報を確認できます。"
+      icon={CircleUserRound}
+      title="アカウント"
+      titleId="account-settings-title"
     >
-      <header className="space-y-1 border-b pb-5">
-        <h2 id="account-settings-title" className="text-lg font-semibold">
-          アカウント
-        </h2>
-        <p className="text-sm leading-6 text-muted-foreground">
-          ログイン中のアカウント情報を確認できます。
-        </p>
-      </header>
-      <div className="flex flex-col gap-5 pt-5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-3">
           <Avatar size="lg">
             {user?.photoURL ? (
@@ -162,6 +156,7 @@ function AccountSettings() {
         <Button
           className="w-full sm:w-auto"
           onClick={handleSignOut}
+          size="lg"
           type="button"
           variant="destructive"
         >
@@ -169,7 +164,7 @@ function AccountSettings() {
           ログアウト
         </Button>
       </div>
-    </section>
+    </SettingsSection>
   )
 }
 
@@ -199,23 +194,15 @@ export function SettingsPage() {
       <div className="space-y-6 py-8 md:py-10">
         <AccountSettings />
         <BudgetSettings />
-        <section
-          aria-labelledby="appearance-settings-title"
-          className="max-w-5xl rounded-2xl border bg-card p-5 sm:p-6"
+        <SettingsSection
+          action={<ThemeMenu />}
+          description="テーマとアクセントカラーはこのブラウザに保存されます。"
+          icon={Monitor}
+          title="表示"
+          titleId="appearance-settings-title"
         >
-          <header className="flex items-start justify-between gap-4 border-b pb-5">
-            <div className="space-y-1">
-              <h2 id="appearance-settings-title" className="text-lg font-semibold">
-                表示
-              </h2>
-              <p className="text-sm leading-6 text-muted-foreground">
-                テーマとアクセントカラーはこのブラウザに保存されます。
-              </p>
-            </div>
-            <ThemeMenu />
-          </header>
           <AccentColorPicker />
-        </section>
+        </SettingsSection>
       </div>
     </section>
   )
