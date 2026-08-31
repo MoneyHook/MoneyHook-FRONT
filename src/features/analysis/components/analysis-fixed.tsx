@@ -5,15 +5,7 @@ import {
   CalendarDays,
   ChevronDown,
   ChevronRight,
-  House,
-  Lightbulb,
-  MoreHorizontal,
-  ShieldCheck,
-  Smartphone,
-  Tags,
-  Ticket,
   WalletCards,
-  type LucideIcon,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
@@ -43,6 +35,7 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu'
 import { Skeleton } from '@/shared/components/ui/skeleton'
+import { getCategoryPresentation } from '@/shared/lib/category-presentation'
 import { cn } from '@/shared/lib/utils'
 
 import { useAnalysisFixed } from '../api/use-analysis-fixed'
@@ -62,28 +55,6 @@ import {
   formatPercent,
   formatSignedCurrency,
 } from '../model/analysis-overview'
-
-type CategoryPresentation = {
-  icon: LucideIcon
-  className: string
-}
-
-const defaultPresentation: CategoryPresentation = {
-  icon: Tags,
-  className: 'bg-muted text-muted-foreground',
-}
-
-const categoryPresentations: Record<string, CategoryPresentation> = {
-  住居: { icon: House, className: 'bg-success/12 text-success' },
-  住宅: { icon: House, className: 'bg-success/12 text-success' },
-  通信: { icon: Smartphone, className: 'bg-chart-2/12 text-chart-2' },
-  通信費: { icon: Smartphone, className: 'bg-chart-2/12 text-chart-2' },
-  サブスク: { icon: Ticket, className: 'bg-chart-5/12 text-chart-5' },
-  保険: { icon: ShieldCheck, className: 'bg-chart-4/12 text-chart-4' },
-  光熱費: { icon: Lightbulb, className: 'bg-warning/12 text-warning' },
-  水道光熱費: { icon: Lightbulb, className: 'bg-warning/12 text-warning' },
-  その他: { icon: MoreHorizontal, className: 'bg-muted text-muted-foreground' },
-}
 
 function AnalysisPanel({
   children,
@@ -118,13 +89,13 @@ function PeriodPanel({ label }: { label: string }) {
 }
 
 function CategoryIcon({ name }: { name: string }) {
-  const presentation = categoryPresentations[name] ?? defaultPresentation
+  const presentation = getCategoryPresentation(name)
   const Icon = presentation.icon
   return (
     <span
       className={cn(
         'flex size-8 shrink-0 items-center justify-center rounded-full',
-        presentation.className,
+        presentation.iconClassName,
       )}
     >
       <Icon aria-hidden="true" className="size-4" />
