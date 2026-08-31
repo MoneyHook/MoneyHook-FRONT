@@ -90,12 +90,68 @@ test('protects app routes and restores a deep link after login', async ({ page }
   await expect(page.getByRole('heading', { name: /の内訳$/ })).toBeVisible()
   await page.reload()
   await expect(page.getByRole('heading', { name: 'カテゴリ別支出' })).toBeVisible()
+  await page.getByRole('link', { name: '固定費', exact: true }).click()
+  await expect(page).toHaveURL(/\/app\/analysis\?view=fixed$/)
+  await expect(page.getByRole('heading', { name: '固定費サマリー' })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: '固定費のカテゴリ別推移' }),
+  ).toBeVisible()
+  await page.reload()
+  await expect(page.getByRole('heading', { name: '固定費サマリー' })).toBeVisible()
   await page.getByRole('link', { name: '概要', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'サマリー' })).toBeVisible()
 
   await page.goto('/login?redirect=%2Fapp%2Fsettings')
   await expect(page).toHaveURL(appUrl('settings'))
   await expect(page.getByRole('heading', { name: '設定' })).toBeVisible()
+})
+
+test('keeps the analysis width stable at 1024px', async ({ page }) => {
+  await page.setViewportSize({ width: 1024, height: 900 })
+  await signInWithEmulator(page)
+  await page.goto('/app/analysis?view=overview')
+  await expect(page.getByRole('heading', { name: 'サマリー' })).toBeVisible()
+
+  const analysisTabs = page
+    .getByRole('navigation', { name: '分析表示' })
+    .getByRole('link')
+  const overviewTabWidths = await analysisTabs.evaluateAll((elements) =>
+    elements.map((element) => element.getBoundingClientRect().width),
+  )
+
+  await page.getByRole('link', { name: '固定費', exact: true }).click()
+  await expect(page.getByRole('heading', { name: '固定費サマリー' })).toBeVisible()
+
+  const fixedTabWidths = await analysisTabs.evaluateAll((elements) =>
+    elements.map((element) => element.getBoundingClientRect().width),
+  )
+  const layout = await page.evaluate(() => {
+    const main = document.querySelector('#main-content')
+    const table = document.querySelector('table')
+    const tableScroller = table?.parentElement
+
+    return {
+      documentWidth: document.documentElement.scrollWidth,
+      viewportWidth: window.innerWidth,
+      mainRight: main?.getBoundingClientRect().right ?? 0,
+      tableClientWidth: tableScroller?.clientWidth ?? 0,
+      tableScrollWidth: tableScroller?.scrollWidth ?? 0,
+      tableOverflowX: tableScroller
+        ? getComputedStyle(tableScroller).overflowX
+        : '',
+    }
+  })
+
+  expect(fixedTabWidths).toEqual(overviewTabWidths)
+  expect(layout.documentWidth).toBe(layout.viewportWidth)
+  expect(layout.mainRight).toBeLessThanOrEqual(layout.viewportWidth)
+  expect(layout.tableScrollWidth).toBeGreaterThan(layout.tableClientWidth)
+  expect(layout.tableOverflowX).toBe('auto')
+
+  await page.getByRole('button', { name: 'サイドバーを切り替える' }).last().click()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(
+    1024,
+  )
 })
 
 test('switches between desktop sidebar and mobile bottom navigation at 769px', async ({

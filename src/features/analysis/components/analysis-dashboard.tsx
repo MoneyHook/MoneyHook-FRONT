@@ -6,7 +6,6 @@ import {
   ChartPie,
   CreditCard,
   Lightbulb,
-  WalletCards,
   type LucideIcon,
 } from 'lucide-react'
 import { useEffect, useMemo } from 'react'
@@ -30,6 +29,7 @@ import { cn } from '@/shared/lib/utils'
 
 import { useAnalysisOverview } from '../api/use-analysis-overview'
 import { AnalysisCategoriesContent } from './analysis-categories'
+import { AnalysisFixedContent } from './analysis-fixed'
 import {
   createAnalysisRange,
   formatCurrency,
@@ -50,14 +50,9 @@ const analysisViews = [
 type AnalysisView = (typeof analysisViews)[number]['value']
 
 const placeholderDetails: Record<
-  Exclude<AnalysisView, 'overview' | 'categories'>,
+  Extract<AnalysisView, 'payments'>,
   { title: string; description: string; icon: LucideIcon }
 > = {
-  fixed: {
-    title: '固定費分析は準備中です',
-    description: '固定費の推移と明細は、次回の実装で追加します。',
-    icon: WalletCards,
-  },
   payments: {
     title: '支払い方法分析は準備中です',
     description: 'カードや口座ごとの利用状況は、次回の実装で追加します。',
@@ -579,7 +574,7 @@ function OverviewContent() {
 function PendingView({
   view,
 }: {
-  view: Exclude<AnalysisView, 'overview' | 'categories'>
+  view: Extract<AnalysisView, 'payments'>
 }) {
   const detail = placeholderDetails[view]
   const Icon = detail.icon
@@ -619,9 +614,8 @@ export function AnalysisDashboard() {
       <div className="mt-5 sm:mt-6">
         {view === 'overview' ? <OverviewContent /> : null}
         {view === 'categories' ? <AnalysisCategoriesContent /> : null}
-        {view === 'fixed' || view === 'payments' ? (
-          <PendingView view={view} />
-        ) : null}
+        {view === 'fixed' ? <AnalysisFixedContent /> : null}
+        {view === 'payments' ? <PendingView view={view} /> : null}
       </div>
     </section>
   )

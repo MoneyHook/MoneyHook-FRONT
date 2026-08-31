@@ -131,3 +131,39 @@ overview result: passed
 - P3: category colors are rank-based; a later product-wide category metadata contract could provide persistent per-category colors and icons across every screen.
 
 final result: passed
+
+---
+
+# Analysis Fixed Costs Design QA
+
+## Evidence
+
+- Source visual truth: `/Users/yusukematsumoto/source/moneyhooks-react/images/analytics/ChatGPT Image 2026年8月28日 22_45_00.png`
+- State: authenticated local development user, exact six-month API range ending August 2026, all fixed-cost categories selected, amount mode.
+- Browser: Codex in-app browser at `/app/analysis?view=fixed`, backed by the real local API and Firebase Auth emulator.
+
+## Responsive and visual checks
+
+- Mobile was checked at 426 × 923 CSS px. The document remained exactly 426 px wide; the category trend table alone scrolls horizontally from a 392 px viewport to 832 px of table content.
+- Intermediate desktop width was checked at 1024 × 900. Switching from overview to fixed costs keeps all four tabs at 176 px, the main content at the available 768 px, and the document at exactly 1024 px; only the category table scrolls from a 654 px viewport to 832 px of content.
+- The 769 px desktop breakpoint was checked with the sidebar expanded and collapsed. The document remains equal to the viewport in both states, while the main content grows from 513 px to approximately 648 px when collapsed.
+- Desktop was checked at 1440 × 900 CSS px. Summary metrics, donut and legend, labeled monthly trend, complete category table, and transaction rows preserve the existing analysis hierarchy without horizontal overflow.
+- Dark theme was checked at 1440 × 900. Semantic chart, expense, border, muted, and selected-state colors remain legible and keep the same meaning as light theme.
+- Every visible button and the in-page transaction link measured at least 40 px high; mobile-specific controls use the planned 44 px minimum.
+
+## Interaction checks
+
+- Amount/ratio mode updates the URL and restores after reload.
+- Deselecting one category changed the table from four to three rows and the transaction count from 24 to 18 while retaining the full fixed-cost summary and overall trend.
+- Invalid category parameters normalize to all categories. The final selected category cannot be removed, and “すべて選択” returns to the canonical URL without `fixedCategory` parameters.
+- The initial transaction list shows five items, expands to all 24 fetched items, and collapses back to five.
+- Browser console warnings and errors: none.
+- Authenticated E2E: 5 passed, including fixed-tab navigation, reload restoration, and the 1024 px width regression check.
+
+## Findings
+
+- No actionable P0, P1, or P2 visual or interaction findings remain.
+- Accepted deviation: the source compresses the full dashboard into one generated phone image; the production implementation scrolls vertically and keeps the app-owned fixed mobile navigation.
+- Accepted deviation: live seeded values and category names replace mock data from the source.
+
+fixed result: passed

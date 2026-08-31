@@ -232,10 +232,13 @@ describe('AnalysisDashboard', () => {
     expect(requests[0]).toContain('/api/v1/analytics/categories')
 
     await user.click(screen.getByRole('link', { name: '固定費' }))
-    expect(screen.getByText('固定費分析は準備中です')).toBeVisible()
+    expect(
+      await screen.findByRole('heading', { name: '固定費サマリー' }),
+    ).toBeVisible()
     expect(screen.getByTestId('location')).toHaveTextContent('view=fixed')
     expect(screen.getByTestId('location')).toHaveTextContent('month=2026-08-01')
-    expect(requests).toHaveLength(1)
+    expect(requests).toHaveLength(2)
+    expect(requests[1]).toContain('/api/v1/analytics/fixed')
   })
 
   it('normalizes an unknown view and shows the overview', async () => {
