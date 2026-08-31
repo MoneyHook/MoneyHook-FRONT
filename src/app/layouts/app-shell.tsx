@@ -223,7 +223,6 @@ function FloatingControls() {
 
 export function AppShell() {
   const location = useLocation()
-  const isTransactionComposer = location.pathname === '/app/transactions/new'
 
   return (
     <SidebarProvider>
@@ -238,7 +237,7 @@ export function AppShell() {
       <DesktopSidebar pathname={location.pathname} />
       <SidebarInset id="main-content" tabIndex={-1}>
         <Outlet />
-        {!isTransactionComposer ? <MobileNavigation pathname={location.pathname} /> : null}
+        <MobileNavigation pathname={location.pathname} />
       </SidebarInset>
     </SidebarProvider>
   )
