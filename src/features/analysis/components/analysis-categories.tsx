@@ -604,9 +604,9 @@ function TrendPanel({
               cursor={{ stroke: 'var(--border)' }}
             />
             <Line
-              activeDot={{ r: 6, strokeWidth: 0 }}
+              activeDot={{ fill: 'var(--success)', r: 6, strokeWidth: 0 }}
               dataKey="expenseAmount"
-              dot={group === 'month' ? { r: 4, strokeWidth: 0 } : false}
+              dot={{ fill: 'var(--success)', r: 4, strokeWidth: 0 }}
               isAnimationActive
               stroke="var(--success)"
               strokeWidth={2.5}
