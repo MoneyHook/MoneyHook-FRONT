@@ -1,7 +1,6 @@
 import {
   CalendarDays,
   ChartPie,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
   CircleDollarSign,
@@ -22,6 +21,7 @@ import { useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 import { ErrorState } from '@/shared/components/app-state'
+import { MonthPicker } from '@/shared/components/month-picker'
 import { Button } from '@/shared/components/ui/button'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { cn } from '@/shared/lib/utils'
@@ -174,29 +174,6 @@ function ViewTabs({
   )
 }
 
-function MonthPicker({
-  month,
-  onChange,
-}: {
-  month: TransactionMonth
-  onChange: (month: string) => void
-}) {
-  return (
-    <label className="relative inline-flex min-h-10 items-center gap-2 rounded-lg px-1 text-base font-semibold transition-colors hover:bg-accent sm:text-lg">
-      <span>{month.monthLabel}</span>
-      <ChevronDown aria-hidden="true" className="size-4" />
-      <input
-        aria-label="対象月"
-        className="absolute inset-0 cursor-pointer opacity-0"
-        max={month.currentMonthInput}
-        onChange={(event) => onChange(`${event.target.value}-01`)}
-        type="month"
-        value={month.monthInput}
-      />
-    </label>
-  )
-}
-
 function MonthlySummary({
   data,
   month,
@@ -211,7 +188,13 @@ function MonthlySummary({
       aria-label={`${month.monthLabel}の収支`}
       className="rounded-2xl border bg-card px-4 py-4 shadow-[0_8px_28px_color-mix(in_oklab,var(--foreground)_5%,transparent)] sm:px-6 sm:py-5"
     >
-      <MonthPicker month={month} onChange={onMonthChange} />
+      <MonthPicker
+        className="px-1 text-base font-semibold sm:text-lg"
+        maxMonth={month.currentMonthInput}
+        monthInput={month.monthInput}
+        monthLabel={month.monthLabel}
+        onChange={onMonthChange}
+      />
       <dl className="mt-4 grid grid-cols-3 divide-x">
         <div className="min-w-0 pr-3 sm:pr-6">
           <dt className="text-xs text-muted-foreground sm:text-sm">支出合計</dt>
@@ -386,7 +369,12 @@ function MonthNavigation({
       >
         <ChevronLeft aria-hidden="true" className="size-5" />
       </Button>
-      <MonthPicker month={month} onChange={onMonthChange} />
+      <MonthPicker
+        maxMonth={month.currentMonthInput}
+        monthInput={month.monthInput}
+        monthLabel={month.monthLabel}
+        onChange={onMonthChange}
+      />
       <Button
         aria-label="次の月"
         disabled={!month.canGoNext}

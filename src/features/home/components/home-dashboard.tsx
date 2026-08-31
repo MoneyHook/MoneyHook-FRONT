@@ -4,7 +4,6 @@ import {
   ArrowUpRight,
   Bell,
   CalendarDays,
-  ChevronDown,
   Clapperboard,
   House,
   ShoppingBag,
@@ -31,6 +30,7 @@ import {
 } from 'recharts'
 
 import { ErrorState } from '@/shared/components/app-state'
+import { MonthPicker } from '@/shared/components/month-picker'
 import { Button } from '@/shared/components/ui/button'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { cn } from '@/shared/lib/utils'
@@ -101,19 +101,15 @@ function MonthHeader({
         ホーム
       </h1>
       <div className="flex items-center gap-1">
-        <label className="relative flex min-h-10 items-center gap-1.5 rounded-lg px-2 text-xs font-medium transition-colors hover:bg-accent sm:gap-2 sm:text-base">
-          <CalendarDays aria-hidden="true" className="size-5" />
-          <span>{monthLabel}</span>
-          <ChevronDown aria-hidden="true" className="size-4" />
-          <input
-            aria-label="対象月"
-            className="absolute inset-0 cursor-pointer opacity-0"
-            max={maxMonth}
-            onChange={(event) => onChange(event.target.value)}
-            type="month"
-            value={monthInput}
-          />
-        </label>
+        <MonthPicker
+          align="end"
+          className="text-xs sm:text-base"
+          maxMonth={maxMonth}
+          monthInput={monthInput}
+          monthLabel={monthLabel}
+          onChange={onChange}
+          showCalendarIcon
+        />
         <Button aria-label="通知（未対応）" disabled size="icon" variant="ghost">
           <Bell aria-hidden="true" />
         </Button>
@@ -580,7 +576,7 @@ export function HomeDashboard() {
       return
     }
     const next = new URLSearchParams(searchParams)
-    next.set('month', `${value}-01`)
+    next.set('month', value)
     setSearchParams(next)
   }
 
