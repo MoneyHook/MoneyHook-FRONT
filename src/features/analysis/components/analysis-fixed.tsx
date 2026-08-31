@@ -46,6 +46,7 @@ import { Skeleton } from '@/shared/components/ui/skeleton'
 import { cn } from '@/shared/lib/utils'
 
 import { useAnalysisFixed } from '../api/use-analysis-fixed'
+import { analysisChartColors } from './analysis-chart-colors'
 import {
   buildFixedBreakdown,
   normalizeFixedCategorySelection,
@@ -61,15 +62,6 @@ import {
   formatPercent,
   formatSignedCurrency,
 } from '../model/analysis-overview'
-
-const fixedColors = [
-  'var(--success)',
-  'var(--chart-2)',
-  'var(--chart-5)',
-  'var(--warning)',
-  'var(--chart-4)',
-  'var(--muted-foreground)',
-]
 
 type CategoryPresentation = {
   icon: LucideIcon
@@ -270,7 +262,7 @@ function FixedDonut({
           >
             {categories.map((category, index) => (
               <Cell
-                fill={fixedColors[index % fixedColors.length]}
+                fill={analysisChartColors[index % analysisChartColors.length]}
                 key={category.id}
               />
             ))}
@@ -326,7 +318,8 @@ function FixedBreakdownPanel({
                 aria-hidden="true"
                 className="size-2.5 shrink-0 rounded-full"
                 style={{
-                  backgroundColor: fixedColors[index % fixedColors.length],
+                  backgroundColor:
+                    analysisChartColors[index % analysisChartColors.length],
                 }}
               />
               <CategoryIcon name={category.name} />
@@ -440,11 +433,11 @@ function FixedTrendPanel({ data }: { data: AnalysisFixedViewModel }) {
               cursor={{ stroke: 'var(--border)' }}
             />
             <Line
-              activeDot={{ r: 6, strokeWidth: 0 }}
+              activeDot={{ fill: analysisChartColors[0], r: 6, strokeWidth: 0 }}
               dataKey="expenseAmount"
-              dot={{ fill: 'var(--success)', r: 4, strokeWidth: 0 }}
+              dot={{ fill: analysisChartColors[0], r: 4, strokeWidth: 0 }}
               isAnimationActive
-              stroke="var(--success)"
+              stroke={analysisChartColors[0]}
               strokeWidth={2.5}
               type="monotone"
             >

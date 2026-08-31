@@ -26,6 +26,7 @@ import { Skeleton } from '@/shared/components/ui/skeleton'
 import { cn } from '@/shared/lib/utils'
 
 import { useAnalysisOverview } from '../api/use-analysis-overview'
+import { analysisChartColors } from './analysis-chart-colors'
 import { AnalysisCategoriesContent } from './analysis-categories'
 import { AnalysisFixedContent } from './analysis-fixed'
 import { AnalysisPaymentsContent } from './analysis-payments'
@@ -47,22 +48,6 @@ const analysisViews = [
 ] as const
 
 type AnalysisView = (typeof analysisViews)[number]['value']
-
-const categoryChartColors = [
-  'var(--chart-1)',
-  'var(--chart-2)',
-  'var(--chart-3)',
-  'var(--chart-5)',
-  'var(--muted-foreground)',
-]
-
-const fixedChartColors = [
-  'var(--chart-1)',
-  'var(--chart-2)',
-  'var(--chart-5)',
-  'var(--chart-3)',
-  'var(--muted-foreground)',
-]
 
 function normalizeView(value: string | null): AnalysisView {
   return analysisViews.some((view) => view.value === value)
@@ -232,12 +217,12 @@ function SpendingTrendPanel({ data }: { data: AnalysisOverviewViewModel }) {
             />
             <Tooltip content={<SpendingTooltip />} cursor={{ stroke: 'var(--border)' }} />
             <Line
-              activeDot={{ r: 6, strokeWidth: 0 }}
+              activeDot={{ fill: analysisChartColors[0], r: 6, strokeWidth: 0 }}
               dataKey="expenseAmount"
-              dot={{ fill: 'var(--chart-1)', r: 4, strokeWidth: 0 }}
+              dot={{ fill: analysisChartColors[0], r: 4, strokeWidth: 0 }}
               isAnimationActive
               name="支出"
-              stroke="var(--chart-1)"
+              stroke={analysisChartColors[0]}
               strokeWidth={2.5}
               type="monotone"
             />
@@ -258,7 +243,7 @@ function BreakdownChart({
 }: {
   items: AnalysisBreakdownItem[]
   label: string
-  colors: string[]
+  colors: readonly string[]
 }) {
   if (items.length === 0) {
     return (
@@ -330,7 +315,7 @@ function BreakdownPanel({
   title: string
   items: AnalysisBreakdownItem[]
   chartLabel: string
-  colors: string[]
+  colors: readonly string[]
   linkLabel: string
   linkView: AnalysisView
 }) {
@@ -538,7 +523,7 @@ function OverviewContent() {
       <div className="grid gap-3 min-[400px]:grid-cols-2 sm:gap-4">
         <BreakdownPanel
           chartLabel="カテゴリ別支出の割合"
-          colors={categoryChartColors}
+          colors={analysisChartColors}
           items={overview.data.categories}
           linkLabel="すべてのカテゴリを見る"
           linkView="categories"
@@ -546,7 +531,7 @@ function OverviewContent() {
         />
         <BreakdownPanel
           chartLabel="固定費カテゴリの割合"
-          colors={fixedChartColors}
+          colors={analysisChartColors}
           items={overview.data.fixedCategories}
           linkLabel="固定費の詳細を見る"
           linkView="fixed"

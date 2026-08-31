@@ -41,6 +41,7 @@ import { Skeleton } from '@/shared/components/ui/skeleton'
 import { cn } from '@/shared/lib/utils'
 
 import { useAnalysisCategories } from '../api/use-analysis-categories'
+import { analysisChartColors } from './analysis-chart-colors'
 import {
   getSelectedCategory,
   normalizeCategoryUrlState,
@@ -58,23 +59,6 @@ import {
   formatCurrency,
   formatPercent,
 } from '../model/analysis-overview'
-
-const categoryColors = [
-  'var(--warning)',
-  'var(--success)',
-  'var(--chart-2)',
-  'var(--chart-5)',
-  'var(--chart-3)',
-  'var(--muted-foreground)',
-]
-
-const subcategoryColors = [
-  'var(--analysis-subcategory-1)',
-  'var(--analysis-subcategory-2)',
-  'var(--analysis-subcategory-3)',
-  'var(--analysis-subcategory-4)',
-  'var(--analysis-subcategory-5)',
-]
 
 type CategoryPresentation = {
   icon: LucideIcon
@@ -222,7 +206,7 @@ function CategoryDonut({
           >
             {items.map((item, index) => (
               <Cell
-                fill={categoryColors[index % categoryColors.length]}
+                fill={analysisChartColors[index % analysisChartColors.length]}
                 key={item.id}
               />
             ))}
@@ -260,7 +244,10 @@ function SummaryRow({
       <span
         aria-hidden="true"
         className="size-2.5 shrink-0 rounded-full"
-        style={{ backgroundColor: categoryColors[index % categoryColors.length] }}
+        style={{
+          backgroundColor:
+            analysisChartColors[index % analysisChartColors.length],
+        }}
       />
       <CategoryIcon name={item.name} />
       <span className="min-w-0 flex-1 text-left text-[0.6875rem] font-semibold leading-4 sm:text-sm">
@@ -423,7 +410,7 @@ function SubcategoryDonut({
           >
             {category.subcategories.map((item, index) => (
               <Cell
-                fill={subcategoryColors[index % subcategoryColors.length]}
+                fill={analysisChartColors[index % analysisChartColors.length]}
                 key={item.id}
               />
             ))}
@@ -464,7 +451,7 @@ function SubcategoryList({ items }: { items: SubcategoryAnalysisItem[] }) {
             className="size-2.5 rounded-full"
             style={{
               backgroundColor:
-                subcategoryColors[index % subcategoryColors.length],
+                analysisChartColors[index % analysisChartColors.length],
             }}
           />
           <span className="truncate font-medium">{item.name}</span>
@@ -604,11 +591,11 @@ function TrendPanel({
               cursor={{ stroke: 'var(--border)' }}
             />
             <Line
-              activeDot={{ fill: 'var(--success)', r: 6, strokeWidth: 0 }}
+              activeDot={{ fill: analysisChartColors[0], r: 6, strokeWidth: 0 }}
               dataKey="expenseAmount"
-              dot={{ fill: 'var(--success)', r: 4, strokeWidth: 0 }}
+              dot={{ fill: analysisChartColors[0], r: 4, strokeWidth: 0 }}
               isAnimationActive
-              stroke="var(--success)"
+              stroke={analysisChartColors[0]}
               strokeWidth={2.5}
               type="monotone"
             >

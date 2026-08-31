@@ -29,6 +29,7 @@ import { Skeleton } from '@/shared/components/ui/skeleton'
 import { cn } from '@/shared/lib/utils'
 
 import { useAnalysisPayments } from '../api/use-analysis-payments'
+import { analysisChartColors } from './analysis-chart-colors'
 import {
   getSelectedPayment,
   type AnalysisPaymentsViewModel,
@@ -40,15 +41,6 @@ import {
   formatCurrency,
   formatPercent,
 } from '../model/analysis-overview'
-
-const paymentColors = [
-  'var(--expense)',
-  'var(--chart-2)',
-  'var(--success)',
-  'var(--warning)',
-  'var(--chart-5)',
-  'var(--muted-foreground)',
-]
 
 const paymentIconClasses = [
   'bg-expense/12 text-expense',
@@ -145,7 +137,7 @@ function PaymentDonut({ data }: { data: AnalysisPaymentsViewModel }) {
           >
             {data.payments.map((payment, index) => (
               <Cell
-                fill={paymentColors[index % paymentColors.length]}
+                fill={analysisChartColors[index % analysisChartColors.length]}
                 key={payment.id}
               />
             ))}
@@ -321,17 +313,21 @@ function PaymentTrendPanel({ data }: { data: AnalysisPaymentsViewModel }) {
             />
             {data.payments.map((payment, index) => (
               <Line
-                activeDot={{ r: 5, strokeWidth: 0 }}
+                activeDot={{
+                  fill: analysisChartColors[index % analysisChartColors.length],
+                  r: 5,
+                  strokeWidth: 0,
+                }}
                 dataKey={payment.id}
                 dot={{
-                  fill: paymentColors[index % paymentColors.length],
+                  fill: analysisChartColors[index % analysisChartColors.length],
                   r: 3.5,
                   strokeWidth: 0,
                 }}
                 isAnimationActive
                 key={payment.id}
                 name={payment.name}
-                stroke={paymentColors[index % paymentColors.length]}
+                stroke={analysisChartColors[index % analysisChartColors.length]}
                 strokeWidth={2.25}
                 type="monotone"
               />
@@ -348,7 +344,10 @@ function PaymentTrendPanel({ data }: { data: AnalysisPaymentsViewModel }) {
             <span
               aria-hidden="true"
               className="size-2.5 rounded-full"
-              style={{ backgroundColor: paymentColors[index % paymentColors.length] }}
+              style={{
+                backgroundColor:
+                  analysisChartColors[index % analysisChartColors.length],
+              }}
             />
             {payment.name}
           </li>
