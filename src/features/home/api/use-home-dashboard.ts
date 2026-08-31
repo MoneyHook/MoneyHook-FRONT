@@ -3,6 +3,7 @@ import {
   useGetV1AnalyticsFixed,
   useGetV1AnalyticsOverview,
 } from '@/shared/api/generated/transaction/transaction'
+import { useGetV1Budget } from '@/shared/api/generated/budget/budget'
 
 import {
   buildHomeDashboardViewModel,
@@ -29,8 +30,9 @@ export function useHomeDashboard(month: MonthContext) {
     end_date: month.endDate,
     group_by: 'month',
   })
+  const budget = useGetV1Budget({ month: month.month })
 
-  const queries = [currentOverview, previousOverview, currentHome, previousHome, fixed]
+  const queries = [currentOverview, previousOverview, currentHome, previousHome, fixed, budget]
   const isPending = queries.some((query) => query.isPending)
   const isError = queries.some((query) => query.isError)
   const error = queries.find((query) => query.error)?.error ?? null
@@ -42,6 +44,7 @@ export function useHomeDashboard(month: MonthContext) {
   const currentHomeData = currentHome.data?.status === 200 ? currentHome.data.data : null
   const previousHomeData = previousHome.data?.status === 200 ? previousHome.data.data : null
   const fixedData = fixed.data?.status === 200 ? fixed.data.data : null
+  const budgetData = budget.data?.status === 200 ? budget.data.data : null
 
   const data =
     !isPending &&
@@ -50,13 +53,15 @@ export function useHomeDashboard(month: MonthContext) {
     previousOverviewData &&
     currentHomeData &&
     previousHomeData &&
-    fixedData
+    fixedData &&
+    budgetData
       ? buildHomeDashboardViewModel({
           currentOverview: currentOverviewData,
           previousOverview: previousOverviewData,
           currentHome: currentHomeData,
           previousHome: previousHomeData,
           fixed: fixedData,
+          budget: budgetData,
           month,
         })
       : null

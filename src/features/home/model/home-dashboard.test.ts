@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type {
   HomeResponse,
+  V1BudgetResponse,
   V1FixedResponse,
   V1OverviewResponse,
 } from '@/shared/api/generated/model'
@@ -56,6 +57,11 @@ const fixed: V1FixedResponse = {
   },
   series: [],
   category_list: [],
+}
+
+const budget: V1BudgetResponse = {
+  monthly_budget_amount: 300_000,
+  effective_from: '2026-08-01',
 }
 
 describe('home dashboard month helpers', () => {
@@ -122,6 +128,7 @@ describe('buildHomeDashboardViewModel', () => {
         ['交通', 25_000],
       ]),
       fixed,
+      budget,
       month,
     })
 
@@ -136,6 +143,7 @@ describe('buildHomeDashboardViewModel', () => {
     expect(result.increase).toMatchObject({ name: '食費', difference: 12_400 })
     expect(result.decrease).toMatchObject({ name: '交通', difference: -3_700 })
     expect(result.dailyAverage).toBe(8_378)
+    expect(result.budgetRatio).toBe(61.44)
   })
 
   it('keeps zero and empty responses stable', () => {
@@ -147,6 +155,7 @@ describe('buildHomeDashboardViewModel', () => {
       currentHome: home([]),
       previousHome: home([]),
       fixed: { ...fixed, summary: { ...fixed.summary, expense_amount: 0 } },
+      budget: { ...budget, monthly_budget_amount: null, effective_from: null },
       month,
     })
 
@@ -155,5 +164,21 @@ describe('buildHomeDashboardViewModel', () => {
     expect(result.increase).toBeNull()
     expect(result.decrease).toBeNull()
     expect(result.dailyAverage).toBe(0)
+    expect(result.budgetRatio).toBeNull()
+  })
+
+  it('calculates the budget ratio from the configured monthly budget', () => {
+    const month = createMonthContext('2026-08-01', new Date(2026, 7, 22))
+    const result = buildHomeDashboardViewModel({
+      currentOverview: overview(150_000, []),
+      previousOverview: overview(0, []),
+      currentHome: home([]),
+      previousHome: home([]),
+      fixed: { ...fixed, summary: { ...fixed.summary, expense_amount: 0 } },
+      budget: { monthly_budget_amount: 100_000, effective_from: '2026-08-01' },
+      month,
+    })
+
+    expect(result.budgetRatio).toBe(150)
   })
 })

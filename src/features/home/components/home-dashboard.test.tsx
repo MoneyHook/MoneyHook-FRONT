@@ -108,7 +108,11 @@ function fixed(empty = false) {
   }
 }
 
-function registerHandlers({ empty = false, failOnce = false } = {}) {
+function registerHandlers({
+  budgetAmount = 300_000,
+  empty = false,
+  failOnce = false,
+}: { budgetAmount?: number | null; empty?: boolean; failOnce?: boolean } = {}) {
   let shouldFail = failOnce
   server.use(
     http.get('http://api.test/api/v1/analytics/overview', ({ request }) => {
@@ -127,6 +131,12 @@ function registerHandlers({ empty = false, failOnce = false } = {}) {
     }),
     http.get('http://api.test/api/v1/analytics/fixed', () =>
       HttpResponse.json(fixed(empty)),
+    ),
+    http.get('http://api.test/api/v1/budget', () =>
+      HttpResponse.json({
+        monthly_budget_amount: budgetAmount,
+        effective_from: budgetAmount === null ? null : '2026-08-01',
+      }),
     ),
   )
 }
@@ -165,6 +175,8 @@ describe('HomeDashboard', () => {
     renderDashboard()
 
     expect(await screen.findByText('¥184,320')).toBeVisible()
+    expect(screen.getByText('61.4%')).toBeVisible()
+    expect(screen.getByLabelText('予算比 61.4%')).toBeVisible()
     expect(screen.getByText('+¥14,030')).toBeVisible()
     expect(screen.getAllByText('食費')[0]).toBeVisible()
     expect(screen.getByRole('link', { name: /すべて見る/ })).toHaveAttribute(
@@ -193,6 +205,14 @@ describe('HomeDashboard', () => {
     expect((await screen.findAllByText('¥0'))[0]).toBeVisible()
     expect(screen.getByText('この月の支出はありません')).toBeVisible()
     expect(screen.getAllByText('該当する項目はありません')).toHaveLength(2)
+  })
+
+  it('shows the unset state when no monthly budget is configured', async () => {
+    registerHandlers({ budgetAmount: null })
+    renderDashboard()
+
+    expect(await screen.findByText('未設定')).toBeVisible()
+    expect(screen.getByLabelText('予算比は未設定です')).toBeVisible()
   })
 
   it('offers retry after an API error', async () => {
