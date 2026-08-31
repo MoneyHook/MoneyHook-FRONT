@@ -19,6 +19,8 @@ servers:
     description: Local Docker/development server
 tags:
   - name: Health
+  - name: Budget
+  - name: Settings
   - name: Transaction
   - name: Fixed
   - name: Category
@@ -200,6 +202,83 @@ paths:
         '400': {$ref: '#/components/responses/V1BadRequest'}
         '401': {$ref: '#/components/responses/V1Unauthorized'}
         '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/v1/budget:
+    get:
+      tags: [Budget]
+      operationId: getV1Budget
+      summary: Get the budget effective for a requested month
+      security: [BearerAuth: []]
+      parameters:
+        - {$ref: '#/components/parameters/Month'}
+      responses:
+        '200':
+          description: Monthly budget configuration, or null fields when it is not configured
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/V1BudgetResponse'}
+        '400': {$ref: '#/components/responses/V1BadRequest'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+    put:
+      tags: [Budget]
+      operationId: putV1Budget
+      summary: Create or update a budget effective from a requested month
+      security: [BearerAuth: []]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/V1BudgetRequest'}
+      responses:
+        '200':
+          description: Saved monthly budget configuration
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/V1BudgetResponse'}
+        '400': {$ref: '#/components/responses/V1BadRequest'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '422': {$ref: '#/components/responses/V1ValidationError'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
+  /api/v1/settings:
+    get:
+      tags: [Settings]
+      operationId: getV1Settings
+      summary: Get the authenticated user's display settings
+      security: [BearerAuth: []]
+      responses:
+        '200':
+          description: Display settings
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/V1SettingsResponse'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+    patch:
+      tags: [Settings]
+      operationId: patchV1Settings
+      summary: Partially update the authenticated user's display settings
+      security: [BearerAuth: []]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/V1SettingsPatchRequest'}
+      responses:
+        '200':
+          description: Updated display settings
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/V1SettingsResponse'}
+        '400': {$ref: '#/components/responses/V1BadRequest'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '422': {$ref: '#/components/responses/V1ValidationError'}
         '500': {$ref: '#/components/responses/V1InternalError'}
 
   /api/transaction/getTimelineData:
@@ -938,6 +1017,41 @@ components:
         sub_category_id: {$ref: '#/components/schemas/Identifier'}
         fixed_flg: {type: boolean}
         payment_id: {$ref: '#/components/schemas/NullableIdentifier'}
+    V1BudgetRequest:
+      type: object
+      additionalProperties: false
+      required: [monthly_budget_amount, effective_from]
+      properties:
+        monthly_budget_amount: {type: integer, format: int64, minimum: 1}
+        effective_from:
+          type: string
+          format: date
+          pattern: '^[0-9]{4}-[0-9]{2}-01$'
+          description: First day of the month from which this budget becomes effective.
+    V1BudgetResponse:
+      type: object
+      additionalProperties: false
+      required: [monthly_budget_amount, effective_from]
+      properties:
+        monthly_budget_amount: {type: [integer, 'null'], format: int64, minimum: 1}
+        effective_from:
+          type: [string, 'null']
+          format: date
+          pattern: '^[0-9]{4}-[0-9]{2}-01$'
+    V1SettingsPatchRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        accent_color: {type: string, enum: [blue, green, violet, rose, black]}
+        theme_mode: {type: string, enum: [light, dark, system]}
+      description: At least one property must be supplied.
+    V1SettingsResponse:
+      type: object
+      additionalProperties: false
+      required: [accent_color, theme_mode]
+      properties:
+        accent_color: {type: string, enum: [blue, green, violet, rose, black]}
+        theme_mode: {type: string, enum: [light, dark, system]}
     V1TransactionRequest:
       type: object
       additionalProperties: false
