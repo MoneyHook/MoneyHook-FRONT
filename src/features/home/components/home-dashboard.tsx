@@ -21,6 +21,7 @@ import {
   AreaChart,
   CartesianGrid,
   Line,
+  PolarAngleAxis,
   RadialBar,
   RadialBarChart,
   ResponsiveContainer,
@@ -162,24 +163,43 @@ function Metric({
   )
 }
 
-function BudgetRing() {
+function BudgetRing({ budgetRatio }: { budgetRatio: number | null }) {
+  const isConfigured = budgetRatio !== null
+  const progress = isConfigured ? Math.min(Math.max(budgetRatio, 0), 100) : 0
+  const ringColor = isConfigured && budgetRatio > 100 ? 'var(--expense)' : 'var(--success)'
+  const label = isConfigured ? `予算比 ${formatPercent(budgetRatio)}` : '予算比は未設定です'
+
   return (
-    <div className="relative size-20 shrink-0 sm:size-36" aria-label="予算比は未設定です">
+    <div aria-label={label} className="relative size-20 shrink-0 sm:size-36">
       <ResponsiveContainer height="100%" width="100%">
         <RadialBarChart
           cx="50%"
           cy="50%"
-          data={[{ value: 100 }]}
+          data={[{ value: progress }]}
           endAngle={-270}
           innerRadius="82%"
           outerRadius="100%"
           startAngle={90}
         >
-          <RadialBar dataKey="value" fill="var(--muted)" isAnimationActive={false} />
+          <PolarAngleAxis
+            axisLine={false}
+            domain={[0, 100]}
+            tick={false}
+            type="number"
+          />
+          <RadialBar
+            background={{ fill: 'var(--muted)' }}
+            cornerRadius={10}
+            dataKey="value"
+            fill={isConfigured ? ringColor : 'transparent'}
+            isAnimationActive={false}
+          />
         </RadialBarChart>
       </ResponsiveContainer>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-xs font-semibold sm:text-sm">未設定</span>
+        <span className="text-xs font-semibold tabular-nums sm:text-sm">
+          {isConfigured ? formatPercent(budgetRatio) : '未設定'}
+        </span>
         <span className="text-[0.625rem] text-muted-foreground sm:mt-0.5 sm:text-xs">予算比</span>
       </div>
     </div>
@@ -222,7 +242,7 @@ function SummaryCard({ data }: { data: HomeDashboardViewModel }) {
             ) : null}
           </div>
         </div>
-        <BudgetRing />
+        <BudgetRing budgetRatio={data.budgetRatio} />
       </div>
 
       <div className="mt-3 grid grid-cols-3 divide-x sm:mt-7">

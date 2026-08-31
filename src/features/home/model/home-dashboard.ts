@@ -1,5 +1,6 @@
 import type {
   HomeResponse,
+  V1BudgetResponse,
   V1FixedResponse,
   V1OverviewResponse,
 } from '@/shared/api/generated/model'
@@ -58,6 +59,7 @@ export type HomeDashboardViewModel = {
   fixedMonthlyAmount: number
   fixedAnnualizedAmount: number
   fixedTotalExpenseRatio: number
+  budgetRatio: number | null
 }
 
 type DashboardResponses = {
@@ -66,6 +68,7 @@ type DashboardResponses = {
   currentHome: HomeResponse
   previousHome: HomeResponse
   fixed: V1FixedResponse
+  budget: V1BudgetResponse
   month: MonthContext
 }
 
@@ -161,6 +164,7 @@ export function buildHomeDashboardViewModel({
   currentHome,
   previousHome,
   fixed,
+  budget,
   month,
 }: DashboardResponses): HomeDashboardViewModel {
   const expenseAmount = currentOverview.summary.expense_amount
@@ -219,6 +223,10 @@ export function buildHomeDashboardViewModel({
 
   const fixedExpenseAmount = currentOverview.summary.fixed_expense_amount
   const variableExpenseAmount = currentOverview.summary.variable_expense_amount
+  const budgetRatio =
+    budget.monthly_budget_amount === null
+      ? null
+      : ratio(expenseAmount, budget.monthly_budget_amount)
 
   return {
     expenseAmount,
@@ -239,6 +247,7 @@ export function buildHomeDashboardViewModel({
     fixedMonthlyAmount: fixed.summary.expense_amount,
     fixedAnnualizedAmount: fixed.summary.annualized_amount,
     fixedTotalExpenseRatio: fixed.summary.total_expense_ratio,
+    budgetRatio,
   }
 }
 
