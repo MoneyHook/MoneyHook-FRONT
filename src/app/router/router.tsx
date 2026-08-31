@@ -5,7 +5,7 @@ import { HomePage } from '@/pages/home'
 import { LoginPage } from '@/pages/login'
 import { AppNotFoundPage, PublicNotFoundPage } from '@/pages/not-found'
 import { SettingsPage } from '@/pages/settings'
-import { TransactionsPage } from '@/pages/transactions'
+import { NewTransactionPage, TransactionsPage } from '@/pages/transactions'
 
 import { AppShell } from '../layouts/app-shell'
 import { ProtectedRoute, RootRedirect } from './auth-routes'
@@ -33,6 +33,7 @@ export const router = createBrowserRouter([
           { index: true, element: <Navigate replace to="home" /> },
           { path: 'home', element: <HomePage /> },
           { path: 'transactions', element: <TransactionsPage /> },
+          { path: 'transactions/new', element: <NewTransactionPage /> },
           { path: 'analysis', element: <AnalysisPage /> },
           { path: 'settings', element: <SettingsPage /> },
           { path: '*', element: <AppNotFoundPage /> },

@@ -3,28 +3,19 @@ import {
   ChartPie,
   ChevronLeft,
   ChevronRight,
-  CircleDollarSign,
-  Coffee,
   Funnel,
-  House,
-  Lightbulb,
   Plus,
   Search,
-  ShoppingCart,
-  Tags,
-  Ticket,
-  TrainFront,
-  Utensils,
-  type LucideIcon,
 } from 'lucide-react'
 import { useEffect, useMemo } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { ErrorState } from '@/shared/components/app-state'
 import { MonthPicker } from '@/shared/components/month-picker'
 import { Button } from '@/shared/components/ui/button'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { cn } from '@/shared/lib/utils'
+import { getCategoryPresentation as getCategoryPresentationShared } from '@/shared/lib/category-presentation'
 
 import { useTransactions } from '../api/use-transactions'
 import {
@@ -44,70 +35,12 @@ import {
   type TransactionView,
 } from '../model/transactions'
 
-type CategoryPresentation = {
-  icon: LucideIcon
-  iconClassName: string
-  dotClassName: string
-}
-
-const defaultCategoryPresentation: CategoryPresentation = {
-  icon: Tags,
-  iconClassName: 'bg-muted text-muted-foreground',
-  dotClassName: 'bg-muted-foreground',
-}
-
-const categoryPresentations: Record<string, CategoryPresentation> = {
-  食費: {
-    icon: Utensils,
-    iconClassName: 'bg-warning/12 text-warning',
-    dotClassName: 'bg-warning',
-  },
-  日用品: {
-    icon: ShoppingCart,
-    iconClassName: 'bg-success/12 text-success',
-    dotClassName: 'bg-success',
-  },
-  交通: {
-    icon: TrainFront,
-    iconClassName: 'bg-chart-2/12 text-chart-2',
-    dotClassName: 'bg-chart-2',
-  },
-  住居: {
-    icon: House,
-    iconClassName: 'bg-chart-2/12 text-chart-2',
-    dotClassName: 'bg-chart-2',
-  },
-  固定費: {
-    icon: Lightbulb,
-    iconClassName: 'bg-warning/12 text-warning',
-    dotClassName: 'bg-warning',
-  },
-  娯楽: {
-    icon: Ticket,
-    iconClassName: 'bg-chart-4/12 text-chart-4',
-    dotClassName: 'bg-chart-4',
-  },
-  その他: {
-    icon: Coffee,
-    iconClassName: 'bg-chart-5/12 text-chart-5',
-    dotClassName: 'bg-chart-5',
-  },
-  収入: {
-    icon: CircleDollarSign,
-    iconClassName: 'bg-income/12 text-income',
-    dotClassName: 'bg-income',
-  },
-}
-
 function getCategoryPresentation(item: Pick<TransactionItem, 'categoryName' | 'sign'>) {
-  if (item.sign === 1) {
-    return categoryPresentations.収入
-  }
-  return categoryPresentations[item.categoryName] ?? defaultCategoryPresentation
+  return getCategoryPresentationShared(item.categoryName, { isIncome: item.sign === 1 })
 }
 
 function getPresentationByName(name: string) {
-  return categoryPresentations[name] ?? defaultCategoryPresentation
+  return getCategoryPresentationShared(name)
 }
 
 function HeaderActions() {
@@ -590,6 +523,7 @@ function TransactionsSkeleton({ view }: { view: TransactionView }) {
 }
 
 export function TransactionsView() {
+  const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const rawMonth = searchParams.get('month')
   const rawView = searchParams.get('view')
@@ -664,61 +598,63 @@ export function TransactionsView() {
   }
 
   return (
-    <section
-      aria-labelledby="transactions-page-title"
-      className="motion-route-enter mx-auto w-full max-w-6xl px-4 pb-28 pt-4 sm:px-6 md:px-8 md:pb-10 md:pt-8"
-    >
-      <header className="flex items-center justify-between gap-4">
-        <h1
-          className="text-2xl font-semibold tracking-[-0.04em] sm:text-3xl"
-          id="transactions-page-title"
-        >
-          取引
-        </h1>
-        <HeaderActions />
-      </header>
+    <>
+      <section
+        aria-labelledby="transactions-page-title"
+        className="motion-route-enter mx-auto w-full max-w-6xl px-4 pb-28 pt-4 sm:px-6 md:px-8 md:pb-10 md:pt-8"
+      >
+        <header className="flex items-center justify-between gap-4">
+          <h1
+            className="text-2xl font-semibold tracking-[-0.04em] sm:text-3xl"
+            id="transactions-page-title"
+          >
+            取引
+          </h1>
+          <HeaderActions />
+        </header>
 
-      <div className="mt-4 sm:mt-6">
-        <ViewTabs onChange={handleViewChange} value={view} />
-        {transactions.isPending ? <TransactionsSkeleton view={view} /> : null}
-        {transactions.isError ? (
-          <ErrorState
-            message={
-              transactions.error instanceof Error
-                ? transactions.error.message
-                : '取引データを取得できませんでした。'
-            }
-            onRetry={() => void transactions.refetch()}
-            title="取引を表示できません"
-          />
-        ) : null}
-        {transactions.data && view === 'list' ? (
-          <ListPanel
-            data={transactions.data}
-            month={month}
-            onMonthChange={handleMonthChange}
-          />
-        ) : null}
-        {transactions.data && view === 'calendar' ? (
-          <CalendarPanel
-            data={transactions.data}
-            month={month}
-            onDateChange={handleDateChange}
-            onMonthChange={handleMonthChange}
-            selectedDate={selectedDate}
-          />
-        ) : null}
-      </div>
+        <div className="mt-4 sm:mt-6">
+          <ViewTabs onChange={handleViewChange} value={view} />
+          {transactions.isPending ? <TransactionsSkeleton view={view} /> : null}
+          {transactions.isError ? (
+            <ErrorState
+              message={
+                transactions.error instanceof Error
+                  ? transactions.error.message
+                  : '取引データを取得できませんでした。'
+              }
+              onRetry={() => void transactions.refetch()}
+              title="取引を表示できません"
+            />
+          ) : null}
+          {transactions.data && view === 'list' ? (
+            <ListPanel
+              data={transactions.data}
+              month={month}
+              onMonthChange={handleMonthChange}
+            />
+          ) : null}
+          {transactions.data && view === 'calendar' ? (
+            <CalendarPanel
+              data={transactions.data}
+              month={month}
+              onDateChange={handleDateChange}
+              onMonthChange={handleMonthChange}
+              selectedDate={selectedDate}
+            />
+          ) : null}
+        </div>
+      </section>
 
       <Button
-        aria-label="新しい取引を追加（準備中）"
-        className="fixed bottom-[5.25rem] right-4 z-20 size-14 rounded-full shadow-lg disabled:opacity-75 md:bottom-6 md:right-8"
-        disabled
+        aria-label="新しい取引を追加"
+        className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-30 size-14 rounded-full shadow-lg md:bottom-6 md:right-8"
+        onClick={() => navigate('/app/transactions/new')}
         size="icon-lg"
-        title="取引の追加は準備中です"
+        title="新しい取引を追加"
       >
         <Plus aria-hidden="true" className="size-7" />
       </Button>
-    </section>
+    </>
   )
 }
