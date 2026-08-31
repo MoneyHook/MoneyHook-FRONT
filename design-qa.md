@@ -237,3 +237,38 @@ fixed result: passed
 - P3: a future product-wide payment metadata contract could provide persistent brand-safe icons and colors instead of rank-based presentation.
 
 final result: passed
+
+---
+
+# Transaction Add Screen Design QA
+
+## Comparison target
+
+- Source visual: `images/input/ChatGPT Image 2026年8月28日 22_44_46.png`
+- Source dimensions: 853 × 1844 px
+- Intended implementation route: `/app/transactions/new`
+- Intended state: light theme, expense selected, populated category and payment fields
+
+## Evidence
+
+- Implementation screenshot: unavailable
+- Browser-rendered viewport and density: unavailable
+- Focused-region comparison: unavailable because no implementation screenshot could be captured
+
+## Findings
+
+- [P1] Browser-rendered visual comparison is blocked.
+  - Evidence: this environment has no browser-control tool available, and a terminal browser was not selected or authorized.
+  - Impact: typography, spacing, mobile overflow, and component alignment cannot be judged against the reference image from rendered evidence.
+  - Fix: open `/app/transactions/new` in an authorized browser at a mobile viewport, capture it, then compare it side-by-side with the source image and update this report.
+
+## Static checks completed
+
+- Component and model tests passed.
+- TypeScript typecheck passed.
+- ESLint and semantic color validation passed.
+- Production build passed.
+
+## Final result
+
+final result: blocked

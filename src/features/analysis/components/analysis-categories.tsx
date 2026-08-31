@@ -1,23 +1,9 @@
 import {
   CalendarDays,
-  Cross,
   ChevronDown,
   ChevronRight,
-  Coffee,
   Funnel,
-  GraduationCap,
-  House,
-  Lightbulb,
-  MoreHorizontal,
-  ShoppingBag,
-  Shirt,
-  Smartphone,
   Tags,
-  Ticket,
-  TrainFront,
-  Utensils,
-  Users,
-  type LucideIcon,
 } from 'lucide-react'
 import { useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
@@ -38,6 +24,7 @@ import {
 import { ErrorState } from '@/shared/components/app-state'
 import { Button } from '@/shared/components/ui/button'
 import { Skeleton } from '@/shared/components/ui/skeleton'
+import { getCategoryPresentation } from '@/shared/lib/category-presentation'
 import { cn } from '@/shared/lib/utils'
 
 import { useAnalysisCategories } from '../api/use-analysis-categories'
@@ -59,37 +46,6 @@ import {
   formatCurrency,
   formatPercent,
 } from '../model/analysis-overview'
-
-type CategoryPresentation = {
-  icon: LucideIcon
-  className: string
-}
-
-const defaultPresentation: CategoryPresentation = {
-  icon: Tags,
-  className: 'bg-muted text-muted-foreground',
-}
-
-const categoryPresentations: Record<string, CategoryPresentation> = {
-  食費: { icon: Utensils, className: 'bg-warning/12 text-warning' },
-  住居: { icon: House, className: 'bg-success/12 text-success' },
-  住宅: { icon: House, className: 'bg-success/12 text-success' },
-  交通: { icon: TrainFront, className: 'bg-chart-2/12 text-chart-2' },
-  娯楽: { icon: Ticket, className: 'bg-chart-5/12 text-chart-5' },
-  日用品: { icon: ShoppingBag, className: 'bg-chart-3/12 text-chart-3' },
-  ショッピング: {
-    icon: ShoppingBag,
-    className: 'bg-chart-3/12 text-chart-3',
-  },
-  水道光熱費: { icon: Lightbulb, className: 'bg-warning/12 text-warning' },
-  通信費: { icon: Smartphone, className: 'bg-chart-2/12 text-chart-2' },
-  医療: { icon: Cross, className: 'bg-expense/12 text-expense' },
-  衣服: { icon: Shirt, className: 'bg-chart-5/12 text-chart-5' },
-  教育: { icon: GraduationCap, className: 'bg-chart-2/12 text-chart-2' },
-  交際費: { icon: Users, className: 'bg-success/12 text-success' },
-  その他: { icon: MoreHorizontal, className: 'bg-muted text-muted-foreground' },
-  カフェ: { icon: Coffee, className: 'bg-warning/12 text-warning' },
-}
 
 const groupOptions: Array<{ value: CategoryGroup; label: string }> = [
   { value: 'month', label: '月別' },
@@ -130,13 +86,13 @@ function PeriodPanel({ label }: { label: string }) {
 }
 
 function CategoryIcon({ name }: { name: string }) {
-  const presentation = categoryPresentations[name] ?? defaultPresentation
+  const presentation = getCategoryPresentation(name)
   const Icon = presentation.icon
   return (
     <span
       className={cn(
         'flex size-8 shrink-0 items-center justify-center rounded-full',
-        presentation.className,
+        presentation.iconClassName,
       )}
     >
       <Icon aria-hidden="true" className="size-4" />
