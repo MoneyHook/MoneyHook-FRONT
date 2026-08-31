@@ -76,6 +76,28 @@ describe('AppShell', () => {
     expect(accountMenuButton.closest('[data-slot="sidebar-footer"]')).not.toBeNull()
   })
 
+  it('uses a muted active state without a check icon in the sidebar', () => {
+    renderAppShell()
+
+    const homeLink = document.querySelector<HTMLAnchorElement>(
+      '[data-slot="sidebar-menu-button"][href="/app/home"]',
+    )
+
+    if (!homeLink) {
+      throw new Error('Home link was not rendered in the sidebar')
+    }
+
+    expect(homeLink).toHaveClass(
+      'hover:bg-muted',
+      'hover:text-foreground',
+      'active:bg-muted',
+      'active:text-foreground',
+      'data-active:bg-muted',
+      'data-active:text-foreground',
+    )
+    expect(homeLink.querySelectorAll('svg')).toHaveLength(1)
+  })
+
   it('opens the sidebar account menu and signs out from its action', async () => {
     const user = userEvent.setup()
     renderAppShell()

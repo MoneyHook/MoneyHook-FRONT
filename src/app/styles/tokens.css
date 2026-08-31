@@ -37,6 +37,12 @@
   --chart-4: oklch(0.64 0.16 350);
   --chart-5: oklch(0.58 0.135 295);
 
+  --chart-series-1: oklch(0.646 0.222 41.116);
+  --chart-series-2: oklch(0.6 0.118 184.704);
+  --chart-series-3: oklch(0.398 0.07 227.392);
+  --chart-series-4: oklch(0.828 0.189 84.429);
+  --chart-series-5: oklch(0.769 0.188 70.08);
+
   --sidebar: oklch(0.975 0.005 255);
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--primary);
@@ -51,6 +57,22 @@
   --accent-swatch-violet: oklch(0.58 0.19 295);
   --accent-swatch-rose: oklch(0.6 0.18 25);
   --accent-swatch-black: oklch(0.18 0.01 264);
+
+  --chart-palette-swatch-default-1: oklch(0.646 0.222 41.116);
+  --chart-palette-swatch-default-2: oklch(0.6 0.118 184.704);
+  --chart-palette-swatch-default-3: oklch(0.398 0.07 227.392);
+  --chart-palette-swatch-default-4: oklch(0.828 0.189 84.429);
+  --chart-palette-swatch-default-5: oklch(0.769 0.188 70.08);
+  --chart-palette-swatch-colorful-1: oklch(0.56 0.13 43);
+  --chart-palette-swatch-colorful-2: oklch(0.69 0.16 290.41);
+  --chart-palette-swatch-colorful-3: oklch(0.88 0.03 93.13);
+  --chart-palette-swatch-colorful-4: oklch(0.88 0.04 298.18);
+  --chart-palette-swatch-colorful-5: oklch(0.56 0.13 42.06);
+  --chart-palette-swatch-monochrome-1: var(--primary);
+  --chart-palette-swatch-monochrome-2: color-mix(in oklch, var(--primary) 82%, var(--background));
+  --chart-palette-swatch-monochrome-3: color-mix(in oklch, var(--primary) 64%, var(--background));
+  --chart-palette-swatch-monochrome-4: color-mix(in oklch, var(--primary) 46%, var(--background));
+  --chart-palette-swatch-monochrome-5: color-mix(in oklch, var(--primary) 28%, var(--background));
 
   --radius: 0.75rem;
 }
@@ -93,6 +115,12 @@
   --chart-4: oklch(0.72 0.085 305);
   --chart-5: oklch(0.7 0.05 170);
 
+  --chart-series-1: oklch(0.646 0.222 41.116);
+  --chart-series-2: oklch(0.6 0.118 184.704);
+  --chart-series-3: oklch(0.398 0.07 227.392);
+  --chart-series-4: oklch(0.828 0.189 84.429);
+  --chart-series-5: oklch(0.769 0.188 70.08);
+
   --sidebar: oklch(0.19 0.012 145);
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--primary);
@@ -101,6 +129,38 @@
   --sidebar-accent-foreground: oklch(0.9 0.035 250);
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
+}
+
+:root[data-chart-palette='colorful'] {
+  --chart-series-1: oklch(0.56 0.13 43);
+  --chart-series-2: oklch(0.69 0.16 290.41);
+  --chart-series-3: oklch(0.88 0.03 93.13);
+  --chart-series-4: oklch(0.88 0.04 298.18);
+  --chart-series-5: oklch(0.56 0.13 42.06);
+}
+
+:root[data-chart-palette='monochrome'] {
+  --chart-series-1: var(--primary);
+  --chart-series-2: color-mix(in oklch, var(--primary) 82%, var(--background));
+  --chart-series-3: color-mix(in oklch, var(--primary) 64%, var(--background));
+  --chart-series-4: color-mix(in oklch, var(--primary) 46%, var(--background));
+  --chart-series-5: color-mix(in oklch, var(--primary) 28%, var(--background));
+}
+
+.dark[data-chart-palette='monochrome'] {
+  --chart-series-1: var(--primary);
+  --chart-series-2: color-mix(in oklch, var(--primary) 83%, var(--background));
+  --chart-series-3: color-mix(in oklch, var(--primary) 66%, var(--background));
+  --chart-series-4: color-mix(in oklch, var(--primary) 49%, var(--background));
+  --chart-series-5: color-mix(in oklch, var(--primary) 32%, var(--background));
+}
+
+.dark {
+  --chart-palette-swatch-monochrome-1: var(--primary);
+  --chart-palette-swatch-monochrome-2: color-mix(in oklch, var(--primary) 83%, var(--background));
+  --chart-palette-swatch-monochrome-3: color-mix(in oklch, var(--primary) 66%, var(--background));
+  --chart-palette-swatch-monochrome-4: color-mix(in oklch, var(--primary) 49%, var(--background));
+  --chart-palette-swatch-monochrome-5: color-mix(in oklch, var(--primary) 32%, var(--background));
 }
 
 :root[data-accent='green'] {
