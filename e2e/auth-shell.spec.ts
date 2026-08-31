@@ -81,6 +81,18 @@ test('protects app routes and restores a deep link after login', async ({ page }
   await expect(page).toHaveURL(appUrl('analysis'))
   await expect(page.getByRole('heading', { name: '分析' })).toBeVisible()
 
+  for (const tab of ['概要', 'カテゴリ', '固定費', '支払い方法']) {
+    await expect(page.getByRole('link', { name: tab, exact: true })).toBeVisible()
+  }
+  await page.getByRole('link', { name: 'カテゴリ', exact: true }).click()
+  await expect(page).toHaveURL(/\/app\/analysis\?view=categories$/)
+  await expect(page.getByRole('heading', { name: 'カテゴリ別支出' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /の内訳$/ })).toBeVisible()
+  await page.reload()
+  await expect(page.getByRole('heading', { name: 'カテゴリ別支出' })).toBeVisible()
+  await page.getByRole('link', { name: '概要', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'サマリー' })).toBeVisible()
+
   await page.goto('/login?redirect=%2Fapp%2Fsettings')
   await expect(page).toHaveURL(appUrl('settings'))
   await expect(page.getByRole('heading', { name: '設定' })).toBeVisible()
@@ -102,7 +114,7 @@ test('switches between desktop sidebar and mobile bottom navigation at 769px', a
     ['設定', 'settings'],
     ['ホーム', 'home'],
   ] as const) {
-    const link = page.getByRole('link', { name: label }).first()
+    const link = page.getByRole('link', { name: label, exact: true }).first()
     await link.click()
     await expect(page).toHaveURL(appUrl(path))
     await expect(page.getByRole('heading', { name: label })).toBeVisible()
