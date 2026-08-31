@@ -4,6 +4,7 @@ import { http, HttpResponse } from 'msw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AccentProvider } from '@/shared/hooks/accent-provider'
+import { ChartPaletteProvider } from '@/shared/hooks/chart-palette-provider'
 import { server } from '@/test/msw/server'
 
 const authState = vi.hoisted(() => ({
@@ -197,7 +198,9 @@ function renderSettingsPage() {
   return render(
     <QueryClientProvider client={queryClient}>
       <AccentProvider>
-        <SettingsPage />
+        <ChartPaletteProvider>
+          <SettingsPage />
+        </ChartPaletteProvider>
       </AccentProvider>
     </QueryClientProvider>,
   )
@@ -245,6 +248,19 @@ describe('SettingsPage', () => {
     expect(screen.getByRole('region', { name: '表示' })).toBeInTheDocument()
   })
 
+  it('uses neutral styling for settings actions and selected options', async () => {
+    renderSettingsPage()
+
+    expect(await screen.findByRole('button', { name: '予算を保存' })).toHaveAttribute(
+      'data-variant',
+      'outline',
+    )
+    const selectedAccent = screen.getByRole('radio', { name: /^ブルー/ })
+    expect(selectedAccent.nextElementSibling).toHaveClass('peer-checked:border-foreground')
+    expect(screen.getByRole('region', { name: 'アカウント' }).querySelector('header span'))
+      .toHaveClass('bg-muted', 'text-muted-foreground')
+  })
+
   it('shows an error toast when logging out fails', async () => {
     authState.signOut.mockRejectedValueOnce(new Error('sign out failed'))
 
@@ -280,6 +296,21 @@ describe('SettingsPage', () => {
     await waitFor(() => {
       expect(localStorage.getItem('moneyhooks-accent')).toBe('blue')
       expect(document.documentElement.dataset.accent).toBe('blue')
+    })
+  })
+
+  it('lets the user select a chart color set', async () => {
+    renderSettingsPage()
+
+    for (const label of ['標準', 'カラフル', 'モノトーン']) {
+      expect(screen.getByRole('radio', { name: new RegExp(`^${label}`) })).toBeInTheDocument()
+    }
+
+    fireEvent.click(screen.getByRole('radio', { name: /^カラフル/ }))
+
+    await waitFor(() => {
+      expect(localStorage.getItem('moneyhooks-chart-palette')).toBe('colorful')
+      expect(document.documentElement.dataset.chartPalette).toBe('colorful')
     })
   })
 

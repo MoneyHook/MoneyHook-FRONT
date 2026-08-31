@@ -1,8 +1,8 @@
 export const analysisChartColors = [
-  'var(--chart-1)',
-  'var(--chart-2)',
-  'var(--chart-3)',
-  'var(--chart-4)',
-  'var(--chart-5)',
+  'var(--chart-series-1)',
+  'var(--chart-series-2)',
+  'var(--chart-series-3)',
+  'var(--chart-series-4)',
+  'var(--chart-series-5)',
   'var(--muted-foreground)',
 ] as const

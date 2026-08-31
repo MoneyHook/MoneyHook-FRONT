@@ -131,7 +131,7 @@ export function BudgetSettings() {
               </p>
             ) : null}
           </div>
-          <Button disabled={saveMutation.isPending} size="lg" type="submit">
+          <Button disabled={saveMutation.isPending} size="lg" type="submit" variant="outline">
             {saveMutation.isPending ? (
               <LoaderCircle aria-hidden="true" className="animate-spin" />
             ) : null}

@@ -12,7 +12,6 @@ import { useSearchParams } from 'react-router-dom'
 import {
   CartesianGrid,
   Cell,
-  LabelList,
   Line,
   LineChart,
   Pie,
@@ -411,16 +410,7 @@ function FixedTrendPanel({ data }: { data: AnalysisFixedViewModel }) {
               stroke={analysisChartColors[0]}
               strokeWidth={2.5}
               type="monotone"
-            >
-              <LabelList
-                dataKey="expenseAmount"
-                fill="var(--foreground)"
-                fontSize={10}
-                formatter={(value) => formatCurrency(Number(value ?? 0))}
-                offset={10}
-                position="top"
-              />
-            </Line>
+            />
           </LineChart>
         </ResponsiveContainer>
       </div>

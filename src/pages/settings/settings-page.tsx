@@ -19,6 +19,10 @@ import {
   type AccentColor,
   useAccent,
 } from '@/shared/hooks/accent-context'
+import {
+  type ChartPalette,
+  useChartPalette,
+} from '@/shared/hooks/chart-palette-context'
 
 const themeOptions = [
   { value: 'light', label: 'ライト', icon: Sun },
@@ -36,6 +40,16 @@ const accentOptions: ReadonlyArray<{
   { value: 'violet', label: 'バイオレット', description: '深みのある紫' },
   { value: 'rose', label: 'ローズ', description: 'やわらかな赤' },
   { value: 'black', label: 'ブラック', description: '引き締まった黒' },
+]
+
+const chartPaletteOptions: ReadonlyArray<{
+  value: ChartPalette
+  label: string
+  description: string
+}> = [
+  { value: 'default', label: '標準', description: '現行のブルー基調' },
+  { value: 'colorful', label: 'カラフル', description: '色相を分けて比較しやすい配色' },
+  { value: 'monochrome', label: 'モノトーン', description: '濃淡で見分ける落ち着いた配色' },
 ]
 
 function ThemeMenu() {
@@ -88,7 +102,7 @@ function AccentColorPicker() {
               type="radio"
               value={option.value}
             />
-            <span className="flex h-20 cursor-pointer items-center gap-3 rounded-xl border border-border bg-background px-3 py-3 transition-colors hover:bg-muted peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50 peer-checked:border-primary peer-checked:bg-accent">
+            <span className="flex h-20 cursor-pointer items-center gap-3 rounded-xl border border-border bg-background px-3 py-3 transition-colors hover:bg-muted peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50 peer-checked:border-foreground peer-checked:bg-muted">
               <span
                 aria-hidden="true"
                 className="size-5 shrink-0 rounded-full border border-foreground/15 shadow-sm"
@@ -105,9 +119,58 @@ function AccentColorPicker() {
               {accent === option.value ? (
                 <Check
                   aria-hidden="true"
-                  className="ml-auto size-4 shrink-0 text-primary"
+                  className="ml-auto size-4 shrink-0 text-foreground"
                 />
               ) : null}
+            </span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  )
+}
+
+function ChartPalettePicker() {
+  const { chartPalette, setChartPalette } = useChartPalette()
+
+  return (
+    <fieldset className="space-y-3 border-t pt-5">
+      <legend className="text-sm font-medium">グラフカラーセット</legend>
+      <p className="text-sm leading-6 text-muted-foreground">
+        ホームと分析画面のグラフで使用する色を選択できます。
+      </p>
+      <div className="grid gap-3 sm:grid-cols-3">
+        {chartPaletteOptions.map((option) => (
+          <label key={option.value} className="group relative block h-full">
+            <input
+              checked={chartPalette === option.value}
+              className="peer sr-only"
+              name="chart-palette"
+              onChange={() => setChartPalette(option.value)}
+              type="radio"
+              value={option.value}
+            />
+            <span className="flex h-full min-h-28 cursor-pointer flex-col rounded-xl border border-border bg-background px-4 py-3 transition-colors hover:bg-muted peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50 peer-checked:border-foreground peer-checked:bg-muted">
+              <span className="flex items-center gap-1.5" aria-hidden="true">
+                {[1, 2, 3, 4, 5].map((index) => (
+                  <span
+                    className="size-4 rounded-full border border-foreground/10 shadow-sm"
+                    key={index}
+                    style={{
+                      backgroundColor: `var(--chart-palette-swatch-${option.value}-${index})`,
+                    }}
+                  />
+                ))}
+              </span>
+              <span className="mt-3 flex min-w-0 items-center gap-2">
+                <span className="truncate text-sm font-medium">{option.label}</span>
+                {chartPalette === option.value ? (
+                  <Check aria-hidden="true" className="ml-auto size-4 shrink-0 text-foreground" />
+                ) : null}
+              </span>
+              <span className="mt-1 text-xs leading-5 text-muted-foreground">
+                {option.description}
+              </span>
             </span>
           </label>
         ))}
@@ -175,7 +238,7 @@ export function SettingsPage() {
       className="motion-route-enter mx-auto w-full max-w-6xl px-5 py-8 md:px-10 md:py-12"
     >
       <header className="flex items-start gap-4 border-b pb-8">
-        <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-foreground">
+        <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
           <Settings aria-hidden="true" className="size-5" />
         </span>
         <div className="space-y-1.5">
@@ -197,12 +260,13 @@ export function SettingsPage() {
         <PaymentSettings />
         <SettingsSection
           action={<ThemeMenu />}
-          description="テーマとアクセントカラーはこのブラウザに保存されます。"
+          description="テーマ、アクセントカラー、グラフカラーセットはこのブラウザに保存されます。"
           icon={Monitor}
           title="表示"
           titleId="appearance-settings-title"
         >
           <AccentColorPicker />
+          <ChartPalettePicker />
         </SettingsSection>
       </div>
     </section>

@@ -1,7 +1,6 @@
 import {
   ArrowLeftRight,
   ChartPie,
-  Check,
   House,
   LogOut,
   Settings,
@@ -138,12 +137,6 @@ function DesktopSidebar({ pathname }: { pathname: string }) {
                       >
                         <Icon aria-hidden="true" />
                         <span>{item.label}</span>
-                        {isActive ? (
-                          <Check
-                            aria-hidden="true"
-                            className="ml-auto group-data-[collapsible=icon]:hidden"
-                          />
-                        ) : null}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

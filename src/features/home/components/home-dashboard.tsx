@@ -309,7 +309,12 @@ function SpendingPaceCard({ data }: { data: HomeDashboardViewModel }) {
         </h2>
         <div className="flex items-center gap-5 text-xs text-muted-foreground sm:text-sm">
           <span className="flex items-center gap-2">
-            <span className="h-0.5 w-7 rounded-full bg-chart-1" /> 今月
+            <span
+              aria-hidden="true"
+              className="h-0.5 w-7 rounded-full"
+              style={{ backgroundColor: 'var(--chart-series-1)' }}
+            />{' '}
+            今月
           </span>
           <span className="flex items-center gap-2">
             <span className="w-7 border-t-2 border-dashed border-muted-foreground" /> 前月
@@ -338,11 +343,11 @@ function SpendingPaceCard({ data }: { data: HomeDashboardViewModel }) {
             <Tooltip content={<PaceTooltip />} />
             <Area
               dataKey="current"
-              fill="var(--chart-1)"
+              fill="var(--chart-series-1)"
               fillOpacity={0.08}
               isAnimationActive={false}
               name="今月"
-              stroke="var(--chart-1)"
+              stroke="var(--chart-series-1)"
               strokeWidth={2.5}
               type="monotone"
             />

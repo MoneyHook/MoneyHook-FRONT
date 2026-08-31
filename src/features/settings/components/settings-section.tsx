@@ -25,7 +25,7 @@ export function SettingsSection({
     >
       <header className="flex items-start justify-between gap-4 border-b pb-5">
         <div className="flex min-w-0 items-start gap-3">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-foreground">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
             <Icon aria-hidden="true" className="size-5" />
           </span>
           <div className="min-w-0 space-y-1">
