@@ -4,9 +4,7 @@ import {
   ArrowUpRight,
   CalendarDays,
   ChartPie,
-  CreditCard,
   Lightbulb,
-  type LucideIcon,
 } from 'lucide-react'
 import { useEffect, useMemo } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
@@ -30,6 +28,7 @@ import { cn } from '@/shared/lib/utils'
 import { useAnalysisOverview } from '../api/use-analysis-overview'
 import { AnalysisCategoriesContent } from './analysis-categories'
 import { AnalysisFixedContent } from './analysis-fixed'
+import { AnalysisPaymentsContent } from './analysis-payments'
 import {
   createAnalysisRange,
   formatCurrency,
@@ -48,17 +47,6 @@ const analysisViews = [
 ] as const
 
 type AnalysisView = (typeof analysisViews)[number]['value']
-
-const placeholderDetails: Record<
-  Extract<AnalysisView, 'payments'>,
-  { title: string; description: string; icon: LucideIcon }
-> = {
-  payments: {
-    title: '支払い方法分析は準備中です',
-    description: 'カードや口座ごとの利用状況は、次回の実装で追加します。',
-    icon: CreditCard,
-  },
-}
 
 const categoryChartColors = [
   'var(--chart-1)',
@@ -571,26 +559,6 @@ function OverviewContent() {
   )
 }
 
-function PendingView({
-  view,
-}: {
-  view: Extract<AnalysisView, 'payments'>
-}) {
-  const detail = placeholderDetails[view]
-  const Icon = detail.icon
-  return (
-    <div className="flex min-h-[48svh] items-center justify-center rounded-2xl border bg-card px-6 py-16 text-center">
-      <div className="max-w-md">
-        <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-accent text-accent-foreground">
-          <Icon aria-hidden="true" className="size-6" />
-        </span>
-        <h2 className="mt-5 text-lg font-semibold sm:text-xl">{detail.title}</h2>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">{detail.description}</p>
-      </div>
-    </div>
-  )
-}
-
 export function AnalysisDashboard() {
   const [searchParams, setSearchParams] = useSearchParams()
   const rawView = searchParams.get('view')
@@ -615,7 +583,7 @@ export function AnalysisDashboard() {
         {view === 'overview' ? <OverviewContent /> : null}
         {view === 'categories' ? <AnalysisCategoriesContent /> : null}
         {view === 'fixed' ? <AnalysisFixedContent /> : null}
-        {view === 'payments' ? <PendingView view={view} /> : null}
+        {view === 'payments' ? <AnalysisPaymentsContent /> : null}
       </div>
     </section>
   )
