@@ -1,41 +1,12 @@
 import { expect, test } from '@playwright/test'
 
-test.beforeEach(async ({ request }) => {
-  const response = await request.delete(
-    'http://localhost:9099/emulator/v1/projects/demo-moneyhooks/accounts',
-  )
-  expect(response.ok()).toBe(true)
-})
+function appUrl(path: string) {
+  return new RegExp(`/app/${path}(?:\\?.*)?$`)
+}
 
-async function completeGooglePopup(
-  page: import('@playwright/test').Page,
-  accountPrefix: string,
-  displayName: string,
-) {
-  const popupPromise = page.waitForEvent('popup')
+async function completeGoogleLogin(page: import('@playwright/test').Page) {
   await page.getByRole('button', { name: 'Googleで続行' }).click()
-  const popup = await popupPromise
-  const addAccountButton = popup.getByRole('button', { name: 'Add new account' })
-  const emailInput = popup.locator('#email-input:visible')
-  const displayNameInput = popup.locator('#display-name-input:visible')
-  await expect(addAccountButton).toBeVisible()
-  await expect
-    .poll(
-      async () => {
-        if (await emailInput.isVisible()) {
-          return true
-        }
-        if (await addAccountButton.isVisible()) {
-          await addAccountButton.click()
-        }
-        return emailInput.isVisible()
-      },
-      { message: 'Auth Emulatorのアカウント入力画面が表示される' },
-    )
-    .toBe(true)
-  await emailInput.fill(`${accountPrefix}-${Date.now()}@example.com`)
-  await displayNameInput.fill(displayName)
-  await popup.locator('#sign-in:visible').click()
+  await expect(page).toHaveURL(appUrl('(?:home|analysis|settings)'))
 }
 
 async function signInWithEmulator(page: import('@playwright/test').Page) {
@@ -43,9 +14,9 @@ async function signInWithEmulator(page: import('@playwright/test').Page) {
   await expect(
     page.getByRole('heading', { name: /MoneyHooksへ\s*ログイン/ }),
   ).toBeVisible()
-  await completeGooglePopup(page, 'e2e', 'E2E User')
+  await completeGoogleLogin(page)
 
-  await expect(page).toHaveURL(/\/app\/home$/)
+  await expect(page).toHaveURL(appUrl('home'))
   await expect(page.getByRole('heading', { name: 'ホーム' })).toBeVisible()
 }
 
@@ -57,7 +28,7 @@ async function callAuthenticatedCategoryApi(
     const { getFirebaseAuth } = await import(firebaseModulePath)
     const token = await getFirebaseAuth().currentUser?.getIdToken()
     const response = await fetch(
-      'http://localhost:8080/api/category/getCategoryList',
+      'http://localhost:8080/api/category/getCategoryWithSubCategoryList',
       {
         headers: { Authorization: `Bearer ${token ?? ''}` },
       },
@@ -74,9 +45,27 @@ test('accepts a Google emulator token at the real API', async ({ page }) => {
 
   await signInWithEmulator(page)
 
+  const firebaseUser = await page.evaluate(async () => {
+    const { getFirebaseAuth } = await import('/src/shared/lib/firebase.ts')
+    const user = getFirebaseAuth().currentUser
+    return {
+      uid: user?.uid ?? null,
+      displayName: user?.displayName ?? null,
+      email: user?.email ?? null,
+      providerId: user?.providerData[0]?.providerId ?? null,
+    }
+  })
+  expect(firebaseUser).toEqual({
+    uid: 'a77a6e94-6aa2-47ea-87dd-129f580fb669',
+    displayName: '開発ユーザー',
+    email: 'developer@example.com',
+    providerId: 'google.com',
+  })
+
   const response = await callAuthenticatedCategoryApi(page)
 
   expect(response.status, response.body).toBe(200)
+  expect(response.body).toContain('ラーメン巡り')
 
   await page.getByRole('button', { name: 'アカウントメニューを開く' }).click()
   await page.getByRole('menuitem', { name: 'ログアウト' }).click()
@@ -87,14 +76,111 @@ test('accepts a Google emulator token at the real API', async ({ page }) => {
 test('protects app routes and restores a deep link after login', async ({ page }) => {
   await page.goto('/app/analysis')
   await expect(page).toHaveURL(/\/login\?redirect=/)
-  await completeGooglePopup(page, 'analysis', 'Analysis User')
+  await completeGoogleLogin(page)
 
-  await expect(page).toHaveURL(/\/app\/analysis$/)
+  await expect(page).toHaveURL(appUrl('analysis'))
   await expect(page.getByRole('heading', { name: '分析' })).toBeVisible()
 
+  for (const tab of ['概要', 'カテゴリ', '固定費', '支払い方法']) {
+    await expect(page.getByRole('link', { name: tab, exact: true })).toBeVisible()
+  }
+  await page.getByRole('link', { name: 'カテゴリ', exact: true }).click()
+  await expect(page).toHaveURL(/\/app\/analysis\?view=categories$/)
+  await expect(page.getByRole('heading', { name: 'カテゴリ別支出' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /の内訳$/ })).toBeVisible()
+  await page.reload()
+  await expect(page.getByRole('heading', { name: 'カテゴリ別支出' })).toBeVisible()
+  await page.getByRole('link', { name: '固定費', exact: true }).click()
+  await expect(page).toHaveURL(/\/app\/analysis\?view=fixed$/)
+  await expect(page.getByRole('heading', { name: '固定費サマリー' })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: '固定費のカテゴリ別推移' }),
+  ).toBeVisible()
+  await page.reload()
+  await expect(page.getByRole('heading', { name: '固定費サマリー' })).toBeVisible()
+  await page.getByRole('link', { name: '支払い方法', exact: true }).click()
+  await expect(
+    page.getByRole('heading', { name: '支払い方法サマリー' }),
+  ).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: '支払い方法別の支出推移' }),
+  ).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: '支払い方法の詳細' }),
+  ).toBeVisible()
+  await page.reload()
+  await expect(
+    page.getByRole('heading', { name: '支払い方法サマリー' }),
+  ).toBeVisible()
+  await page.getByRole('link', { name: '概要', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'サマリー' })).toBeVisible()
+
   await page.goto('/login?redirect=%2Fapp%2Fsettings')
-  await expect(page).toHaveURL(/\/app\/settings$/)
+  await expect(page).toHaveURL(appUrl('settings'))
   await expect(page.getByRole('heading', { name: '設定' })).toBeVisible()
+})
+
+test('keeps the analysis width stable at 1024px', async ({ page }) => {
+  await page.setViewportSize({ width: 1024, height: 900 })
+  await signInWithEmulator(page)
+  await page.goto('/app/analysis?view=overview')
+  await expect(page.getByRole('heading', { name: 'サマリー' })).toBeVisible()
+
+  const analysisTabs = page
+    .getByRole('navigation', { name: '分析表示' })
+    .getByRole('link')
+  const overviewTabWidths = await analysisTabs.evaluateAll((elements) =>
+    elements.map((element) => element.getBoundingClientRect().width),
+  )
+
+  await page.getByRole('link', { name: '固定費', exact: true }).click()
+  await expect(page.getByRole('heading', { name: '固定費サマリー' })).toBeVisible()
+
+  const fixedTabWidths = await analysisTabs.evaluateAll((elements) =>
+    elements.map((element) => element.getBoundingClientRect().width),
+  )
+  const layout = await page.evaluate(() => {
+    const main = document.querySelector('#main-content')
+    const table = document.querySelector('table')
+    const tableScroller = table?.parentElement
+
+    return {
+      documentWidth: document.documentElement.scrollWidth,
+      viewportWidth: window.innerWidth,
+      mainRight: main?.getBoundingClientRect().right ?? 0,
+      tableClientWidth: tableScroller?.clientWidth ?? 0,
+      tableScrollWidth: tableScroller?.scrollWidth ?? 0,
+      tableOverflowX: tableScroller
+        ? getComputedStyle(tableScroller).overflowX
+        : '',
+    }
+  })
+
+  expect(fixedTabWidths).toEqual(overviewTabWidths)
+  expect(layout.documentWidth).toBe(layout.viewportWidth)
+  expect(layout.mainRight).toBeLessThanOrEqual(layout.viewportWidth)
+  expect(layout.tableScrollWidth).toBeGreaterThan(layout.tableClientWidth)
+  expect(layout.tableOverflowX).toBe('auto')
+
+  await page.getByRole('link', { name: '支払い方法', exact: true }).click()
+  await expect(
+    page.getByRole('heading', { name: '支払い方法サマリー' }),
+  ).toBeVisible()
+  const paymentTabWidths = await analysisTabs.evaluateAll((elements) =>
+    elements.map((element) => element.getBoundingClientRect().width),
+  )
+  const paymentLayout = await page.evaluate(() => ({
+    documentWidth: document.documentElement.scrollWidth,
+    viewportWidth: window.innerWidth,
+  }))
+
+  expect(paymentTabWidths).toEqual(overviewTabWidths)
+  expect(paymentLayout.documentWidth).toBe(paymentLayout.viewportWidth)
+
+  await page.getByRole('button', { name: 'サイドバーを切り替える' }).last().click()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(
+    1024,
+  )
 })
 
 test('switches between desktop sidebar and mobile bottom navigation at 769px', async ({
@@ -113,17 +199,17 @@ test('switches between desktop sidebar and mobile bottom navigation at 769px', a
     ['設定', 'settings'],
     ['ホーム', 'home'],
   ] as const) {
-    const link = page.getByRole('link', { name: label }).first()
+    const link = page.getByRole('link', { name: label, exact: true }).first()
     await link.click()
-    await expect(page).toHaveURL(new RegExp(`/app/${path}$`))
+    await expect(page).toHaveURL(appUrl(path))
     await expect(page.getByRole('heading', { name: label })).toBeVisible()
     await expect(link).toHaveAttribute('aria-current', 'page')
   }
 
   await page.goBack()
-  await expect(page).toHaveURL(/\/app\/settings$/)
+  await expect(page).toHaveURL(appUrl('settings'))
   await page.goForward()
-  await expect(page).toHaveURL(/\/app\/home$/)
+  await expect(page).toHaveURL(appUrl('home'))
 
   await page.setViewportSize({ width: 768, height: 900 })
   const mobileNavigation = page.getByRole('navigation', {
@@ -133,9 +219,9 @@ test('switches between desktop sidebar and mobile bottom navigation at 769px', a
   await expect(desktopNavigation).toBeHidden()
 
   await page.getByRole('link', { name: '取引' }).last().click()
-  await expect(page).toHaveURL(/\/app\/transactions$/)
+  await expect(page).toHaveURL(appUrl('transactions'))
   await page.reload()
-  await expect(page.getByRole('heading', { name: '取引' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '取引', exact: true })).toBeVisible()
 
   await page.setViewportSize({ width: 390, height: 844 })
   await expect(mobileNavigation).toBeVisible()

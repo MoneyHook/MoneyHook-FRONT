@@ -1,0 +1,455 @@
+import { useQueryClient } from '@tanstack/react-query'
+import {
+  CalendarDays,
+  Check,
+  ChevronRight,
+  CreditCard,
+  Info,
+  LoaderCircle,
+  X,
+} from 'lucide-react'
+import { useMemo, useState, type FormEvent } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
+
+import {
+  getGetTimelineDataQueryKey,
+  useCreateV1Transaction,
+  useGetFrequentTransactionNames,
+} from '@/shared/api/generated/transaction/transaction'
+import { useGetCategoryWithSubCategoryList } from '@/shared/api/generated/category/category'
+import { useGetPaymentResources } from '@/shared/api/generated/payment/payment'
+import { ErrorState } from '@/shared/components/app-state'
+import { Button } from '@/shared/components/ui/button'
+import { Input } from '@/shared/components/ui/input'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/shared/components/ui/sheet'
+import { Skeleton } from '@/shared/components/ui/skeleton'
+import { getCategoryPresentation } from '@/shared/lib/category-presentation'
+import { cn } from '@/shared/lib/utils'
+
+import {
+  createNewTransactionValues,
+  validateNewTransaction,
+  type NewTransactionErrors,
+  type NewTransactionFormValues,
+  type NewTransactionSign,
+} from '../model/new-transaction'
+
+type SelectionSheet = 'category' | 'subcategory' | 'payment' | null
+
+function FormSection({ children, className }: { children: React.ReactNode; className?: string }) {
+  return (
+    <section
+      className={cn(
+        'overflow-hidden rounded-2xl border bg-card shadow-[0_8px_28px_color-mix(in_oklab,var(--foreground)_4%,transparent)]',
+        className,
+      )}
+    >
+      {children}
+    </section>
+  )
+}
+
+function FormRow({ children, className }: { children: React.ReactNode; className?: string }) {
+  return <div className={cn('flex min-h-16 items-center gap-3 px-4 sm:px-5', className)}>{children}</div>
+}
+
+function CategoryIcon({ name }: { name: string }) {
+  const presentation = getCategoryPresentation(name)
+  const Icon = presentation.icon
+
+  return (
+    <span className={cn('flex size-11 shrink-0 items-center justify-center rounded-full', presentation.iconClassName)}>
+      <Icon aria-hidden="true" className="size-5" />
+    </span>
+  )
+}
+
+function SheetOption({
+  children,
+  isSelected,
+  onClick,
+}: {
+  children: React.ReactNode
+  isSelected: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      aria-pressed={isSelected}
+      className={cn(
+        'flex min-h-14 w-full items-center gap-3 rounded-xl px-4 text-left outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50',
+        isSelected && 'bg-accent text-accent-foreground',
+      )}
+      onClick={onClick}
+      type="button"
+    >
+      {children}
+      {isSelected ? <Check aria-hidden="true" className="ml-auto size-5 text-primary" /> : null}
+    </button>
+  )
+}
+
+export function NewTransactionView() {
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const categoriesQuery = useGetCategoryWithSubCategoryList()
+  const paymentsQuery = useGetPaymentResources()
+  const frequentTransactionsQuery = useGetFrequentTransactionNames()
+  const createMutation = useCreateV1Transaction()
+  const [form, setForm] = useState<NewTransactionFormValues>(() => createNewTransactionValues())
+  const [errors, setErrors] = useState<NewTransactionErrors>({})
+  const [selectionSheet, setSelectionSheet] = useState<SelectionSheet>(null)
+
+  const categories =
+    categoriesQuery.data?.status === 200 ? categoriesQuery.data.data.category_list ?? [] : []
+  const payments =
+    paymentsQuery.data?.status === 200 ? paymentsQuery.data.data.payment_list : []
+  const selectedCategory = categories.find((category) => category.category_id === form.categoryId)
+  const enabledSubcategories = (selectedCategory?.sub_category_list ?? []).filter(
+    (subcategory) => subcategory.enable,
+  )
+  const selectedSubcategory = enabledSubcategories.find(
+    (subcategory) => subcategory.sub_category_id === form.subcategoryId,
+  )
+  const selectedPayment = payments.find((payment) => payment.payment_id === form.paymentId)
+  const frequentCategories = useMemo(() => {
+    const transactions =
+      frequentTransactionsQuery.data?.status === 200
+        ? frequentTransactionsQuery.data.data.transaction_list
+        : []
+    const seen = new Set<string>()
+
+    return transactions.filter((transaction) => {
+      if (seen.has(transaction.category_id)) {
+        return false
+      }
+      seen.add(transaction.category_id)
+      return true
+    }).slice(0, 5)
+  }, [frequentTransactionsQuery.data])
+
+  const setValue = <K extends keyof NewTransactionFormValues>(
+    key: K,
+    value: NewTransactionFormValues[K],
+  ) => {
+    setForm((current) => ({ ...current, [key]: value }))
+    setErrors((current) => ({ ...current, [key]: undefined }))
+  }
+
+  const selectCategory = (categoryId: string) => {
+    setForm((current) => ({ ...current, categoryId, subcategoryId: '' }))
+    setErrors((current) => ({ ...current, categoryId: undefined, subcategoryId: undefined }))
+    setSelectionSheet(null)
+  }
+
+  const selectFrequentCategory = (transaction: (typeof frequentCategories)[number]) => {
+    setForm((current) => ({
+      ...current,
+      categoryId: transaction.category_id,
+      subcategoryId: transaction.sub_category_id,
+    }))
+    setErrors((current) => ({ ...current, categoryId: undefined, subcategoryId: undefined }))
+  }
+
+  const handleSignChange = (sign: NewTransactionSign) => {
+    setValue('sign', sign)
+  }
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const nextErrors = validateNewTransaction(form)
+    setErrors(nextErrors)
+    if (Object.keys(nextErrors).length) {
+      return
+    }
+
+    try {
+      const response = await createMutation.mutateAsync({
+        data: {
+          transaction: {
+            transaction_date: form.transactionDate,
+            transaction_name: form.transactionName.trim(),
+            amount: Number(form.amount),
+            sign: form.sign,
+            category_id: form.categoryId,
+            sub_category_id: form.subcategoryId,
+            fixed_flg: form.fixed,
+            payment_id: form.paymentId,
+          },
+        },
+      })
+      if (response.status !== 201) {
+        throw new Error('取引を保存できませんでした。もう一度お試しください。')
+      }
+
+      const month = `${form.transactionDate.slice(0, 7)}-01`
+      await queryClient.invalidateQueries({
+        queryKey: getGetTimelineDataQueryKey({ month }),
+      })
+      toast.success('取引を保存しました。')
+      navigate(`/app/transactions?month=${month}&view=list`, { replace: true })
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : '取引を保存できませんでした。')
+    }
+  }
+
+  if (categoriesQuery.isPending) {
+    return (
+      <section aria-label="取引追加画面を読み込んでいます" className="mx-auto w-full max-w-2xl px-4 py-5 sm:px-6" role="status">
+        <div className="flex items-center justify-between">
+          <Skeleton className="size-10 rounded-full" />
+          <Skeleton className="h-7 w-32" />
+          <Skeleton className="h-8 w-12" />
+        </div>
+        <Skeleton className="mt-8 h-14 rounded-2xl" />
+        <Skeleton className="mt-7 h-56 rounded-2xl" />
+        <Skeleton className="mt-6 h-44 rounded-2xl" />
+      </section>
+    )
+  }
+
+  if (categoriesQuery.isError) {
+    return (
+      <section className="mx-auto w-full max-w-2xl px-4 py-5 sm:px-6">
+        <header className="flex items-center justify-between">
+          <Button aria-label="取引一覧へ戻る" onClick={() => navigate('/app/transactions')} size="icon-lg" variant="ghost">
+            <X aria-hidden="true" className="size-7" />
+          </Button>
+          <h1 className="text-xl font-semibold tracking-[-0.04em]" id="new-transaction-page-title">取引を追加</h1>
+          <span className="w-9" />
+        </header>
+        <div className="mt-10">
+          <ErrorState
+            message={categoriesQuery.error instanceof Error ? categoriesQuery.error.message : 'カテゴリを取得できませんでした。'}
+            onRetry={() => void categoriesQuery.refetch()}
+            title="取引を追加できません"
+          />
+        </div>
+      </section>
+    )
+  }
+
+  return (
+    <section aria-labelledby="new-transaction-page-title" className="motion-route-enter mx-auto w-full max-w-2xl px-4 pb-10 pt-4 sm:px-6 sm:pt-7">
+      <header className="flex items-center justify-between gap-3">
+        <Button aria-label="取引一覧へ戻る" onClick={() => navigate('/app/transactions')} size="icon-lg" variant="ghost">
+          <X aria-hidden="true" className="size-7" />
+        </Button>
+        <h1 className="text-xl font-semibold tracking-[-0.04em] sm:text-2xl" id="new-transaction-page-title">取引を追加</h1>
+        <Button disabled={createMutation.isPending} form="new-transaction-form" size="lg" type="submit" variant="ghost">
+          {createMutation.isPending ? <LoaderCircle aria-hidden="true" className="animate-spin" /> : null}
+          保存
+        </Button>
+      </header>
+
+      <form className="mt-8 space-y-6" id="new-transaction-form" noValidate onSubmit={(event) => void handleSubmit(event)}>
+        <div aria-label="取引区分" className="grid grid-cols-2 rounded-2xl bg-muted p-1.5" role="tablist">
+          {([
+            { sign: -1 as const, label: '支出' },
+            { sign: 1 as const, label: '収入' },
+          ]).map((item) => {
+            const isSelected = form.sign === item.sign
+            return (
+              <button
+                aria-selected={isSelected}
+                className={cn(
+                  'min-h-12 rounded-xl px-4 font-semibold outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50',
+                  isSelected ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground',
+                )}
+                key={item.sign}
+                onClick={() => handleSignChange(item.sign)}
+                role="tab"
+                type="button"
+              >
+                {item.label}
+              </button>
+            )
+          })}
+        </div>
+
+        <FormSection>
+          <FormRow className="border-b">
+            <CalendarDays aria-hidden="true" className="size-6 shrink-0 text-muted-foreground" />
+            <label className="font-medium" htmlFor="new-transaction-date">日付</label>
+            <Input
+              aria-invalid={errors.transactionDate ? true : undefined}
+              className="ml-auto h-10 w-auto border-0 px-0 text-right font-medium shadow-none focus-visible:ring-0"
+              id="new-transaction-date"
+              max="9999-12-31"
+              onChange={(event) => setValue('transactionDate', event.target.value)}
+              type="date"
+              value={form.transactionDate}
+            />
+          </FormRow>
+          {errors.transactionDate ? <p className="px-4 pb-3 text-sm text-destructive" role="alert">{errors.transactionDate}</p> : null}
+          <FormRow className="border-b">
+            <label className="font-medium" htmlFor="new-transaction-amount">金額</label>
+            <span className="ml-auto text-xl font-semibold">¥</span>
+            <Input
+              aria-invalid={errors.amount ? true : undefined}
+              className="h-12 max-w-44 border-0 px-0 text-right text-2xl font-semibold tracking-[-0.04em] tabular-nums shadow-none focus-visible:ring-0"
+              id="new-transaction-amount"
+              inputMode="numeric"
+              maxLength={7}
+              onChange={(event) => setValue('amount', event.target.value.replace(/\D/g, ''))}
+              placeholder="0"
+              value={form.amount}
+            />
+          </FormRow>
+          {errors.amount ? <p className="px-4 pb-3 text-sm text-destructive" role="alert">{errors.amount}</p> : null}
+          <FormRow>
+            <label className="font-medium" htmlFor="new-transaction-name">取引名</label>
+            <Input
+              aria-invalid={errors.transactionName ? true : undefined}
+              className="ml-auto h-11 max-w-64 text-right"
+              id="new-transaction-name"
+              maxLength={32}
+              onChange={(event) => setValue('transactionName', event.target.value)}
+              placeholder="例: ランチ"
+              value={form.transactionName}
+            />
+          </FormRow>
+          {errors.transactionName ? <p className="px-4 pb-3 text-sm text-destructive" role="alert">{errors.transactionName}</p> : null}
+        </FormSection>
+
+        <FormSection>
+          <button
+            aria-describedby={errors.categoryId ? 'new-transaction-category-error' : undefined}
+            aria-invalid={errors.categoryId ? true : undefined}
+            className="flex min-h-28 w-full items-center gap-3 px-4 text-left outline-none transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 sm:px-5"
+            onClick={() => setSelectionSheet('category')}
+            type="button"
+          >
+            <span className="font-medium">カテゴリ</span>
+            <span className="ml-auto flex min-w-0 items-center gap-3">
+              {selectedCategory ? <CategoryIcon name={selectedCategory.category_name} /> : null}
+              <span className={cn('truncate text-lg font-medium', !selectedCategory && 'text-muted-foreground')}>
+                {selectedCategory?.category_name ?? '選択してください'}
+              </span>
+            </span>
+            <ChevronRight aria-hidden="true" className="size-5 shrink-0 text-muted-foreground" />
+          </button>
+          {errors.categoryId ? <p className="px-4 pb-3 text-sm text-destructive" id="new-transaction-category-error" role="alert">{errors.categoryId}</p> : null}
+          <div className="border-t" />
+          <button
+            aria-describedby={errors.subcategoryId ? 'new-transaction-subcategory-error' : undefined}
+            aria-disabled={!selectedCategory}
+            aria-invalid={errors.subcategoryId ? true : undefined}
+            className="flex min-h-28 w-full items-center gap-3 px-4 text-left outline-none transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 sm:px-5"
+            disabled={!selectedCategory}
+            onClick={() => setSelectionSheet('subcategory')}
+            type="button"
+          >
+            <span className="font-medium">サブカテゴリ</span>
+            <span className={cn('ml-auto truncate text-lg font-medium', !selectedSubcategory && 'text-muted-foreground')}>
+              {selectedSubcategory?.sub_category_name ?? (selectedCategory ? '選択してください' : 'カテゴリを選択してください')}
+            </span>
+            <ChevronRight aria-hidden="true" className="size-5 shrink-0 text-muted-foreground" />
+          </button>
+          {errors.subcategoryId ? <p className="px-4 pb-3 text-sm text-destructive" id="new-transaction-subcategory-error" role="alert">{errors.subcategoryId}</p> : null}
+          <div className="border-t" />
+          <FormRow>
+            <span className="flex items-center gap-2 font-medium">
+              固定費フラグ
+              <Info aria-hidden="true" className="size-4 text-muted-foreground" />
+            </span>
+            <button
+              aria-checked={form.fixed}
+              aria-label="固定費フラグ"
+              className={cn('ml-auto flex h-7 w-12 items-center rounded-full p-1 transition-colors focus-visible:ring-3 focus-visible:ring-ring/50', form.fixed ? 'bg-primary justify-end' : 'bg-muted-foreground/25 justify-start')}
+              onClick={() => setValue('fixed', !form.fixed)}
+              role="switch"
+              type="button"
+            >
+              <span className="size-5 rounded-full bg-card shadow-sm" />
+            </button>
+          </FormRow>
+        </FormSection>
+
+        <FormSection>
+          <button
+            className="flex min-h-28 w-full items-center gap-3 px-4 text-left outline-none transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 sm:px-5"
+            onClick={() => setSelectionSheet('payment')}
+            type="button"
+          >
+            <span className="font-medium">支払い方法</span>
+            <span className="ml-auto flex min-w-0 items-center gap-3">
+              {selectedPayment ? <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-chart-2/12 text-chart-2"><CreditCard aria-hidden="true" className="size-5" /></span> : null}
+              <span className={cn('truncate text-lg font-medium', !selectedPayment && 'text-muted-foreground')}>
+                {paymentsQuery.isError ? '取得できませんでした' : selectedPayment?.payment_name ?? '選択しない'}
+              </span>
+            </span>
+            <ChevronRight aria-hidden="true" className="size-5 shrink-0 text-muted-foreground" />
+          </button>
+        </FormSection>
+
+        {frequentCategories.length ? (
+          <FormSection className="p-4 sm:p-5">
+            <h2 className="text-lg font-semibold tracking-[-0.03em]">よく使うカテゴリ</h2>
+            <div className="mt-5 grid grid-cols-5 gap-2">
+              {frequentCategories.map((transaction) => (
+                <button
+                  aria-label={`${transaction.category_name}を選択`}
+                  className="flex min-w-0 flex-col items-center gap-2 rounded-xl py-1 text-center outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+                  key={transaction.category_id}
+                  onClick={() => selectFrequentCategory(transaction)}
+                  type="button"
+                >
+                  <CategoryIcon name={transaction.category_name} />
+                  <span className="w-full truncate text-xs font-medium sm:text-sm">{transaction.category_name}</span>
+                </button>
+              ))}
+            </div>
+          </FormSection>
+        ) : null}
+      </form>
+
+      <Sheet onOpenChange={(open) => !open && setSelectionSheet(null)} open={selectionSheet === 'category'}>
+        <SheetContent className="max-h-[85svh] overflow-y-auto rounded-t-3xl p-0" showCloseButton={false} side="bottom">
+          <SheetHeader className="border-b px-5 py-4 text-left"><SheetTitle>カテゴリを選択</SheetTitle><SheetDescription>取引のカテゴリを選択してください。</SheetDescription></SheetHeader>
+          <div className="p-2">
+            {categories.map((category) => (
+              <SheetOption isSelected={form.categoryId === category.category_id} key={category.category_id} onClick={() => selectCategory(category.category_id)}>
+                <CategoryIcon name={category.category_name} /><span className="font-medium">{category.category_name}</span>
+              </SheetOption>
+            ))}
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      <Sheet onOpenChange={(open) => !open && setSelectionSheet(null)} open={selectionSheet === 'subcategory'}>
+        <SheetContent className="max-h-[85svh] overflow-y-auto rounded-t-3xl p-0" showCloseButton={false} side="bottom">
+          <SheetHeader className="border-b px-5 py-4 text-left"><SheetTitle>サブカテゴリを選択</SheetTitle><SheetDescription>{selectedCategory?.category_name ?? 'カテゴリ'}のサブカテゴリを選択してください。</SheetDescription></SheetHeader>
+          <div className="p-2">
+            {enabledSubcategories.length ? enabledSubcategories.map((subcategory) => (
+              <SheetOption isSelected={form.subcategoryId === subcategory.sub_category_id} key={subcategory.sub_category_id} onClick={() => { setValue('subcategoryId', subcategory.sub_category_id); setSelectionSheet(null) }}>
+                <span className="font-medium">{subcategory.sub_category_name}</span>
+              </SheetOption>
+            )) : <p className="px-4 py-8 text-center text-sm text-muted-foreground">選択できるサブカテゴリがありません。</p>}
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      <Sheet onOpenChange={(open) => !open && setSelectionSheet(null)} open={selectionSheet === 'payment'}>
+        <SheetContent className="max-h-[85svh] overflow-y-auto rounded-t-3xl p-0" showCloseButton={false} side="bottom">
+          <SheetHeader className="border-b px-5 py-4 text-left"><SheetTitle>支払い方法を選択</SheetTitle><SheetDescription>支払い方法は任意です。</SheetDescription></SheetHeader>
+          <div className="p-2">
+            <SheetOption isSelected={form.paymentId === null} onClick={() => { setValue('paymentId', null); setSelectionSheet(null) }}><span className="font-medium">選択しない</span></SheetOption>
+            {payments.map((payment) => (
+              <SheetOption isSelected={form.paymentId === payment.payment_id} key={payment.payment_id} onClick={() => { setValue('paymentId', payment.payment_id); setSelectionSheet(null) }}>
+                <span className="flex size-10 items-center justify-center rounded-full bg-chart-2/12 text-chart-2"><CreditCard aria-hidden="true" className="size-5" /></span><span className="font-medium">{payment.payment_name}</span>
+              </SheetOption>
+            ))}
+          </div>
+        </SheetContent>
+      </Sheet>
+    </section>
+  )
+}

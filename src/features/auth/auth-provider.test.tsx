@@ -7,9 +7,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createAppQueryClient } from '@/app/providers/query-client'
 
 const firebaseMocks = vi.hoisted(() => ({
+  googleCredential: vi.fn((token: string) => ({ token })),
   onIdTokenChanged: vi.fn(),
+  signInWithCredential: vi.fn(),
   signInWithPopup: vi.fn(),
   signOut: vi.fn(),
+}))
+
+const testEnvironment = vi.hoisted(() => ({
+  firebase: { devUserEnabled: false },
 }))
 
 const firebaseAuth = {
@@ -17,10 +23,18 @@ const firebaseAuth = {
 }
 
 vi.mock('firebase/auth', () => ({
-  GoogleAuthProvider: class GoogleAuthProvider {},
+  GoogleAuthProvider: class GoogleAuthProvider {
+    static credential = firebaseMocks.googleCredential
+  },
   onIdTokenChanged: firebaseMocks.onIdTokenChanged,
+  signInWithCredential: firebaseMocks.signInWithCredential,
   signInWithPopup: firebaseMocks.signInWithPopup,
   signOut: firebaseMocks.signOut,
+}))
+
+vi.mock('@/shared/config/environment', () => ({
+  getEnvironment: () => testEnvironment,
+  EnvironmentConfigurationError: class EnvironmentConfigurationError extends Error {},
 }))
 
 vi.mock('@/shared/lib/firebase', () => ({
@@ -80,6 +94,7 @@ describe('AuthProvider', () => {
   beforeEach(() => {
     idTokenListener = null
     firebaseAuth.currentUser = null
+    testEnvironment.firebase.devUserEnabled = false
     vi.clearAllMocks()
     firebaseMocks.onIdTokenChanged.mockImplementation(
       (_auth: unknown, listener: (user: User | null) => void) => {
@@ -119,8 +134,45 @@ describe('AuthProvider', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Googleログイン' }))
 
+    expect(firebaseMocks.signInWithPopup).toHaveBeenCalledTimes(1)
     await waitFor(() => {
       expect(screen.getByText('Googleログインがキャンセルされました。')).toBeVisible()
+    })
+  })
+
+  it('uses the fixed Google mock credential for the development user', async () => {
+    testEnvironment.firebase.devUserEnabled = true
+    renderAuthProvider()
+    emitIdToken(null)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Googleログイン' }))
+
+    await waitFor(() => {
+      expect(firebaseMocks.signInWithCredential).toHaveBeenCalledTimes(1)
+    })
+    expect(firebaseMocks.signInWithPopup).not.toHaveBeenCalled()
+    expect(firebaseMocks.googleCredential).toHaveBeenCalledWith(
+      JSON.stringify({
+        sub: 'a77a6e94-6aa2-47ea-87dd-129f580fb669',
+        email: 'developer@example.com',
+        email_verified: true,
+        name: '開発ユーザー',
+      }),
+    )
+  })
+
+  it('reports authentication errors from the development credential flow', async () => {
+    testEnvironment.firebase.devUserEnabled = true
+    firebaseMocks.signInWithCredential.mockRejectedValue(
+      new FirebaseError('auth/network-request-failed', 'network failed'),
+    )
+    renderAuthProvider()
+    emitIdToken(null)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Googleログイン' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('認証サーバーへ接続できませんでした。ネットワークを確認してください。')).toBeVisible()
     })
   })
 

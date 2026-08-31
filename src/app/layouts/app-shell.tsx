@@ -4,13 +4,9 @@ import {
   Check,
   House,
   LogOut,
-  Monitor,
-  Moon,
   Settings,
-  Sun,
   type LucideIcon,
 } from 'lucide-react'
-import { useTheme } from 'next-themes'
 import { useMemo } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -18,21 +14,19 @@ import { toast } from 'sonner'
 import { useAuth } from '@/features/auth'
 import { Brand } from '@/shared/components/brand'
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar'
-import { Button } from '@/shared/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu'
-import { Separator } from '@/shared/components/ui/separator'
+import { cn } from '@/shared/lib/utils'
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarHeader,
@@ -43,6 +37,7 @@ import {
   SidebarProvider,
   SidebarRail,
   SidebarTrigger,
+  useSidebar,
 } from '@/shared/components/ui/sidebar'
 
 type NavigationItem = {
@@ -62,43 +57,7 @@ function isNavigationItemActive(pathname: string, itemPath: string) {
   return pathname === itemPath || pathname.startsWith(`${itemPath}/`)
 }
 
-function ThemeMenu() {
-  const { setTheme, theme = 'system' } = useTheme()
-  const themeOptions = [
-    { value: 'light', label: 'ライト', icon: Sun },
-    { value: 'dark', label: 'ダーク', icon: Moon },
-    { value: 'system', label: 'システム', icon: Monitor },
-  ] as const
-
-  const SelectedIcon =
-    themeOptions.find((option) => option.value === theme)?.icon ?? Monitor
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button aria-label="表示テーマを変更" size="icon" variant="ghost">
-          <SelectedIcon aria-hidden="true" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-44">
-        <DropdownMenuLabel>表示テーマ</DropdownMenuLabel>
-        <DropdownMenuRadioGroup onValueChange={setTheme} value={theme}>
-          {themeOptions.map((option) => {
-            const Icon = option.icon
-            return (
-              <DropdownMenuRadioItem key={option.value} value={option.value}>
-                <Icon aria-hidden="true" />
-                {option.label}
-              </DropdownMenuRadioItem>
-            )
-          })}
-        </DropdownMenuRadioGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  )
-}
-
-function UserMenu() {
+function SidebarAccountMenu() {
   const { user, signOut } = useAuth()
   const initial = useMemo(() => {
     const source = user?.displayName?.trim() || user?.email?.trim() || 'M'
@@ -114,21 +73,25 @@ function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
+        <SidebarMenuButton
           aria-label="アカウントメニューを開く"
-          className="rounded-full"
-          size="icon"
-          variant="ghost"
+          className="h-12 group-data-[collapsible=icon]:justify-center"
+          size="lg"
         >
-          <Avatar size="sm">
+          <Avatar>
             {user?.photoURL ? (
               <AvatarImage alt="" referrerPolicy="no-referrer" src={user.photoURL} />
             ) : null}
             <AvatarFallback>{initial}</AvatarFallback>
           </Avatar>
-        </Button>
+          <span className="min-w-0 group-data-[collapsible=icon]:hidden">
+            <span className="block truncate font-medium">
+              {user?.displayName || 'MoneyHooksユーザー'}
+            </span>
+          </span>
+        </SidebarMenuButton>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-64">
+      <DropdownMenuContent align="end">
         <DropdownMenuLabel className="space-y-1">
           <span className="block truncate font-medium">
             {user?.displayName || 'MoneyHooksユーザー'}
@@ -190,6 +153,13 @@ function DesktopSidebar({ pathname }: { pathname: string }) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarAccountMenu />
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   )
@@ -231,12 +201,29 @@ function MobileNavigation({ pathname }: { pathname: string }) {
   )
 }
 
+function FloatingControls() {
+  const { state } = useSidebar()
+  const triggerPosition =
+    state === 'expanded'
+      ? 'md:left-[calc(var(--sidebar-width)+0.75rem)]'
+      : 'md:left-[calc(var(--sidebar-width-icon)+0.75rem)]'
+
+  return (
+    <div className="pointer-events-none fixed inset-0 z-40">
+      <SidebarTrigger
+        aria-label="サイドバーを切り替える"
+        className={cn(
+          'pointer-events-auto fixed top-4 hidden rounded-full shadow-sm transition-[left,background-color] duration-200 hover:bg-muted md:inline-flex',
+          triggerPosition,
+        )}
+      />
+    </div>
+  )
+}
+
 export function AppShell() {
   const location = useLocation()
-  const currentNavigation =
-    navigationItems.find((item) =>
-      isNavigationItemActive(location.pathname, item.path),
-    ) ?? navigationItems[0]
+  const isTransactionComposer = location.pathname === '/app/transactions/new'
 
   return (
     <SidebarProvider>
@@ -247,25 +234,11 @@ export function AppShell() {
         本文へ移動
       </a>
 
+      <FloatingControls />
       <DesktopSidebar pathname={location.pathname} />
       <SidebarInset id="main-content" tabIndex={-1}>
-        <header className="sticky top-0 z-20 flex h-16 items-center border-b bg-background/92 px-4 backdrop-blur md:px-6">
-          <div className="flex min-w-0 items-center gap-2">
-            <SidebarTrigger className="hidden md:inline-flex" />
-            <Separator className="hidden h-5 md:block" orientation="vertical" />
-            <Brand className="md:hidden" />
-            <p className="hidden truncate text-sm font-medium md:block">
-              {currentNavigation.label}
-            </p>
-          </div>
-          <div className="ml-auto flex items-center gap-1">
-            <ThemeMenu />
-            <UserMenu />
-          </div>
-        </header>
-
         <Outlet />
-        <MobileNavigation pathname={location.pathname} />
+        {!isTransactionComposer ? <MobileNavigation pathname={location.pathname} /> : null}
       </SidebarInset>
     </SidebarProvider>
   )

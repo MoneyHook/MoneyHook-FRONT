@@ -7,8 +7,11 @@ const viteCommand = [
   'VITE_FIREBASE_PROJECT_ID=demo-moneyhooks',
   'VITE_FIREBASE_APP_ID=1:123456789:web:moneyhooks',
   'VITE_FIREBASE_AUTH_EMULATOR_URL=http://localhost:9099',
-  'pnpm dev --host 0.0.0.0',
+  'VITE_FIREBASE_DEV_USER_ENABLED=true',
+  `pnpm dev --host 0.0.0.0 --port ${process.env.PLAYWRIGHT_VITE_PORT ?? '3000'}`,
 ].join(' ')
+
+const vitePort = process.env.PLAYWRIGHT_VITE_PORT ?? '3000'
 
 export default defineConfig({
   testDir: './e2e',
@@ -16,7 +19,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? 'github' : 'list',
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: `http://localhost:${vitePort}`,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
@@ -36,7 +39,7 @@ export default defineConfig({
     },
     {
       command: viteCommand,
-      url: 'http://localhost:3000',
+      url: `http://localhost:${vitePort}`,
       reuseExistingServer: !process.env.CI,
       timeout: 60_000,
     },
