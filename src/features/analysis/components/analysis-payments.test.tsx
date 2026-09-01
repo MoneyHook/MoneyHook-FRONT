@@ -115,10 +115,14 @@ function paymentResponse({ empty = false } = {}): V1PaymentsResponse {
 function LocationProbe() {
   const location = useLocation()
   return (
-    <output data-testid="location">
-      {location.search}
-      {location.hash}
-    </output>
+    <>
+      <output data-testid="pathname">{location.pathname}</output>
+      <output data-testid="location">
+        {location.search}
+        {location.hash}
+      </output>
+      <output data-testid="return-to">{String((location.state as { returnTo?: unknown } | null)?.returnTo ?? '')}</output>
+    </>
   )
 }
 
@@ -238,5 +242,16 @@ describe('AnalysisPaymentsContent', () => {
     ).toBeVisible()
     await user.click(screen.getByRole('button', { name: 'もう一度試す' }))
     expect(await screen.findByText('この期間の支出はありません')).toBeVisible()
+  })
+
+  it('opens the editor from a payment transaction', async () => {
+    registerHandler()
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    renderPayments('/app/analysis?view=payments&payment=2')
+
+    await user.click(await screen.findByRole('button', { name: 'PayPay取引を編集' }))
+
+    expect(screen.getByTestId('pathname')).toHaveTextContent('/app/transactions/20/edit')
+    expect(screen.getByTestId('return-to')).toHaveTextContent('/app/analysis?view=payments&payment=2')
   })
 })

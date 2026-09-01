@@ -8,7 +8,7 @@ import {
   WalletCards,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   CartesianGrid,
   Cell,
@@ -42,10 +42,8 @@ import { analysisChartColors } from './analysis-chart-colors'
 import {
   buildFixedBreakdown,
   normalizeFixedCategorySelection,
-  normalizeFixedMetric,
   type AnalysisFixedViewModel,
   type FixedCategoryItem,
-  type FixedMetric,
   type FixedTransactionItem,
 } from '../model/analysis-fixed'
 import {
@@ -173,39 +171,6 @@ function FixedSummaryPanel({ data }: { data: AnalysisFixedViewModel }) {
   )
 }
 
-function MetricToggle({
-  value,
-  onChange,
-}: {
-  value: FixedMetric
-  onChange: (value: FixedMetric) => void
-}) {
-  return (
-    <div
-      aria-label="固定費内訳の表示形式"
-      className="grid grid-cols-2 rounded-xl bg-muted p-1"
-      role="group"
-    >
-      {(['amount', 'ratio'] as const).map((metric) => (
-        <button
-          aria-pressed={metric === value}
-          className={cn(
-            'min-h-10 rounded-lg px-3 text-xs font-semibold transition-[background-color,color,box-shadow] sm:min-h-9 sm:text-sm',
-            metric === value
-              ? 'bg-card text-success shadow-sm'
-              : 'text-muted-foreground hover:text-foreground',
-          )}
-          key={metric}
-          onClick={() => onChange(metric)}
-          type="button"
-        >
-          {metric === 'amount' ? '金額' : '割合'}
-        </button>
-      ))}
-    </div>
-  )
-}
-
 function FixedDonut({
   categories,
   amount,
@@ -255,23 +220,16 @@ function FixedDonut({
 function FixedBreakdownPanel({
   data,
   selectedCategoryIds,
-  metric,
-  onMetricChange,
 }: {
   data: AnalysisFixedViewModel
   selectedCategoryIds: string[]
-  metric: FixedMetric
-  onMetricChange: (metric: FixedMetric) => void
 }) {
   const breakdown = buildFixedBreakdown(data, selectedCategoryIds)
   const filtered = selectedCategoryIds.length !== data.categories.length
 
   return (
     <AnalysisPanel>
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-base font-semibold sm:text-lg">固定費の内訳</h2>
-        <MetricToggle onChange={onMetricChange} value={metric} />
-      </div>
+      <h2 className="text-base font-semibold sm:text-lg">固定費の内訳</h2>
       <div className="mx-auto mt-4 grid max-w-4xl items-center gap-4 min-[390px]:grid-cols-[9rem_minmax(0,1fr)] sm:mt-5 sm:grid-cols-[15rem_minmax(0,1fr)] sm:gap-8">
         <FixedDonut
           amount={breakdown.amount}
@@ -297,23 +255,11 @@ function FixedBreakdownPanel({
                 {category.name}
               </span>
               <span className="min-w-16 text-right text-xs tabular-nums sm:min-w-24 sm:text-sm">
-                <span
-                  className={cn(
-                    'block',
-                    metric === 'amount'
-                      ? 'font-semibold'
-                      : 'text-muted-foreground',
-                  )}
-                >
+                <span className="block font-semibold">
                   {formatCurrency(category.amount)}
                 </span>
                 <span
-                  className={cn(
-                    'block text-[0.625rem] sm:text-xs',
-                    metric === 'ratio'
-                      ? 'font-semibold text-success'
-                      : 'text-muted-foreground',
-                  )}
+                  className="block text-[0.625rem] text-muted-foreground sm:text-xs"
                 >
                   {formatPercent(category.ratio)}
                 </span>
@@ -590,9 +536,15 @@ function formatTransactionDate(value: string) {
   return `${month}月${day}日（${weekday}）`
 }
 
-function TransactionRow({ item }: { item: FixedTransactionItem }) {
+function TransactionRow({ item, onOpen }: { item: FixedTransactionItem; onOpen: (id: string) => void }) {
   return (
-    <li className="grid grid-cols-[minmax(5.8rem,auto)_auto_minmax(0,1fr)_auto] items-center gap-2 px-1 py-3 text-left sm:grid-cols-[8rem_auto_minmax(0,1fr)_auto] sm:gap-4 sm:px-2">
+    <li>
+      <button
+        aria-label={`${item.name}を編集`}
+        className="grid w-full grid-cols-[minmax(5.8rem,auto)_auto_minmax(0,1fr)_auto] items-center gap-2 px-1 py-3 text-left outline-none transition-colors hover:bg-muted/45 focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/50 sm:grid-cols-[8rem_auto_minmax(0,1fr)_auto] sm:gap-4 sm:px-2"
+        onClick={() => onOpen(item.id)}
+        type="button"
+      >
       <span className="text-[0.6875rem] font-medium sm:text-sm">
         {formatTransactionDate(item.date)}
       </span>
@@ -613,11 +565,13 @@ function TransactionRow({ item }: { item: FixedTransactionItem }) {
           {item.time ? item.time.slice(0, 5) : item.paymentName ?? '—'}
         </span>
       </span>
+        <ChevronRight aria-hidden="true" className="size-4 text-muted-foreground" />
+      </button>
     </li>
   )
 }
 
-function TransactionsPanel({ items }: { items: FixedTransactionItem[] }) {
+function TransactionsPanel({ items, onOpen }: { items: FixedTransactionItem[]; onOpen: (id: string) => void }) {
   const [expanded, setExpanded] = useState(false)
   const visibleItems = expanded ? items : items.slice(0, 5)
 
@@ -632,7 +586,7 @@ function TransactionsPanel({ items }: { items: FixedTransactionItem[] }) {
       {visibleItems.length > 0 ? (
         <ul className="divide-y border-t px-3 transition-[max-height] duration-200 sm:px-4">
           {visibleItems.map((transaction) => (
-            <TransactionRow item={transaction} key={transaction.id} />
+            <TransactionRow item={transaction} key={transaction.id} onOpen={onOpen} />
           ))}
         </ul>
       ) : (
@@ -696,10 +650,10 @@ function EmptyFixed({ rangeLabel }: { rangeLabel: string }) {
 }
 
 export function AnalysisFixedContent() {
+  const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
-  const rawMetric = searchParams.get('metric')
   const rawCategoryKey = searchParams.getAll('fixedCategory').join(',')
-  const metric = normalizeFixedMetric(rawMetric)
   const range = useMemo(() => createAnalysisRange(), [])
   const fixed = useAnalysisFixed(range)
   const selectedCategoryIds = useMemo(
@@ -716,7 +670,7 @@ export function AnalysisFixedContent() {
     const next = new URLSearchParams(searchParams)
     let changed = false
 
-    if (rawMetric && rawMetric !== metric) {
+    if (searchParams.has('metric')) {
       next.delete('metric')
       changed = true
     }
@@ -742,19 +696,11 @@ export function AnalysisFixedContent() {
     }
   }, [
     fixed.data,
-    metric,
     rawCategoryKey,
-    rawMetric,
     searchParams,
     selectedCategoryIds,
     setSearchParams,
   ])
-
-  const setMetric = (nextMetric: FixedMetric) => {
-    const next = new URLSearchParams(searchParams)
-    next.set('metric', nextMetric)
-    setSearchParams(next)
-  }
 
   const setCategories = (categoryIds: string[]) => {
     if (!fixed.data) {
@@ -770,6 +716,14 @@ export function AnalysisFixedContent() {
       orderedIds.forEach((id) => next.append('fixedCategory', id))
     }
     setSearchParams(next)
+  }
+
+  const openTransaction = (transactionId: string) => {
+    navigate(`/app/transactions/${encodeURIComponent(transactionId)}/edit`, {
+      state: {
+        returnTo: `${location.pathname}${location.search}${location.hash}`,
+      },
+    })
   }
 
   if (fixed.isPending) {
@@ -811,8 +765,6 @@ export function AnalysisFixedContent() {
       <FixedSummaryPanel data={fixed.data} />
       <FixedBreakdownPanel
         data={fixed.data}
-        metric={metric}
-        onMetricChange={setMetric}
         selectedCategoryIds={selectedCategoryIds}
       />
       <FixedTrendPanel data={fixed.data} />
@@ -822,7 +774,7 @@ export function AnalysisFixedContent() {
         onCategoryChange={setCategories}
         selectedCategoryIds={selectedCategoryIds}
       />
-      <TransactionsPanel items={selectedTransactions} />
+      <TransactionsPanel items={selectedTransactions} onOpen={openTransaction} />
     </div>
   )
 }

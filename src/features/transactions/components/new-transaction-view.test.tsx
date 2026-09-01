@@ -34,7 +34,7 @@ const categories = [
   },
 ]
 
-function registerHandlers({ createStatus = 201 } = {}) {
+function registerHandlers({ createStatus = 201, frequentStatus = 200 } = {}) {
   server.use(
     http.get('http://api.test/api/category/getCategoryWithSubCategoryList', () =>
       HttpResponse.json({ category_list: categories }),
@@ -54,19 +54,21 @@ function registerHandlers({ createStatus = 201 } = {}) {
       }),
     ),
     http.get('http://api.test/api/transaction/getFrequentTransactionName', () =>
-      HttpResponse.json({
-        transaction_list: [
-          {
-            transaction_name: 'ランチ',
-            category_id: '10',
-            sub_category_id: '11',
-            fixed_flg: false,
-            payment_id: '30',
-            category_name: '食費',
-            sub_category_name: '外食',
-          },
-        ],
-      }),
+      frequentStatus === 200
+        ? HttpResponse.json({
+            transaction_list: [
+              {
+                transaction_name: 'ランチ',
+                category_id: '10',
+                sub_category_id: '11',
+                fixed_flg: false,
+                payment_id: '30',
+                category_name: '食費',
+                sub_category_name: '外食',
+              },
+            ],
+          })
+        : HttpResponse.json({ message: '候補を取得できませんでした' }, { status: frequentStatus }),
     ),
     http.post('http://api.test/api/v1/transactions', async ({ request }) => {
       if (createStatus !== 201) {
@@ -112,7 +114,7 @@ describe('NewTransactionView', () => {
     registerHandlers()
     renderNewTransaction()
 
-    await screen.findByText('よく使うカテゴリ')
+    await screen.findByText('取引候補')
     fireEvent.click(screen.getByRole('button', { name: '保存' }))
 
     expect(await screen.findByText('金額は1〜9,999,999円の整数で入力してください。')).toBeVisible()
@@ -120,7 +122,7 @@ describe('NewTransactionView', () => {
     expect(screen.getByText('カテゴリを選択してください。')).toBeVisible()
   })
 
-  it('selects a frequent category and saves the API-compatible payload', async () => {
+  it('applies a transaction candidate and saves the API-compatible payload', async () => {
     let submittedBody: unknown
     registerHandlers()
     server.use(
@@ -131,17 +133,16 @@ describe('NewTransactionView', () => {
     )
     renderNewTransaction()
 
-    await screen.findByRole('button', { name: '食費を選択' })
-    fireEvent.click(screen.getByRole('button', { name: '食費を選択' }))
+    await screen.findByRole('button', { name: 'ランチを候補から適用' })
+    fireEvent.change(screen.getByLabelText('金額'), { target: { value: '1200' } })
+    fireEvent.click(screen.getByRole('tab', { name: '収入' }))
+    fireEvent.click(screen.getByRole('button', { name: 'ランチを候補から適用' }))
     expect(screen.getAllByText('食費').length).toBeGreaterThan(0)
     expect(screen.getByText('外食')).toBeVisible()
 
-    fireEvent.change(screen.getByLabelText('金額'), { target: { value: '1200' } })
-    fireEvent.change(screen.getByLabelText('取引名'), { target: { value: 'ランチ' } })
-    fireEvent.click(screen.getByRole('tab', { name: '収入' }))
+    expect(screen.getByLabelText('金額')).toHaveValue('1200')
+    expect(screen.getByRole('tab', { name: '収入' })).toHaveAttribute('aria-selected', 'true')
     fireEvent.click(screen.getByRole('switch', { name: '固定費フラグ' }))
-    fireEvent.click(screen.getByRole('button', { name: '支払い方法選択しない' }))
-    fireEvent.click(await screen.findByRole('button', { name: '楽天カード' }))
     fireEvent.click(screen.getByRole('button', { name: '保存' }))
 
     await waitFor(() => {
@@ -161,6 +162,71 @@ describe('NewTransactionView', () => {
     })
   })
 
+  it('uses semantic colors for the selected transaction sign', async () => {
+    registerHandlers()
+    renderNewTransaction()
+
+    const expenseTab = await screen.findByRole('tab', { name: '支出' })
+    const incomeTab = screen.getByRole('tab', { name: '収入' })
+    const saveButton = screen.getByRole('button', { name: '保存' })
+    const candidateButton = screen.getByRole('button', { name: 'ランチを候補から適用' })
+    const dateInput = screen.getByLabelText('日付')
+
+    expect(expenseTab).toHaveClass('bg-card', 'text-expense')
+    fireEvent.click(incomeTab)
+    expect(incomeTab).toHaveClass('bg-card', 'text-income')
+    expect(saveButton).toHaveAttribute('data-variant', 'default')
+    expect(saveButton).toHaveAttribute('data-size', 'lg')
+    expect(saveButton).toHaveClass('w-full', 'sm:w-auto')
+    expect(candidateButton).toHaveClass('min-h-16', 'rounded-xl', 'px-3', 'py-2')
+    expect(candidateButton.compareDocumentPosition(saveButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(dateInput.closest('label')).toContainElement(dateInput)
+    expect(dateInput.closest('label')).toContainHTML('<svg')
+  })
+
+  it('selects a category and subcategory in the same sheet', async () => {
+    registerHandlers()
+    renderNewTransaction()
+
+    fireEvent.click(await screen.findByRole('button', { name: /カテゴリ.*選択してください.*サブカテゴリを選択/ }))
+    fireEvent.click(screen.getByRole('button', { name: '食費' }))
+    expect(await screen.findByRole('heading', { name: 'サブカテゴリを選択' })).toBeVisible()
+    expect(screen.getByText('食費のサブカテゴリを選択してください。')).toBeVisible()
+
+    fireEvent.click(screen.getByRole('button', { name: 'カテゴリ選択へ戻る' }))
+    expect(await screen.findByText('取引のカテゴリを選択してください。')).toBeVisible()
+    fireEvent.click(screen.getByRole('button', { name: '収入' }))
+    expect(await screen.findByText('収入のサブカテゴリを選択してください。')).toBeVisible()
+
+    fireEvent.click(screen.getByRole('button', { name: '給与' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: /カテゴリ.*収入.*給与/ })).toBeVisible())
+  })
+
+  it('keeps the form usable when loading transaction candidates fails', async () => {
+    let submittedBody: unknown
+    registerHandlers({ frequentStatus: 500 })
+    server.use(
+      http.post('http://api.test/api/v1/transactions', async ({ request }) => {
+        submittedBody = await request.json()
+        return HttpResponse.json({ transaction: {} }, { status: 201 })
+      }),
+    )
+    renderNewTransaction()
+
+    await screen.findByLabelText('金額')
+    expect(screen.queryByText('取引候補')).not.toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('金額'), { target: { value: '800' } })
+    fireEvent.change(screen.getByLabelText('取引名'), { target: { value: '朝食' } })
+    fireEvent.click(screen.getByRole('button', { name: /カテゴリ.*選択してください.*サブカテゴリを選択/ }))
+    fireEvent.click(screen.getByRole('button', { name: '食費' }))
+    fireEvent.click(await screen.findByRole('button', { name: '外食' }))
+    fireEvent.click(screen.getByRole('button', { name: '保存' }))
+
+    await waitFor(() => expect(submittedBody).toEqual(expect.objectContaining({
+      transaction: expect.objectContaining({ transaction_name: '朝食', category_id: '10', sub_category_id: '11' }),
+    })))
+  })
+
   it('shows the resolved payment icon in the selection sheet', async () => {
     registerHandlers()
     renderNewTransaction()
@@ -174,8 +240,8 @@ describe('NewTransactionView', () => {
     registerHandlers({ createStatus: 422 })
     renderNewTransaction()
 
-    await screen.findByRole('button', { name: '食費を選択' })
-    fireEvent.click(screen.getByRole('button', { name: '食費を選択' }))
+    await screen.findByRole('button', { name: 'ランチを候補から適用' })
+    fireEvent.click(screen.getByRole('button', { name: 'ランチを候補から適用' }))
     fireEvent.change(screen.getByLabelText('金額'), { target: { value: '1200' } })
     fireEvent.change(screen.getByLabelText('取引名'), { target: { value: 'ランチ' } })
     fireEvent.click(screen.getByRole('button', { name: '保存' }))

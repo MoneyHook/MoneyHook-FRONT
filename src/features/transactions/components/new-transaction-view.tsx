@@ -1,27 +1,43 @@
 import { useQueryClient } from '@tanstack/react-query'
 import {
+  ArrowLeft,
   CalendarDays,
   Check,
   ChevronRight,
   CreditCard,
   Info,
   LoaderCircle,
+  Trash2,
   X,
 } from 'lucide-react'
 import { useMemo, useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import {
   getGetTimelineDataQueryKey,
+  getGetV1TransactionQueryKey,
   useCreateV1Transaction,
+  useDeleteV1Transaction,
   useGetFrequentTransactionNames,
+  useGetV1Transaction,
+  useUpdateV1Transaction,
 } from '@/shared/api/generated/transaction/transaction'
 import { useGetCategoryWithSubCategoryList } from '@/shared/api/generated/category/category'
 import { useGetPaymentResources, useGetPaymentTypes } from '@/shared/api/generated/payment/payment'
 import { ErrorState } from '@/shared/components/app-state'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/shared/components/ui/alert-dialog'
 import {
   Sheet,
   SheetContent,
@@ -42,7 +58,57 @@ import {
   type NewTransactionSign,
 } from '../model/new-transaction'
 
-type SelectionSheet = 'category' | 'subcategory' | 'payment' | null
+type SelectionSheet = 'category' | 'payment' | null
+type CategorySelectionStep = 'category' | 'subcategory'
+
+type TransactionNavigationState = {
+  returnTo?: unknown
+}
+
+function getReturnTo(state: unknown, fallback: string) {
+  if (!state || typeof state !== 'object' || !('returnTo' in state)) {
+    return fallback
+  }
+
+  const value = (state as TransactionNavigationState).returnTo
+  if (typeof value !== 'string' || !value.startsWith('/app/') || value.includes('\\')) {
+    return fallback
+  }
+
+  return value
+}
+
+function getTransactionMonth(date: string) {
+  return `${date.slice(0, 7)}-01`
+}
+
+function transactionQueryPrefix() {
+  return [
+    '/api/v1/analytics/overview',
+    '/api/v1/analytics/categories',
+    '/api/v1/analytics/fixed',
+    '/api/v1/analytics/payments',
+    '/api/transaction/getHome',
+    '/api/transaction/getTimelineData',
+  ] as const
+}
+
+async function invalidateTransactionQueries(
+  queryClient: ReturnType<typeof useQueryClient>,
+  ...dates: string[]
+) {
+  const months = [...new Set(dates.map(getTransactionMonth))]
+  await Promise.all([
+    ...months.map((month) =>
+      queryClient.invalidateQueries({
+        queryKey: getGetTimelineDataQueryKey({ month }),
+      }),
+    ),
+    ...transactionQueryPrefix().map((queryKey) =>
+      queryClient.invalidateQueries({ queryKey: [queryKey] }),
+    ),
+  ])
+}
 
 function FormSection({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
@@ -61,13 +127,13 @@ function FormRow({ children, className }: { children: React.ReactNode; className
   return <div className={cn('flex min-h-16 items-center gap-3 px-4 sm:px-5', className)}>{children}</div>
 }
 
-function CategoryIcon({ name }: { name: string }) {
+function CategoryIcon({ name, iconSizeClassName = 'size-5', sizeClassName = 'size-11' }: { name: string; iconSizeClassName?: string; sizeClassName?: string }) {
   const presentation = getCategoryPresentation(name)
   const Icon = presentation.icon
 
   return (
-    <span className={cn('flex size-11 shrink-0 items-center justify-center rounded-full', presentation.iconClassName)}>
-      <Icon aria-hidden="true" className="size-5" />
+    <span className={cn('flex shrink-0 items-center justify-center rounded-full', sizeClassName, presentation.iconClassName)}>
+      <Icon aria-hidden="true" className={iconSizeClassName} />
     </span>
   )
 }
@@ -117,17 +183,55 @@ function SheetOption({
   )
 }
 
-export function NewTransactionView() {
+export function TransactionFormView({ transactionId }: { transactionId?: string } = {}) {
+  const isEdit = Boolean(transactionId)
   const navigate = useNavigate()
+  const location = useLocation()
   const queryClient = useQueryClient()
   const categoriesQuery = useGetCategoryWithSubCategoryList()
   const paymentsQuery = useGetPaymentResources()
   const paymentTypesQuery = useGetPaymentTypes()
-  const frequentTransactionsQuery = useGetFrequentTransactionNames()
+  const frequentTransactionsQuery = useGetFrequentTransactionNames({
+    query: { enabled: !isEdit },
+  })
+  const transactionQuery = useGetV1Transaction(transactionId ?? '', {
+    query: { enabled: isEdit },
+  })
   const createMutation = useCreateV1Transaction()
-  const [form, setForm] = useState<NewTransactionFormValues>(() => createNewTransactionValues())
+  const updateMutation = useUpdateV1Transaction()
+  const deleteMutation = useDeleteV1Transaction()
+  const transaction =
+    transactionQuery.data?.status === 200
+      ? transactionQuery.data.data.transaction
+      : null
+  const initialForm = useMemo<NewTransactionFormValues>(
+    () =>
+      transaction
+        ? {
+            transactionDate: transaction.transaction_date,
+            transactionTime: transaction.transaction_time,
+            amount: String(transaction.amount),
+            transactionName: transaction.transaction_name,
+            sign: transaction.sign,
+            categoryId: transaction.category_id,
+            subcategoryId: transaction.sub_category_id,
+            fixed: transaction.fixed_flg,
+            paymentId: transaction.payment_id,
+          }
+        : createNewTransactionValues(),
+    [transaction],
+  )
+  const [formOverride, setFormOverride] = useState<NewTransactionFormValues | null>(null)
+  const form = formOverride ?? initialForm
   const [errors, setErrors] = useState<NewTransactionErrors>({})
   const [selectionSheet, setSelectionSheet] = useState<SelectionSheet>(null)
+  const [categorySelectionStep, setCategorySelectionStep] = useState<CategorySelectionStep>('category')
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+
+  const fallbackReturnTo = transaction
+    ? `/app/transactions?month=${getTransactionMonth(transaction.transaction_date)}&view=list`
+    : '/app/transactions'
+  const returnTo = getReturnTo(location.state, fallbackReturnTo)
 
   const categories =
     categoriesQuery.data?.status === 200 ? categoriesQuery.data.data.category_list ?? [] : []
@@ -149,43 +253,45 @@ export function NewTransactionView() {
     (subcategory) => subcategory.sub_category_id === form.subcategoryId,
   )
   const selectedPayment = payments.find((payment) => payment.payment_id === form.paymentId)
-  const frequentCategories = useMemo(() => {
-    const transactions =
-      frequentTransactionsQuery.data?.status === 200
-        ? frequentTransactionsQuery.data.data.transaction_list
-        : []
-    const seen = new Set<string>()
-
-    return transactions.filter((transaction) => {
-      if (seen.has(transaction.category_id)) {
-        return false
-      }
-      seen.add(transaction.category_id)
-      return true
-    }).slice(0, 5)
-  }, [frequentTransactionsQuery.data])
+  const frequentTransactions =
+    frequentTransactionsQuery.data?.status === 200
+      ? frequentTransactionsQuery.data.data.transaction_list
+      : []
 
   const setValue = <K extends keyof NewTransactionFormValues>(
     key: K,
     value: NewTransactionFormValues[K],
   ) => {
-    setForm((current) => ({ ...current, [key]: value }))
+    setFormOverride((current) => ({ ...(current ?? initialForm), [key]: value }))
     setErrors((current) => ({ ...current, [key]: undefined }))
   }
 
   const selectCategory = (categoryId: string) => {
-    setForm((current) => ({ ...current, categoryId, subcategoryId: '' }))
+    setFormOverride((current) => ({ ...(current ?? initialForm), categoryId, subcategoryId: '' }))
     setErrors((current) => ({ ...current, categoryId: undefined, subcategoryId: undefined }))
-    setSelectionSheet(null)
+    setCategorySelectionStep('subcategory')
   }
 
-  const selectFrequentCategory = (transaction: (typeof frequentCategories)[number]) => {
-    setForm((current) => ({
-      ...current,
+  const selectFrequentTransaction = (transaction: (typeof frequentTransactions)[number]) => {
+    setFormOverride((current) => ({
+      ...(current ?? initialForm),
+      transactionName: transaction.transaction_name,
       categoryId: transaction.category_id,
       subcategoryId: transaction.sub_category_id,
+      fixed: transaction.fixed_flg,
+      paymentId: transaction.payment_id,
     }))
-    setErrors((current) => ({ ...current, categoryId: undefined, subcategoryId: undefined }))
+    setErrors((current) => ({
+      ...current,
+      transactionName: undefined,
+      categoryId: undefined,
+      subcategoryId: undefined,
+    }))
+  }
+
+  const openCategorySelection = () => {
+    setCategorySelectionStep('category')
+    setSelectionSheet('category')
   }
 
   const handleSignChange = (sign: NewTransactionSign) => {
@@ -201,6 +307,40 @@ export function NewTransactionView() {
     }
 
     try {
+      if (isEdit && transactionId) {
+        const response = await updateMutation.mutateAsync({
+          transactionId,
+          data: {
+            transaction: {
+              transaction_date: form.transactionDate,
+              transaction_time: form.transactionTime,
+              transaction_name: form.transactionName.trim(),
+              amount: Number(form.amount),
+              sign: form.sign,
+              category_id: form.categoryId,
+              sub_category_id: form.subcategoryId,
+              fixed_flg: form.fixed,
+              payment_id: form.paymentId,
+            },
+          },
+        })
+        if (response.status !== 200) {
+          throw new Error('取引を保存できませんでした。もう一度お試しください。')
+        }
+
+        await invalidateTransactionQueries(
+          queryClient,
+          response.data.previous_transaction_date,
+          form.transactionDate,
+        )
+        await queryClient.invalidateQueries({
+          queryKey: getGetV1TransactionQueryKey(transactionId),
+        })
+        toast.success('取引を更新しました。')
+        navigate(returnTo, { replace: true })
+        return
+      }
+
       const response = await createMutation.mutateAsync({
         data: {
           transaction: {
@@ -219,7 +359,7 @@ export function NewTransactionView() {
         throw new Error('取引を保存できませんでした。もう一度お試しください。')
       }
 
-      const month = `${form.transactionDate.slice(0, 7)}-01`
+      const month = getTransactionMonth(form.transactionDate)
       await queryClient.invalidateQueries({
         queryKey: getGetTimelineDataQueryKey({ month }),
       })
@@ -230,9 +370,34 @@ export function NewTransactionView() {
     }
   }
 
-  if (categoriesQuery.isPending) {
+  const handleDelete = async () => {
+    if (!transactionId || !transaction) {
+      return
+    }
+
+    try {
+      const response = await deleteMutation.mutateAsync({ transactionId })
+      if (response.status !== 204) {
+        throw new Error('取引を削除できませんでした。もう一度お試しください。')
+      }
+
+      await invalidateTransactionQueries(queryClient, transaction.transaction_date)
+      queryClient.removeQueries({ queryKey: getGetV1TransactionQueryKey(transactionId) })
+      setDeleteDialogOpen(false)
+      toast.success('取引を削除しました。')
+      navigate(returnTo, { replace: true })
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : '取引を削除できませんでした。')
+    }
+  }
+
+  const isSaving = createMutation.isPending || updateMutation.isPending
+  const isDeleting = deleteMutation.isPending
+  const isLoading = categoriesQuery.isPending || (isEdit && transactionQuery.isPending)
+
+  if (isLoading) {
     return (
-      <section aria-label="取引追加画面を読み込んでいます" className="mx-auto w-full max-w-2xl px-4 py-5 sm:px-6" role="status">
+      <section aria-label={`取引${isEdit ? '編集' : '追加'}画面を読み込んでいます`} className="mx-auto w-full max-w-2xl px-4 py-5 sm:px-6" role="status">
         <div className="flex items-center justify-between">
           <Skeleton className="size-10 rounded-full" />
           <Skeleton className="h-7 w-32" />
@@ -245,21 +410,22 @@ export function NewTransactionView() {
     )
   }
 
-  if (categoriesQuery.isError) {
+  if (categoriesQuery.isError || (isEdit && (transactionQuery.isError || !transaction))) {
+    const error = transactionQuery.isError ? transactionQuery.error : categoriesQuery.error
     return (
       <section className="mx-auto w-full max-w-2xl px-4 py-5 sm:px-6">
         <header className="flex items-center justify-between">
-          <Button aria-label="取引一覧へ戻る" onClick={() => navigate('/app/transactions')} size="icon-lg" variant="ghost">
+          <Button aria-label="前の画面へ戻る" onClick={() => navigate(returnTo)} size="icon-lg" variant="ghost">
             <X aria-hidden="true" className="size-7" />
           </Button>
-          <h1 className="text-xl font-semibold tracking-[-0.04em]" id="new-transaction-page-title">取引を追加</h1>
+          <h1 className="text-xl font-semibold tracking-[-0.04em]" id="transaction-page-title">取引を{isEdit ? '編集' : '追加'}</h1>
           <span className="w-9" />
         </header>
         <div className="mt-10">
           <ErrorState
-            message={categoriesQuery.error instanceof Error ? categoriesQuery.error.message : 'カテゴリを取得できませんでした。'}
-            onRetry={() => void categoriesQuery.refetch()}
-            title="取引を追加できません"
+            message={error instanceof Error ? error.message : isEdit ? '取引データを取得できませんでした。' : 'カテゴリを取得できませんでした。'}
+            onRetry={() => void (transactionQuery.isError ? transactionQuery.refetch() : categoriesQuery.refetch())}
+            title={`取引を${isEdit ? '編集' : '追加'}できません`}
           />
         </div>
       </section>
@@ -267,19 +433,22 @@ export function NewTransactionView() {
   }
 
   return (
-    <section aria-labelledby="new-transaction-page-title" className="motion-route-enter mx-auto w-full max-w-2xl px-4 pb-10 pt-4 sm:px-6 sm:pt-7">
+    <section aria-labelledby="transaction-page-title" className="motion-route-enter mx-auto w-full max-w-2xl px-4 pb-10 pt-4 sm:px-6 sm:pt-7">
       <header className="flex items-center justify-between gap-3">
-        <Button aria-label="取引一覧へ戻る" onClick={() => navigate('/app/transactions')} size="icon-lg" variant="ghost">
+        <Button aria-label="前の画面へ戻る" onClick={() => navigate(returnTo)} size="icon-lg" variant="ghost">
           <X aria-hidden="true" className="size-7" />
         </Button>
-        <h1 className="text-xl font-semibold tracking-[-0.04em] sm:text-2xl" id="new-transaction-page-title">取引を追加</h1>
-        <Button disabled={createMutation.isPending} form="new-transaction-form" size="lg" type="submit" variant="ghost">
-          {createMutation.isPending ? <LoaderCircle aria-hidden="true" className="animate-spin" /> : null}
-          保存
-        </Button>
+        <h1 className="text-xl font-semibold tracking-[-0.04em] sm:text-2xl" id="transaction-page-title">取引を{isEdit ? '編集' : '追加'}</h1>
+        <div className="flex items-center gap-1">
+          {isEdit ? (
+            <Button aria-label="取引を削除" disabled={isSaving || isDeleting} onClick={() => setDeleteDialogOpen(true)} size="icon-lg" type="button" variant="destructive">
+              <Trash2 aria-hidden="true" />
+            </Button>
+          ) : null}
+        </div>
       </header>
 
-      <form className="mt-8 space-y-6" id="new-transaction-form" noValidate onSubmit={(event) => void handleSubmit(event)}>
+      <form className="mt-8 space-y-6" id="transaction-form" noValidate onSubmit={(event) => void handleSubmit(event)}>
         <div aria-label="取引区分" className="grid grid-cols-2 rounded-2xl bg-muted p-1.5" role="tablist">
           {([
             { sign: -1 as const, label: '支出' },
@@ -291,7 +460,11 @@ export function NewTransactionView() {
                 aria-selected={isSelected}
                 className={cn(
                   'min-h-12 rounded-xl px-4 font-semibold outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50',
-                  isSelected ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground',
+                  isSelected
+                    ? item.sign === -1
+                      ? 'bg-card text-expense shadow-sm'
+                      : 'bg-card text-income shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground',
                 )}
                 key={item.sign}
                 onClick={() => handleSignChange(item.sign)}
@@ -305,9 +478,9 @@ export function NewTransactionView() {
         </div>
 
         <FormSection>
-          <FormRow className="border-b">
+          <label className="flex min-h-16 cursor-pointer items-center gap-3 border-b px-4 sm:px-5" htmlFor="new-transaction-date">
             <CalendarDays aria-hidden="true" className="size-6 shrink-0 text-muted-foreground" />
-            <label className="font-medium" htmlFor="new-transaction-date">日付</label>
+            <span className="font-medium">日付</span>
             <Input
               aria-invalid={errors.transactionDate ? true : undefined}
               className="ml-auto h-10 w-auto border-0 px-0 text-right font-medium shadow-none focus-visible:ring-0"
@@ -317,7 +490,7 @@ export function NewTransactionView() {
               type="date"
               value={form.transactionDate}
             />
-          </FormRow>
+          </label>
           {errors.transactionDate ? <p className="px-4 pb-3 text-sm text-destructive" role="alert">{errors.transactionDate}</p> : null}
           <FormRow className="border-b">
             <label className="font-medium" htmlFor="new-transaction-amount">金額</label>
@@ -351,39 +524,27 @@ export function NewTransactionView() {
 
         <FormSection>
           <button
-            aria-describedby={errors.categoryId ? 'new-transaction-category-error' : undefined}
-            aria-invalid={errors.categoryId ? true : undefined}
+            aria-describedby={errors.categoryId || errors.subcategoryId ? 'new-transaction-category-error' : undefined}
+            aria-invalid={errors.categoryId || errors.subcategoryId ? true : undefined}
             className="flex min-h-28 w-full items-center gap-3 px-4 text-left outline-none transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 sm:px-5"
-            onClick={() => setSelectionSheet('category')}
+            onClick={openCategorySelection}
             type="button"
           >
             <span className="font-medium">カテゴリ</span>
-            <span className="ml-auto flex min-w-0 items-center gap-3">
+            <span className="ml-auto flex min-w-0 items-center gap-3 text-right">
               {selectedCategory ? <CategoryIcon name={selectedCategory.category_name} /> : null}
-              <span className={cn('truncate text-lg font-medium', !selectedCategory && 'text-muted-foreground')}>
-                {selectedCategory?.category_name ?? '選択してください'}
+              <span className="min-w-0">
+                <span className={cn('block truncate text-lg font-medium', !selectedCategory && 'text-muted-foreground')}>
+                  {selectedCategory?.category_name ?? '選択してください'}
+                </span>
+                <span className={cn('mt-0.5 block truncate text-sm', !selectedSubcategory && 'text-muted-foreground')}>
+                  {selectedSubcategory?.sub_category_name ?? 'サブカテゴリを選択'}
+                </span>
               </span>
             </span>
             <ChevronRight aria-hidden="true" className="size-5 shrink-0 text-muted-foreground" />
           </button>
-          {errors.categoryId ? <p className="px-4 pb-3 text-sm text-destructive" id="new-transaction-category-error" role="alert">{errors.categoryId}</p> : null}
-          <div className="border-t" />
-          <button
-            aria-describedby={errors.subcategoryId ? 'new-transaction-subcategory-error' : undefined}
-            aria-disabled={!selectedCategory}
-            aria-invalid={errors.subcategoryId ? true : undefined}
-            className="flex min-h-28 w-full items-center gap-3 px-4 text-left outline-none transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 sm:px-5"
-            disabled={!selectedCategory}
-            onClick={() => setSelectionSheet('subcategory')}
-            type="button"
-          >
-            <span className="font-medium">サブカテゴリ</span>
-            <span className={cn('ml-auto truncate text-lg font-medium', !selectedSubcategory && 'text-muted-foreground')}>
-              {selectedSubcategory?.sub_category_name ?? (selectedCategory ? '選択してください' : 'カテゴリを選択してください')}
-            </span>
-            <ChevronRight aria-hidden="true" className="size-5 shrink-0 text-muted-foreground" />
-          </button>
-          {errors.subcategoryId ? <p className="px-4 pb-3 text-sm text-destructive" id="new-transaction-subcategory-error" role="alert">{errors.subcategoryId}</p> : null}
+          {errors.categoryId || errors.subcategoryId ? <p className="px-4 pb-3 text-sm text-destructive" id="new-transaction-category-error" role="alert">{errors.categoryId ?? errors.subcategoryId}</p> : null}
           <div className="border-t" />
           <FormRow>
             <span className="flex items-center gap-2 font-medium">
@@ -420,50 +581,80 @@ export function NewTransactionView() {
           </button>
         </FormSection>
 
-        {frequentCategories.length ? (
-          <FormSection className="p-4 sm:p-5">
-            <h2 className="text-lg font-semibold tracking-[-0.03em]">よく使うカテゴリ</h2>
-            <div className="mt-5 grid grid-cols-5 gap-2">
-              {frequentCategories.map((transaction) => (
+        {frequentTransactions.length ? (
+          <section aria-labelledby="transaction-candidates-title" className="border-y py-4 sm:py-5">
+            <div className="flex items-baseline justify-between gap-3">
+              <div>
+                <h2 className="text-base font-semibold tracking-[-0.03em]" id="transaction-candidates-title">取引候補</h2>
+                <p className="mt-0.5 text-xs text-muted-foreground">よく登録する内容をまとめて入力できます。</p>
+              </div>
+            </div>
+            <div className="mt-3 grid gap-1.5 sm:grid-cols-2">
+              {frequentTransactions.map((transaction) => {
+                const candidatePayment = payments.find((payment) => payment.payment_id === transaction.payment_id)
+
+                return (
                 <button
-                  aria-label={`${transaction.category_name}を選択`}
-                  className="flex min-w-0 flex-col items-center gap-2 rounded-xl py-1 text-center outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
-                  key={transaction.category_id}
-                  onClick={() => selectFrequentCategory(transaction)}
+                  aria-label={`${transaction.transaction_name}を候補から適用`}
+                  className="group flex min-h-16 w-full items-center gap-2.5 rounded-xl border bg-card px-3 py-2 text-left outline-none transition-[background-color,border-color,transform] hover:-translate-y-px hover:border-foreground/15 hover:bg-muted/45 focus-visible:ring-3 focus-visible:ring-ring/50"
+                  key={`${transaction.transaction_name}-${transaction.category_id}-${transaction.sub_category_id}`}
+                  onClick={() => selectFrequentTransaction(transaction)}
                   type="button"
                 >
-                  <CategoryIcon name={transaction.category_name} />
-                  <span className="w-full truncate text-xs font-medium sm:text-sm">{transaction.category_name}</span>
+                  <CategoryIcon iconSizeClassName="size-4" name={transaction.category_name} sizeClassName="size-9" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-semibold">{transaction.transaction_name}</span>
+                    <span className="mt-0.5 flex items-center gap-1 truncate text-xs text-muted-foreground">
+                      <span className="truncate">{transaction.category_name} · {transaction.sub_category_name}</span>
+                      {transaction.fixed_flg ? <span className="shrink-0 text-xs">固定費</span> : null}
+                    </span>
+                  </span>
+                  {candidatePayment ? <PaymentIcon paymentName={candidatePayment.payment_name} paymentTypeName={paymentTypeNames.get(candidatePayment.payment_type_id)} sizeClassName="size-7" /> : null}
                 </button>
-              ))}
+                )
+              })}
             </div>
-          </FormSection>
+          </section>
         ) : null}
+        <div className="flex justify-end">
+          <Button className="w-full sm:w-auto" disabled={isSaving || isDeleting} size="lg" type="submit">
+            {isSaving ? <LoaderCircle aria-hidden="true" className="animate-spin" /> : null}
+            保存
+          </Button>
+        </div>
       </form>
 
-      <Sheet onOpenChange={(open) => !open && setSelectionSheet(null)} open={selectionSheet === 'category'}>
+      <Sheet onOpenChange={(open) => { if (!open) { setSelectionSheet(null); setCategorySelectionStep('category') } }} open={selectionSheet === 'category'}>
         <SheetContent className="max-h-[85svh] overflow-y-auto rounded-t-3xl p-0" showCloseButton={false} side="bottom">
-          <SheetHeader className="border-b px-5 py-4 text-left"><SheetTitle>カテゴリを選択</SheetTitle><SheetDescription>取引のカテゴリを選択してください。</SheetDescription></SheetHeader>
-          <div className="p-2">
-            {categories.map((category) => (
-              <SheetOption isSelected={form.categoryId === category.category_id} key={category.category_id} onClick={() => selectCategory(category.category_id)}>
-                <CategoryIcon name={category.category_name} /><span className="font-medium">{category.category_name}</span>
-              </SheetOption>
-            ))}
-          </div>
-        </SheetContent>
-      </Sheet>
-
-      <Sheet onOpenChange={(open) => !open && setSelectionSheet(null)} open={selectionSheet === 'subcategory'}>
-        <SheetContent className="max-h-[85svh] overflow-y-auto rounded-t-3xl p-0" showCloseButton={false} side="bottom">
-          <SheetHeader className="border-b px-5 py-4 text-left"><SheetTitle>サブカテゴリを選択</SheetTitle><SheetDescription>{selectedCategory?.category_name ?? 'カテゴリ'}のサブカテゴリを選択してください。</SheetDescription></SheetHeader>
-          <div className="p-2">
-            {enabledSubcategories.length ? enabledSubcategories.map((subcategory) => (
-              <SheetOption isSelected={form.subcategoryId === subcategory.sub_category_id} key={subcategory.sub_category_id} onClick={() => { setValue('subcategoryId', subcategory.sub_category_id); setSelectionSheet(null) }}>
-                <span className="font-medium">{subcategory.sub_category_name}</span>
-              </SheetOption>
-            )) : <p className="px-4 py-8 text-center text-sm text-muted-foreground">選択できるサブカテゴリがありません。</p>}
-          </div>
+          {categorySelectionStep === 'category' ? (
+            <div className="animate-in fade-in slide-in-from-left-2 duration-150">
+              <SheetHeader className="border-b px-5 py-4 text-left"><SheetTitle>カテゴリを選択</SheetTitle><SheetDescription>取引のカテゴリを選択してください。</SheetDescription></SheetHeader>
+              <div className="p-2">
+                {categories.map((category) => (
+                  <SheetOption isSelected={form.categoryId === category.category_id} key={category.category_id} onClick={() => selectCategory(category.category_id)}>
+                    <CategoryIcon name={category.category_name} /><span className="font-medium">{category.category_name}</span>
+                  </SheetOption>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="animate-in fade-in slide-in-from-right-2 duration-150">
+              <SheetHeader className="border-b px-5 py-4 text-left">
+                <Button aria-label="カテゴリ選択へ戻る" className="-ml-2 mb-1 w-fit" onClick={() => setCategorySelectionStep('category')} size="sm" type="button" variant="ghost">
+                  <ArrowLeft aria-hidden="true" /> カテゴリ
+                </Button>
+                <SheetTitle>サブカテゴリを選択</SheetTitle>
+                <SheetDescription>{selectedCategory?.category_name ?? 'カテゴリ'}のサブカテゴリを選択してください。</SheetDescription>
+              </SheetHeader>
+              <div className="p-2">
+                {enabledSubcategories.length ? enabledSubcategories.map((subcategory) => (
+                  <SheetOption isSelected={form.subcategoryId === subcategory.sub_category_id} key={subcategory.sub_category_id} onClick={() => { setValue('subcategoryId', subcategory.sub_category_id); setSelectionSheet(null); setCategorySelectionStep('category') }}>
+                    <span className="font-medium">{subcategory.sub_category_name}</span>
+                  </SheetOption>
+                )) : <p className="px-4 py-8 text-center text-sm text-muted-foreground">選択できるサブカテゴリがありません。</p>}
+              </div>
+            </div>
+          )}
         </SheetContent>
       </Sheet>
 
@@ -480,6 +671,34 @@ export function NewTransactionView() {
           </div>
         </SheetContent>
       </Sheet>
+
+      {isEdit && transaction ? (
+        <AlertDialog onOpenChange={setDeleteDialogOpen} open={deleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>この取引を削除しますか？</AlertDialogTitle>
+              <AlertDialogDescription>
+                「{transaction.transaction_name}」 {transaction.amount.toLocaleString('ja-JP')}円の取引を削除します。この操作は取り消せません。
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isDeleting}>キャンセル</AlertDialogCancel>
+              <AlertDialogAction disabled={isDeleting} onClick={(event) => { event.preventDefault(); void handleDelete() }}>
+                {isDeleting ? <LoaderCircle aria-hidden="true" className="mr-1.5 size-4 animate-spin" /> : null}
+                削除する
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      ) : null}
     </section>
   )
+}
+
+export function NewTransactionView() {
+  return <TransactionFormView />
+}
+
+export function EditTransactionView({ transactionId }: { transactionId: string }) {
+  return <TransactionFormView transactionId={transactionId} />
 }

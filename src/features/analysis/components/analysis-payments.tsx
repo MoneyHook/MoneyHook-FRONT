@@ -9,7 +9,7 @@ import {
   WalletCards,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   CartesianGrid,
   Cell,
@@ -380,9 +380,15 @@ function formatTransactionDate(value: string) {
   return `${month}月${day}日（${weekday}）`
 }
 
-function PaymentTransactionRow({ item }: { item: PaymentTransactionItem }) {
+function PaymentTransactionRow({ item, onOpen }: { item: PaymentTransactionItem; onOpen: (id: string) => void }) {
   return (
-    <li className="grid grid-cols-[minmax(5.8rem,auto)_minmax(0,1fr)_auto] items-center gap-2 px-1 py-3 sm:grid-cols-[8rem_minmax(0,1fr)_auto] sm:gap-4 sm:px-2">
+    <li>
+      <button
+        aria-label={`${item.name}を編集`}
+        className="grid w-full grid-cols-[minmax(5.8rem,auto)_minmax(0,1fr)_auto] items-center gap-2 px-1 py-3 text-left outline-none transition-colors hover:bg-muted/45 focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/50 sm:grid-cols-[8rem_minmax(0,1fr)_auto] sm:gap-4 sm:px-2"
+        onClick={() => onOpen(item.id)}
+        type="button"
+      >
       <span className="text-[0.6875rem] font-medium sm:text-sm">
         {formatTransactionDate(item.date)}
       </span>
@@ -404,11 +410,12 @@ function PaymentTransactionRow({ item }: { item: PaymentTransactionItem }) {
           </span>
         ) : null}
       </span>
+      </button>
     </li>
   )
 }
 
-function PaymentTransactions({ payment }: { payment: PaymentMethodItem }) {
+function PaymentTransactions({ payment, onOpen }: { payment: PaymentMethodItem; onOpen: (id: string) => void }) {
   const [expanded, setExpanded] = useState(false)
   const visibleTransactions = expanded
     ? payment.transactions
@@ -425,7 +432,7 @@ function PaymentTransactions({ payment }: { payment: PaymentMethodItem }) {
       {visibleTransactions.length > 0 ? (
         <ul className="divide-y rounded-xl border bg-card px-2 sm:px-3">
           {visibleTransactions.map((transaction) => (
-            <PaymentTransactionRow item={transaction} key={transaction.id} />
+            <PaymentTransactionRow item={transaction} key={transaction.id} onOpen={onOpen} />
           ))}
         </ul>
       ) : (
@@ -455,10 +462,12 @@ function PaymentTransactions({ payment }: { payment: PaymentMethodItem }) {
 
 function PaymentDetailsPanel({
   data,
+  onOpen,
   selectedPayment,
   onPaymentChange,
 }: {
   data: AnalysisPaymentsViewModel
+  onOpen: (id: string) => void
   selectedPayment: PaymentMethodItem | null
   onPaymentChange: (paymentId: string | null) => void
 }) {
@@ -516,7 +525,7 @@ function PaymentDetailsPanel({
                   )}
                 />
               </button>
-              {isSelected ? <PaymentTransactions payment={payment} /> : null}
+              {isSelected ? <PaymentTransactions onOpen={onOpen} payment={payment} /> : null}
             </li>
           )
         })}
@@ -556,6 +565,8 @@ function EmptyPayments({ rangeLabel }: { rangeLabel: string }) {
 }
 
 export function AnalysisPaymentsContent() {
+  const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
   const rawPaymentId = searchParams.get('payment')
   const range = useMemo(() => createAnalysisRange(), [])
@@ -581,6 +592,14 @@ export function AnalysisPaymentsContent() {
       next.delete('payment')
     }
     setSearchParams(next)
+  }
+
+  const openTransaction = (transactionId: string) => {
+    navigate(`/app/transactions/${encodeURIComponent(transactionId)}/edit`, {
+      state: {
+        returnTo: `${location.pathname}${location.search}${location.hash}`,
+      },
+    })
   }
 
   if (payments.isPending) {
@@ -615,6 +634,7 @@ export function AnalysisPaymentsContent() {
       <PaymentTrendPanel data={payments.data} />
       <PaymentDetailsPanel
         data={payments.data}
+        onOpen={openTransaction}
         onPaymentChange={setPayment}
         selectedPayment={selectedPayment}
       />

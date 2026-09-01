@@ -9,7 +9,6 @@ import {
   buildAnalysisFixedViewModel,
   buildFixedBreakdown,
   normalizeFixedCategorySelection,
-  normalizeFixedMetric,
 } from './analysis-fixed'
 import { createAnalysisRange } from './analysis-overview'
 
@@ -128,8 +127,6 @@ describe('analysis fixed model', () => {
   it('normalizes URL state and keeps at least one category selected', () => {
     const model = buildAnalysisFixedViewModel(response(), range)
 
-    expect(normalizeFixedMetric('ratio')).toBe('ratio')
-    expect(normalizeFixedMetric('unknown')).toBe('amount')
     expect(normalizeFixedCategorySelection(model.categories, [])).toEqual([
       '1',
       '2',

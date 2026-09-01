@@ -92,7 +92,13 @@ function fixedResponse({ empty = false } = {}): V1FixedResponse {
 
 function LocationProbe() {
   const location = useLocation()
-  return <output data-testid="location">{location.search}</output>
+  return (
+    <>
+      <output data-testid="pathname">{location.pathname}</output>
+      <output data-testid="location">{location.search}</output>
+      <output data-testid="return-to">{String((location.state as { returnTo?: unknown } | null)?.returnTo ?? '')}</output>
+    </>
+  )
 }
 
 function renderFixed(initialEntry = '/app/analysis?view=fixed') {
@@ -169,24 +175,20 @@ describe('AnalysisFixedContent', () => {
     expect(params.get('group_by')).toBe('month')
   })
 
-  it('switches metrics, filters categories, and persists canonical URL state', async () => {
+  it('filters categories and persists canonical URL state', async () => {
     registerHandler()
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
-    renderFixed('/app/analysis?view=fixed&fixedCategory=invalid')
+    renderFixed('/app/analysis?view=fixed&metric=ratio&fixedCategory=invalid')
 
     await screen.findByRole('heading', { name: '固定費サマリー' })
     await waitFor(() => {
       expect(screen.getByTestId('location')).not.toHaveTextContent(
         'fixedCategory',
       )
+      expect(screen.getByTestId('location')).not.toHaveTextContent('metric=')
     })
-
-    await user.click(screen.getByRole('button', { name: '割合' }))
-    expect(screen.getByRole('button', { name: '割合' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    )
-    expect(screen.getByTestId('location')).toHaveTextContent('metric=ratio')
+    expect(screen.queryByRole('button', { name: '金額' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '割合' })).not.toBeInTheDocument()
 
     await user.click(
       screen.getByRole('button', { name: 'カテゴリを選択、2件選択中' }),
@@ -239,5 +241,16 @@ describe('AnalysisFixedContent', () => {
     expect(await screen.findByText('固定費分析を表示できません')).toBeVisible()
     await user.click(screen.getByRole('button', { name: 'もう一度試す' }))
     expect(await screen.findByText('この期間の固定費はありません')).toBeVisible()
+  })
+
+  it('opens the editor from a fixed-cost transaction', async () => {
+    registerHandler()
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    renderFixed('/app/analysis?view=fixed&metric=amount')
+
+    await user.click(await screen.findByRole('button', { name: '家賃関連1を編集' }))
+
+    expect(screen.getByTestId('pathname')).toHaveTextContent('/app/transactions/11/edit')
+    expect(screen.getByTestId('return-to')).toHaveTextContent('/app/analysis?view=fixed')
   })
 })

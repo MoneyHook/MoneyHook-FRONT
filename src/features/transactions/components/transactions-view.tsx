@@ -8,7 +8,7 @@ import {
   Search,
 } from 'lucide-react'
 import { useEffect, useMemo } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { ErrorState } from '@/shared/components/app-state'
 import { MonthPicker } from '@/shared/components/month-picker'
@@ -177,13 +177,12 @@ function CategoryIcon({ item }: { item: TransactionItem }) {
   )
 }
 
-function TransactionRow({ item }: { item: TransactionItem }) {
+function TransactionRow({ item, onOpen }: { item: TransactionItem; onOpen: (id: string) => void }) {
   return (
     <button
-      aria-label={`${item.name}の取引詳細（準備中）`}
-      className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 px-3 py-3 text-left outline-none transition-colors disabled:cursor-default disabled:opacity-100 sm:px-4"
-      disabled
-      title="取引詳細は準備中です"
+      aria-label={`${item.name}を編集`}
+      className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 px-3 py-3 text-left outline-none transition-colors hover:bg-muted/45 focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/50 sm:px-4"
+      onClick={() => onOpen(item.id)}
       type="button"
     >
       <CategoryIcon item={item} />
@@ -227,7 +226,7 @@ function DayTotals({ group }: { group: TransactionDayGroup }) {
   )
 }
 
-function TransactionDay({ group }: { group: TransactionDayGroup }) {
+function TransactionDay({ group, onOpen }: { group: TransactionDayGroup; onOpen: (id: string) => void }) {
   return (
     <section aria-labelledby={`transactions-${group.date}`}>
       <div className="mb-2 flex items-center justify-between gap-4 px-1">
@@ -237,8 +236,8 @@ function TransactionDay({ group }: { group: TransactionDayGroup }) {
         <DayTotals group={group} />
       </div>
       <div className="divide-y overflow-hidden rounded-2xl border bg-card shadow-[0_8px_28px_color-mix(in_oklab,var(--foreground)_4%,transparent)]">
-        {group.items.map((item) => (
-          <TransactionRow item={item} key={item.id} />
+          {group.items.map((item) => (
+            <TransactionRow item={item} key={item.id} onOpen={onOpen} />
         ))}
       </div>
     </section>
@@ -258,10 +257,12 @@ function EmptyTransactions({ monthLabel }: { monthLabel: string }) {
 function ListPanel({
   data,
   month,
+  onOpen,
   onMonthChange,
 }: {
   data: TransactionsViewModel
   month: TransactionMonth
+  onOpen: (id: string) => void
   onMonthChange: (month: string) => void
 }) {
   return (
@@ -275,7 +276,7 @@ function ListPanel({
       {data.groups.length ? (
         <div className="space-y-5 sm:space-y-6">
           {data.groups.map((group) => (
-            <TransactionDay group={group} key={group.date} />
+            <TransactionDay group={group} key={group.date} onOpen={onOpen} />
           ))}
         </div>
       ) : (
@@ -396,9 +397,11 @@ function CalendarGrid({
 
 function SelectedDayDetails({
   data,
+  onOpen,
   selectedDate,
 }: {
   data: TransactionsViewModel
+  onOpen: (id: string) => void
   selectedDate: string
 }) {
   const items = data.items.filter((item) => item.date === selectedDate)
@@ -458,7 +461,7 @@ function SelectedDayDetails({
       {items.length ? (
         <div className="mt-4 divide-y border-t">
           {items.map((item) => (
-            <TransactionRow item={item} key={item.id} />
+            <TransactionRow item={item} key={item.id} onOpen={onOpen} />
           ))}
         </div>
       ) : (
@@ -474,12 +477,14 @@ function SelectedDayDetails({
 function CalendarPanel({
   data,
   month,
+  onOpen,
   selectedDate,
   onMonthChange,
   onDateChange,
 }: {
   data: TransactionsViewModel
   month: TransactionMonth
+  onOpen: (id: string) => void
   selectedDate: string
   onMonthChange: (month: string) => void
   onDateChange: (date: string) => void
@@ -503,7 +508,7 @@ function CalendarPanel({
           selectedDate={selectedDate}
         />
       </section>
-      <SelectedDayDetails data={data} selectedDate={selectedDate} />
+      <SelectedDayDetails data={data} onOpen={onOpen} selectedDate={selectedDate} />
     </div>
   )
 }
@@ -524,6 +529,7 @@ function TransactionsSkeleton({ view }: { view: TransactionView }) {
 
 export function TransactionsView() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
   const rawMonth = searchParams.get('month')
   const rawView = searchParams.get('view')
@@ -597,6 +603,14 @@ export function TransactionsView() {
     setSearchParams(next)
   }
 
+  const openTransaction = (transactionId: string) => {
+    navigate(`/app/transactions/${encodeURIComponent(transactionId)}/edit`, {
+      state: {
+        returnTo: `${location.pathname}${location.search}${location.hash}`,
+      },
+    })
+  }
+
   return (
     <>
       <section
@@ -631,6 +645,7 @@ export function TransactionsView() {
             <ListPanel
               data={transactions.data}
               month={month}
+              onOpen={openTransaction}
               onMonthChange={handleMonthChange}
             />
           ) : null}
@@ -639,6 +654,7 @@ export function TransactionsView() {
               data={transactions.data}
               month={month}
               onDateChange={handleDateChange}
+              onOpen={openTransaction}
               onMonthChange={handleMonthChange}
               selectedDate={selectedDate}
             />

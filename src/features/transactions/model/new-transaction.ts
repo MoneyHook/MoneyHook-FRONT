@@ -2,6 +2,7 @@ export type NewTransactionSign = -1 | 1
 
 export type NewTransactionFormValues = {
   transactionDate: string
+  transactionTime: string | null
   amount: string
   transactionName: string
   sign: NewTransactionSign
@@ -31,6 +32,7 @@ export function getTodayDate(now = new Date()) {
 export function createNewTransactionValues(now = new Date()): NewTransactionFormValues {
   return {
     transactionDate: getTodayDate(now),
+    transactionTime: null,
     amount: '',
     transactionName: '',
     sign: -1,

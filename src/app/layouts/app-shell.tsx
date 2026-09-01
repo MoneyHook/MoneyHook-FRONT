@@ -216,7 +216,9 @@ function FloatingControls() {
 
 export function AppShell() {
   const location = useLocation()
-  const isTransactionComposer = location.pathname === '/app/transactions/new'
+  const isTransactionComposer =
+    location.pathname === '/app/transactions/new' ||
+    /^\/app\/transactions\/[^/]+\/edit$/.test(location.pathname)
 
   return (
     <SidebarProvider>

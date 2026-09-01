@@ -5,8 +5,6 @@ import type {
 
 import type { AnalysisRange } from './analysis-overview'
 
-export type FixedMetric = 'amount' | 'ratio'
-
 export type FixedSeriesItem = {
   bucket: string
   label: string
@@ -93,10 +91,6 @@ function buildTransaction(
     subcategoryName: transaction.sub_category_name,
     paymentName: transaction.payment_name,
   }
-}
-
-export function normalizeFixedMetric(value: string | null): FixedMetric {
-  return value === 'ratio' ? 'ratio' : 'amount'
 }
 
 export function normalizeFixedCategorySelection(
