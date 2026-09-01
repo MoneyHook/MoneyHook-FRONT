@@ -6,7 +6,7 @@ import {
   Tags,
 } from 'lucide-react'
 import { useEffect, useMemo } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   CartesianGrid,
   Cell,
@@ -194,6 +194,7 @@ function SummaryRow({
   selected: boolean
   onSelect: (categoryId: string) => void
 }) {
+  const presentation = getCategoryPresentation(item.name)
   const content = (
     <>
       <span
@@ -245,7 +246,7 @@ function SummaryRow({
         aria-current={selected ? 'true' : undefined}
         className={cn(
           'flex min-h-10 w-full items-center gap-2 rounded-lg px-1.5 outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50',
-          selected && 'bg-success/10',
+          selected && presentation.selectionClassName,
         )}
         onClick={() => onSelect(item.id)}
         type="button"
@@ -577,16 +578,17 @@ function formatTransactionDate(value: string) {
 function TransactionRow({
   item,
   categoryName,
+  onOpen,
 }: {
   item: CategoryTransactionItem
   categoryName: string
+  onOpen: (id: string) => void
 }) {
   return (
     <button
-      aria-label={`${item.name}の取引詳細（準備中）`}
-      className="grid w-full grid-cols-[minmax(5.8rem,auto)_auto_minmax(0,1fr)_auto] items-center gap-2 px-1 py-3 text-left disabled:cursor-default disabled:opacity-100 sm:grid-cols-[8rem_auto_minmax(0,1fr)_auto] sm:gap-4 sm:px-2"
-      disabled
-      title="取引詳細は準備中です"
+      aria-label={`${item.name}を編集`}
+      className="grid w-full grid-cols-[minmax(5.8rem,auto)_auto_minmax(0,1fr)_auto] items-center gap-2 px-1 py-3 text-left outline-none transition-colors hover:bg-muted/45 focus-visible:ring-3 focus-visible:ring-ring/50 sm:grid-cols-[8rem_auto_minmax(0,1fr)_auto] sm:gap-4 sm:px-2"
+      onClick={() => onOpen(item.id)}
       type="button"
     >
       <span className="text-[0.6875rem] font-medium sm:text-sm">
@@ -626,7 +628,7 @@ function TransactionRow({
   )
 }
 
-function TransactionsPanel({ category }: { category: CategoryAnalysisItem }) {
+function TransactionsPanel({ category, onOpen }: { category: CategoryAnalysisItem; onOpen: (id: string) => void }) {
   const transactions = category.transactions.slice(0, 3)
   return (
     <AnalysisPanel className="p-0">
@@ -653,6 +655,7 @@ function TransactionsPanel({ category }: { category: CategoryAnalysisItem }) {
               categoryName={category.name}
               item={transaction}
               key={transaction.id}
+              onOpen={onOpen}
             />
           ))}
         </div>
@@ -709,6 +712,8 @@ function EmptyCategories({ rangeLabel }: { rangeLabel: string }) {
 }
 
 export function AnalysisCategoriesContent() {
+  const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
   const rawMetric = searchParams.get('metric')
   const rawGroup = searchParams.get('group')
@@ -772,6 +777,14 @@ export function AnalysisCategoriesContent() {
     setSearchParams(next)
   }
 
+  const openTransaction = (transactionId: string) => {
+    navigate(`/app/transactions/${encodeURIComponent(transactionId)}/edit`, {
+      state: {
+        returnTo: `${location.pathname}${location.search}${location.hash}`,
+      },
+    })
+  }
+
   if (categories.isPending) {
     return <CategoriesSkeleton />
   }
@@ -815,7 +828,7 @@ export function AnalysisCategoriesContent() {
         group={group}
         onGroupChange={(nextGroup) => setParam('group', nextGroup)}
       />
-      <TransactionsPanel category={selectedCategory} />
+      <TransactionsPanel category={selectedCategory} onOpen={openTransaction} />
     </div>
   )
 }

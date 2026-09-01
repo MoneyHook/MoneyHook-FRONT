@@ -15,6 +15,16 @@ import type {
   PaymentTypeListResponsePaymentTypeListItem,
 } from '@/shared/api/generated/model'
 import { Alert, AlertDescription, AlertTitle } from '@/shared/components/ui/alert'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/shared/components/ui/alert-dialog'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import {
@@ -172,6 +182,7 @@ function PaymentForm({
 export function PaymentSettings() {
   const { addMutation, deleteMutation, editMutation, paymentsQuery, paymentTypesQuery } = usePaymentSettings()
   const [editor, setEditor] = useState<EditorState>(null)
+  const [paymentToDelete, setPaymentToDelete] = useState<PaymentResourceListResponsePaymentListItem | null>(null)
   const payments = paymentsQuery.data?.status === 200 ? paymentsQuery.data.data.payment_list : []
   const paymentTypes = paymentTypesQuery.data?.status === 200 ? paymentTypesQuery.data.data.payment_type_list : []
   const isLoading = paymentsQuery.isPending || paymentTypesQuery.isPending
@@ -196,11 +207,12 @@ export function PaymentSettings() {
     }
   }
 
-  const deletePayment = async (payment: PaymentResourceListResponsePaymentListItem) => {
-    if (!window.confirm(`「${payment.payment_name}」を削除しますか？`)) return
+  const deletePayment = async () => {
+    if (!paymentToDelete) return
     try {
-      const response = await deleteMutation.mutateAsync({ paymentId: payment.payment_id })
+      const response = await deleteMutation.mutateAsync({ paymentId: paymentToDelete.payment_id })
       if (response.status !== 200) throw new Error('支払い方法を削除できませんでした。')
+      setPaymentToDelete(null)
       toast.success('支払い方法を削除しました。')
     } catch (error) {
       toast.error(errorMessage(error, '支払い方法を削除できませんでした。'))
@@ -219,10 +231,27 @@ export function PaymentSettings() {
       {hasError ? <div className="space-y-4"><Alert variant="destructive"><AlertCircle aria-hidden="true" /><AlertTitle>支払い方法を読み込めません</AlertTitle><AlertDescription>{errorMessage(paymentsQuery.error ?? paymentTypesQuery.error, '支払い方法を取得できませんでした。')}</AlertDescription></Alert><Button onClick={() => { void paymentsQuery.refetch(); void paymentTypesQuery.refetch() }} size="lg" type="button" variant="outline">もう一度試す</Button></div> : null}
       {!isLoading && !hasError ? <div className="space-y-5">
         {payments.length === 0 ? <div className="rounded-xl border border-dashed px-4 py-8 text-center"><CreditCard aria-hidden="true" className="mx-auto mb-3 size-6 text-muted-foreground" /><p className="font-medium">支払い方法がありません</p><p className="mt-1 text-sm text-muted-foreground">追加すると、取引の登録時に選択できます。</p></div> : <ul className="divide-y rounded-xl border">
-          {payments.map((payment) => { const type = paymentTypes.find((item) => item.payment_type_id === payment.payment_type_id); const iconSource = getPaymentIconSource({ paymentName: payment.payment_name, paymentTypeName: type?.payment_type_name }); return <li className="flex items-center gap-3 px-4 py-3" key={payment.payment_id}>{iconSource ? <img alt="" className="size-9 shrink-0 rounded-lg" height="36" src={iconSource} width="36" /> : <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground"><CreditCard aria-hidden="true" className="size-4" /></span>}<div className="min-w-0 flex-1"><p className="truncate font-medium">{payment.payment_name}</p><p className="text-sm text-muted-foreground">{typeName(payment.payment_type_id)}{type?.is_payment_due_later && payment.payment_date !== null ? ` ・ 締め日 ${payment.closing_date}日 / 支払日 ${payment.payment_date}日` : ''}</p></div><div className="flex shrink-0 gap-1"><Button aria-label={`${payment.payment_name}を編集`} onClick={() => setEditor({ mode: 'edit', payment })} size="icon-sm" type="button" variant="ghost"><Pencil aria-hidden="true" /></Button><Button aria-label={`${payment.payment_name}を削除`} disabled={deleteMutation.isPending} onClick={() => void deletePayment(payment)} size="icon-sm" type="button" variant="destructive"><Trash2 aria-hidden="true" /></Button></div></li> })}
+          {payments.map((payment) => { const type = paymentTypes.find((item) => item.payment_type_id === payment.payment_type_id); const iconSource = getPaymentIconSource({ paymentName: payment.payment_name, paymentTypeName: type?.payment_type_name }); return <li className="flex items-center gap-3 px-4 py-3" key={payment.payment_id}>{iconSource ? <img alt="" className="size-9 shrink-0 rounded-lg" height="36" src={iconSource} width="36" /> : <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground"><CreditCard aria-hidden="true" className="size-4" /></span>}<div className="min-w-0 flex-1"><p className="truncate font-medium">{payment.payment_name}</p><p className="text-sm text-muted-foreground">{typeName(payment.payment_type_id)}{type?.is_payment_due_later && payment.payment_date !== null ? ` ・ 締め日 ${payment.closing_date}日 / 支払日 ${payment.payment_date}日` : ''}</p></div><div className="flex shrink-0 gap-1"><Button aria-label={`${payment.payment_name}を編集`} onClick={() => setEditor({ mode: 'edit', payment })} size="icon-sm" type="button" variant="ghost"><Pencil aria-hidden="true" /></Button><Button aria-label={`${payment.payment_name}を削除`} disabled={deleteMutation.isPending} onClick={() => setPaymentToDelete(payment)} size="icon-sm" type="button" variant="destructive"><Trash2 aria-hidden="true" /></Button></div></li> })}
         </ul>}
         {editor ? <PaymentForm editor={editor} isSaving={isSaving} key={editor.mode === 'edit' ? editor.payment.payment_id : 'add'} onCancel={() => setEditor(null)} onSave={savePayment} paymentTypes={paymentTypes} /> : null}
       </div> : null}
+      <AlertDialog onOpenChange={(open) => !open && setPaymentToDelete(null)} open={paymentToDelete !== null}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>支払い方法を削除しますか？</AlertDialogTitle>
+            <AlertDialogDescription>
+              「{paymentToDelete?.payment_name}」を削除します。この操作は取り消せません。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>キャンセル</AlertDialogCancel>
+            <AlertDialogAction disabled={deleteMutation.isPending} onClick={(event) => { event.preventDefault(); void deletePayment() }}>
+              {deleteMutation.isPending ? <LoaderCircle aria-hidden="true" className="mr-1.5 size-4 animate-spin" /> : null}
+              削除する
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </SettingsSection>
   )
 }

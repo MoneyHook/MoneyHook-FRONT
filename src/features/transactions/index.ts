@@ -1,2 +1,6 @@
 export { TransactionsView } from './components/transactions-view'
-export { NewTransactionView } from './components/new-transaction-view'
+export {
+  EditTransactionView,
+  NewTransactionView,
+  TransactionFormView,
+} from './components/new-transaction-view'

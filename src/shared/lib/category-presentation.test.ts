@@ -7,12 +7,14 @@ describe('getCategoryPresentation', () => {
     expect(getCategoryPresentation('交通費')).toMatchObject({
       iconClassName: 'bg-chart-2/12 text-chart-2',
       dotClassName: 'bg-chart-2',
+      selectionClassName: 'bg-chart-2/10',
     })
   })
 
   it('supports names used by existing transaction data', () => {
     expect(getCategoryPresentation('住居')).toMatchObject({
       iconClassName: 'bg-success/12 text-success',
+      selectionClassName: 'bg-success/10',
     })
   })
 
@@ -27,6 +29,7 @@ describe('getCategoryPresentation', () => {
     expect(getCategoryPresentation('未登録カテゴリ')).toMatchObject({
       iconClassName: 'bg-muted text-muted-foreground',
       dotClassName: 'bg-muted-foreground',
+      selectionClassName: 'bg-primary/10',
     })
   })
 })

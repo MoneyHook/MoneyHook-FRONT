@@ -130,6 +130,18 @@ describe('TransactionsView', () => {
     })
   })
 
+  it('opens the editor from a transaction row while preserving the list URL', async () => {
+    registerHandler()
+    renderTransactions('/app/transactions?month=2024-08-01&view=list')
+
+    await screen.findByText('ランチ')
+    fireEvent.click(screen.getByRole('button', { name: 'ランチを編集' }))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('pathname')).toHaveTextContent('/app/transactions/3/edit')
+    })
+  })
+
   it('switches to the calendar and selects the latest transaction in a past month', async () => {
     registerHandler()
     renderTransactions()
