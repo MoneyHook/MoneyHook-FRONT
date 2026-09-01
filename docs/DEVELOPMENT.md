@@ -31,11 +31,10 @@ Viteが表示したURLをブラウザで開きます。`.env.local`はGit管理�
 | `VITE_FIREBASE_STORAGE_BUCKET` | 任意のFirebase Web client設定 |
 | `VITE_FIREBASE_MESSAGING_SENDER_ID` | 任意のFirebase Web client設定 |
 | `VITE_FIREBASE_AUTH_EMULATOR_URL` | 任意のAuth Emulator URL |
-| `VITE_FIREBASE_DEV_USER_ENABLED` | `true`のとき固定Google mock credentialで「開発ユーザー」にログイン |
 
 Vite環境変数はブラウザへ配布されます。秘密情報やサーバーcredentialを保存しないでください。Emulator利用時はReactとGo APIのFirebase project IDを一致させます。
 
-APIリポジトリのCompose起動では、Firebase Authの開発ユーザーprovision後にPostgreSQLのmigration・master data・sample dataが実行されます。`VITE_FIREBASE_DEV_USER_ENABLED=true`はこのEmulator専用設定です。通常環境ではfalseまたは未設定にして、現在のGoogle popupログインを使用します。
+`VITE_FIREBASE_AUTH_EMULATOR_URL`を設定すると、GoogleログインはFirebase Auth Emulatorが提供するローカルのモック認証ポップアップを表示します。任意のモックGoogleユーザーでログインするため、API側で事前投入された固定UIDのサンプルデータには依存しません。
 
 ## 検証
 
@@ -74,7 +73,7 @@ pnpm api:check
 | 症状 | 確認箇所 |
 |---|---|
 | 起動時に環境設定エラーになる | `.env.local`の必須keyとURL形式 |
-| Googleログインが失敗する | 通常環境はFirebase provider、Authorized domains、Web client設定。Emulator開発時は`VITE_FIREBASE_DEV_USER_ENABLED`とAPI側の開発ユーザーprovisionを確認 |
+| Googleログインが失敗する | 通常環境はFirebase provider、Authorized domains、Web client設定。Emulator開発時は`VITE_FIREBASE_AUTH_EMULATOR_URL`とAuth Emulatorの起動を確認 |
 | ログイン後にAPIへ接続できない | API URL、APIのCORS設定、Firebase project ID |
 | Emulatorではなく本番認証へ接続する | `VITE_FIREBASE_AUTH_EMULATOR_URL` |
 | semantic color checkが失敗する | 生の色値をtokenへ移し、light/dark両方を定義したか |

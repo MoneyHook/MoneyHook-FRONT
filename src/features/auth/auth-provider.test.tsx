@@ -7,15 +7,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createAppQueryClient } from '@/app/providers/query-client'
 
 const firebaseMocks = vi.hoisted(() => ({
-  googleCredential: vi.fn((token: string) => ({ token })),
   onIdTokenChanged: vi.fn(),
-  signInWithCredential: vi.fn(),
   signInWithPopup: vi.fn(),
   signOut: vi.fn(),
-}))
-
-const testEnvironment = vi.hoisted(() => ({
-  firebase: { devUserEnabled: false },
 }))
 
 const firebaseAuth = {
@@ -23,17 +17,13 @@ const firebaseAuth = {
 }
 
 vi.mock('firebase/auth', () => ({
-  GoogleAuthProvider: class GoogleAuthProvider {
-    static credential = firebaseMocks.googleCredential
-  },
+  GoogleAuthProvider: class GoogleAuthProvider {},
   onIdTokenChanged: firebaseMocks.onIdTokenChanged,
-  signInWithCredential: firebaseMocks.signInWithCredential,
   signInWithPopup: firebaseMocks.signInWithPopup,
   signOut: firebaseMocks.signOut,
 }))
 
 vi.mock('@/shared/config/environment', () => ({
-  getEnvironment: () => testEnvironment,
   EnvironmentConfigurationError: class EnvironmentConfigurationError extends Error {},
 }))
 
@@ -94,7 +84,6 @@ describe('AuthProvider', () => {
   beforeEach(() => {
     idTokenListener = null
     firebaseAuth.currentUser = null
-    testEnvironment.firebase.devUserEnabled = false
     vi.clearAllMocks()
     firebaseMocks.onIdTokenChanged.mockImplementation(
       (_auth: unknown, listener: (user: User | null) => void) => {
@@ -140,30 +129,8 @@ describe('AuthProvider', () => {
     })
   })
 
-  it('uses the fixed Google mock credential for the development user', async () => {
-    testEnvironment.firebase.devUserEnabled = true
-    renderAuthProvider()
-    emitIdToken(null)
-
-    fireEvent.click(screen.getByRole('button', { name: 'Googleログイン' }))
-
-    await waitFor(() => {
-      expect(firebaseMocks.signInWithCredential).toHaveBeenCalledTimes(1)
-    })
-    expect(firebaseMocks.signInWithPopup).not.toHaveBeenCalled()
-    expect(firebaseMocks.googleCredential).toHaveBeenCalledWith(
-      JSON.stringify({
-        sub: 'a77a6e94-6aa2-47ea-87dd-129f580fb669',
-        email: 'developer@example.com',
-        email_verified: true,
-        name: '開発ユーザー',
-      }),
-    )
-  })
-
-  it('reports authentication errors from the development credential flow', async () => {
-    testEnvironment.firebase.devUserEnabled = true
-    firebaseMocks.signInWithCredential.mockRejectedValue(
+  it('reports authentication errors from the Google popup flow', async () => {
+    firebaseMocks.signInWithPopup.mockRejectedValue(
       new FirebaseError('auth/network-request-failed', 'network failed'),
     )
     renderAuthProvider()

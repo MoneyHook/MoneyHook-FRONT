@@ -37,7 +37,6 @@ cp .env.example .env.local
 | `VITE_API_BASE_URL` | Go APIのベースURL |
 | `VITE_FIREBASE_PROJECT_ID` | ReactとGo APIで共有するFirebase project ID |
 | `VITE_FIREBASE_AUTH_EMULATOR_URL` | Firebase Auth EmulatorのURL |
-| `VITE_FIREBASE_DEV_USER_ENABLED` | `true`のとき、固定Google mock credentialで開発ユーザーへログイン |
 
 Firebase Web client設定を含む全項目は [`.env.example`](.env.example) を確認してください。Vite環境変数はブラウザへ配布されるため、秘密情報やサーバーcredentialを保存しないでください。
 
@@ -57,7 +56,7 @@ Viteがターミナルに表示したURLをブラウザで開きます。停止�
 - Go APIのCORS許可originを、Viteが表示したoriginに合わせる
 - Go APIとFirebase Auth Emulatorを起動してからGoogleログインを実行する
 
-APIリポジトリのCompose構成では、起動時に固定UID `a77a6e94-6aa2-47ea-87dd-129f580fb669`の「開発ユーザー」とサンプルデータが作成されます。`.env.local`の`VITE_FIREBASE_DEV_USER_ENABLED=true`ではpopupを表示せず、このEmulator用ユーザーへログインします。通常環境では未設定またはfalseにしてGoogle popupを使用します。
+`VITE_FIREBASE_AUTH_EMULATOR_URL`を設定すると、GoogleログインはFirebase Auth Emulatorが提供するローカルのモック認証ポップアップを表示します。任意のモックGoogleユーザーでログインでき、API側で事前投入された固定UIDのサンプルデータには依存しません。
 
 接続できない場合は [開発ガイドの確認項目](docs/DEVELOPMENT.md#よくある確認箇所) を参照してください。
 
