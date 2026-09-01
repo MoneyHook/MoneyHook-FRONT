@@ -78,7 +78,12 @@ function registerHandler({ empty = false, failOnce = false } = {}) {
 
 function LocationProbe() {
   const location = useLocation()
-  return <output data-testid="location">{location.search}</output>
+  return (
+    <>
+      <output data-testid="pathname">{location.pathname}</output>
+      <output data-testid="location">{location.search}</output>
+    </>
+  )
 }
 
 function renderTransactions(initialEntry = '/app/transactions?month=2024-08-01&view=list') {
@@ -115,7 +120,26 @@ describe('TransactionsView', () => {
     expect(screen.getByText('給与（8月分）')).toBeVisible()
     expect(screen.getByRole('button', { name: '取引を検索（準備中）' })).toBeDisabled()
     expect(screen.getByRole('button', { name: '取引を絞り込み（準備中）' })).toBeDisabled()
-    expect(screen.getByRole('button', { name: '新しい取引を追加（準備中）' })).toBeDisabled()
+    const addTransactionButton = screen.getByRole('button', { name: '新しい取引を追加' })
+    expect(addTransactionButton).toBeEnabled()
+    expect(addTransactionButton).toHaveClass('fixed')
+
+    fireEvent.click(addTransactionButton)
+    await waitFor(() => {
+      expect(screen.getByTestId('pathname')).toHaveTextContent('/app/transactions/new')
+    })
+  })
+
+  it('opens the editor from a transaction row while preserving the list URL', async () => {
+    registerHandler()
+    renderTransactions('/app/transactions?month=2024-08-01&view=list')
+
+    await screen.findByText('ランチ')
+    fireEvent.click(screen.getByRole('button', { name: 'ランチを編集' }))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('pathname')).toHaveTextContent('/app/transactions/3/edit')
+    })
   })
 
   it('switches to the calendar and selects the latest transaction in a past month', async () => {

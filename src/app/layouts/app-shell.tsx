@@ -1,7 +1,6 @@
 import {
   ArrowLeftRight,
   ChartPie,
-  Check,
   House,
   LogOut,
   Settings,
@@ -138,12 +137,6 @@ function DesktopSidebar({ pathname }: { pathname: string }) {
                       >
                         <Icon aria-hidden="true" />
                         <span>{item.label}</span>
-                        {isActive ? (
-                          <Check
-                            aria-hidden="true"
-                            className="ml-auto group-data-[collapsible=icon]:hidden"
-                          />
-                        ) : null}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -223,6 +216,9 @@ function FloatingControls() {
 
 export function AppShell() {
   const location = useLocation()
+  const isTransactionComposer =
+    location.pathname === '/app/transactions/new' ||
+    /^\/app\/transactions\/[^/]+\/edit$/.test(location.pathname)
 
   return (
     <SidebarProvider>
@@ -237,7 +233,7 @@ export function AppShell() {
       <DesktopSidebar pathname={location.pathname} />
       <SidebarInset id="main-content" tabIndex={-1}>
         <Outlet />
-        <MobileNavigation pathname={location.pathname} />
+        {!isTransactionComposer ? <MobileNavigation pathname={location.pathname} /> : null}
       </SidebarInset>
     </SidebarProvider>
   )

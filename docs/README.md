@@ -9,6 +9,7 @@
 | [DEVELOPMENT.md](DEVELOPMENT.md) | セットアップ、環境変数、開発・検証コマンド |
 | [DECISIONS.md](DECISIONS.md) | 確定済みのフロントエンド判断と理由 |
 | [GIT_WORKFLOW.md](GIT_WORKFLOW.md) | branch戦略、commit message、PR、release、hotfix |
+| [CODING_CONVENTIONS.md](CODING_CONVENTIONS.md) | ファイル責務、行数上限、分割方針 |
 
 APIの機械可読な契約は [`contracts/openapi.yaml`](../contracts/openapi.yaml) にあります。API実装の仕様、運用、DB変更はGo APIリポジトリを正本とします。
 

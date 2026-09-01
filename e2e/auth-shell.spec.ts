@@ -5,7 +5,11 @@ function appUrl(path: string) {
 }
 
 async function completeGoogleLogin(page: import('@playwright/test').Page) {
+  const popupPromise = page.waitForEvent('popup')
   await page.getByRole('button', { name: 'Googleで続行' }).click()
+  const popup = await popupPromise
+  await popup.waitForLoadState('domcontentloaded')
+  await popup.waitForEvent('close')
   await expect(page).toHaveURL(appUrl('(?:home|analysis|settings)'))
 }
 
@@ -45,27 +49,9 @@ test('accepts a Google emulator token at the real API', async ({ page }) => {
 
   await signInWithEmulator(page)
 
-  const firebaseUser = await page.evaluate(async () => {
-    const { getFirebaseAuth } = await import('/src/shared/lib/firebase.ts')
-    const user = getFirebaseAuth().currentUser
-    return {
-      uid: user?.uid ?? null,
-      displayName: user?.displayName ?? null,
-      email: user?.email ?? null,
-      providerId: user?.providerData[0]?.providerId ?? null,
-    }
-  })
-  expect(firebaseUser).toEqual({
-    uid: 'a77a6e94-6aa2-47ea-87dd-129f580fb669',
-    displayName: '開発ユーザー',
-    email: 'developer@example.com',
-    providerId: 'google.com',
-  })
-
   const response = await callAuthenticatedCategoryApi(page)
 
   expect(response.status, response.body).toBe(200)
-  expect(response.body).toContain('ラーメン巡り')
 
   await page.getByRole('button', { name: 'アカウントメニューを開く' }).click()
   await page.getByRole('menuitem', { name: 'ログアウト' }).click()
@@ -118,6 +104,25 @@ test('protects app routes and restores a deep link after login', async ({ page }
   await page.goto('/login?redirect=%2Fapp%2Fsettings')
   await expect(page).toHaveURL(appUrl('settings'))
   await expect(page.getByRole('heading', { name: '設定' })).toBeVisible()
+})
+
+test('opens each settings summary card in its dedicated management page', async ({ page }) => {
+  await signInWithEmulator(page)
+  await page.goto('/app/settings')
+
+  for (const [cardName, path, heading] of [
+    ['アカウントの設定を開く', 'settings/account', 'アカウント'],
+    ['予算の設定を開く', 'settings/budget', '予算'],
+    ['支払い方法の設定を開く', 'settings/payments', '支払い方法'],
+    ['収支の自動入力の設定を開く', 'settings/recurring-transactions', '収支の自動入力'],
+    ['表示の設定を開く', 'settings/appearance', '表示'],
+  ] as const) {
+    await page.getByRole('link', { name: cardName }).click()
+    await expect(page).toHaveURL(appUrl(path))
+    await expect(page.getByRole('heading', { name: heading })).toBeVisible()
+    await page.getByRole('link', { name: '設定へ戻る' }).click()
+    await expect(page).toHaveURL(appUrl('settings'))
+  }
 })
 
 test('keeps the analysis width stable at 1024px', async ({ page }) => {

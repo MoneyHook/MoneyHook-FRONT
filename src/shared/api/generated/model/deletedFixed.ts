@@ -16,14 +16,20 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
+import type { DeletedFixedMonthlyTransactionSign } from './deletedFixedMonthlyTransactionSign';
 import type { Identifier } from './identifier';
+import type { NullableIdentifier } from './nullableIdentifier';
 
 export interface DeletedFixed {
   monthly_transaction_id: Identifier;
   monthly_transaction_name: string;
   /** @minimum 0 */
   monthly_transaction_amount: number;
+  monthly_transaction_sign: DeletedFixedMonthlyTransactionSign;
   monthly_transaction_date: number;
+  category_id: Identifier;
   category_name: string;
+  sub_category_id: Identifier;
   sub_category_name: string;
+  payment_id: NullableIdentifier | null;
 }

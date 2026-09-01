@@ -5,6 +5,7 @@ import { AuthProvider } from '@/features/auth'
 import { Toaster } from '@/shared/components/ui/sonner'
 import { TooltipProvider } from '@/shared/components/ui/tooltip'
 import { AccentProvider } from '@/shared/hooks/accent-provider'
+import { ChartPaletteProvider } from '@/shared/hooks/chart-palette-provider'
 
 import { createAppQueryClient } from './query-client'
 import { AppThemeProvider } from './theme-provider'
@@ -15,12 +16,14 @@ export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <AppThemeProvider>
       <AccentProvider>
-        <QueryClientProvider client={queryClient}>
-          <TooltipProvider delayDuration={250}>
-            <AuthProvider>{children}</AuthProvider>
-            <Toaster position="bottom-center" />
-          </TooltipProvider>
-        </QueryClientProvider>
+        <ChartPaletteProvider>
+          <QueryClientProvider client={queryClient}>
+            <TooltipProvider delayDuration={250}>
+              <AuthProvider>{children}</AuthProvider>
+              <Toaster position="bottom-right" />
+            </TooltipProvider>
+          </QueryClientProvider>
+        </ChartPaletteProvider>
       </AccentProvider>
     </AppThemeProvider>
   )

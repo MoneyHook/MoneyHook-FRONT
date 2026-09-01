@@ -1,30 +1,15 @@
 import {
   CalendarDays,
-  Cross,
   ChevronDown,
   ChevronRight,
-  Coffee,
   Funnel,
-  GraduationCap,
-  House,
-  Lightbulb,
-  MoreHorizontal,
-  ShoppingBag,
-  Shirt,
-  Smartphone,
   Tags,
-  Ticket,
-  TrainFront,
-  Utensils,
-  Users,
-  type LucideIcon,
 } from 'lucide-react'
 import { useEffect, useMemo } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   CartesianGrid,
   Cell,
-  LabelList,
   Line,
   LineChart,
   Pie,
@@ -38,6 +23,7 @@ import {
 import { ErrorState } from '@/shared/components/app-state'
 import { Button } from '@/shared/components/ui/button'
 import { Skeleton } from '@/shared/components/ui/skeleton'
+import { getCategoryPresentation } from '@/shared/lib/category-presentation'
 import { cn } from '@/shared/lib/utils'
 
 import { useAnalysisCategories } from '../api/use-analysis-categories'
@@ -49,7 +35,6 @@ import {
   type CategoryAnalysisItem,
   type CategoryGroup,
   type CategoryListMode,
-  type CategoryMetric,
   type CategorySummaryItem,
   type CategoryTransactionItem,
   type SubcategoryAnalysisItem,
@@ -59,37 +44,6 @@ import {
   formatCurrency,
   formatPercent,
 } from '../model/analysis-overview'
-
-type CategoryPresentation = {
-  icon: LucideIcon
-  className: string
-}
-
-const defaultPresentation: CategoryPresentation = {
-  icon: Tags,
-  className: 'bg-muted text-muted-foreground',
-}
-
-const categoryPresentations: Record<string, CategoryPresentation> = {
-  食費: { icon: Utensils, className: 'bg-warning/12 text-warning' },
-  住居: { icon: House, className: 'bg-success/12 text-success' },
-  住宅: { icon: House, className: 'bg-success/12 text-success' },
-  交通: { icon: TrainFront, className: 'bg-chart-2/12 text-chart-2' },
-  娯楽: { icon: Ticket, className: 'bg-chart-5/12 text-chart-5' },
-  日用品: { icon: ShoppingBag, className: 'bg-chart-3/12 text-chart-3' },
-  ショッピング: {
-    icon: ShoppingBag,
-    className: 'bg-chart-3/12 text-chart-3',
-  },
-  水道光熱費: { icon: Lightbulb, className: 'bg-warning/12 text-warning' },
-  通信費: { icon: Smartphone, className: 'bg-chart-2/12 text-chart-2' },
-  医療: { icon: Cross, className: 'bg-expense/12 text-expense' },
-  衣服: { icon: Shirt, className: 'bg-chart-5/12 text-chart-5' },
-  教育: { icon: GraduationCap, className: 'bg-chart-2/12 text-chart-2' },
-  交際費: { icon: Users, className: 'bg-success/12 text-success' },
-  その他: { icon: MoreHorizontal, className: 'bg-muted text-muted-foreground' },
-  カフェ: { icon: Coffee, className: 'bg-warning/12 text-warning' },
-}
 
 const groupOptions: Array<{ value: CategoryGroup; label: string }> = [
   { value: 'month', label: '月別' },
@@ -130,13 +84,13 @@ function PeriodPanel({ label }: { label: string }) {
 }
 
 function CategoryIcon({ name }: { name: string }) {
-  const presentation = categoryPresentations[name] ?? defaultPresentation
+  const presentation = getCategoryPresentation(name)
   const Icon = presentation.icon
   return (
     <span
       className={cn(
         'flex size-8 shrink-0 items-center justify-center rounded-full',
-        presentation.className,
+        presentation.iconClassName,
       )}
     >
       <Icon aria-hidden="true" className="size-4" />
@@ -144,50 +98,12 @@ function CategoryIcon({ name }: { name: string }) {
   )
 }
 
-function MetricToggle({
-  value,
-  onChange,
-}: {
-  value: CategoryMetric
-  onChange: (value: CategoryMetric) => void
-}) {
-  return (
-    <div
-      aria-label="カテゴリ集計の表示形式"
-      className="grid grid-cols-2 rounded-xl bg-muted p-1"
-      role="group"
-    >
-      {(['amount', 'ratio'] as const).map((metric) => {
-        const isActive = metric === value
-        return (
-          <button
-            aria-pressed={isActive}
-            className={cn(
-              'min-h-8 rounded-lg px-3 text-xs font-semibold transition-[background-color,color,box-shadow] sm:text-sm',
-              isActive
-                ? 'bg-card text-success shadow-sm'
-                : 'text-muted-foreground hover:text-foreground',
-            )}
-            key={metric}
-            onClick={() => onChange(metric)}
-            type="button"
-          >
-            {metric === 'amount' ? '金額' : '割合'}
-          </button>
-        )
-      })}
-    </div>
-  )
-}
-
 function CategoryDonut({
   items,
   total,
-  metric,
 }: {
   items: CategorySummaryItem[]
   total: number
-  metric: CategoryMetric
 }) {
   return (
     <div className="relative mx-auto size-36 sm:size-56">
@@ -219,7 +135,7 @@ function CategoryDonut({
           総支出
         </span>
         <strong className="mt-0.5 text-sm font-semibold tabular-nums sm:text-xl">
-          {metric === 'amount' ? formatCurrency(total) : '100.0%'}
+          {formatCurrency(total)}
         </strong>
       </div>
     </div>
@@ -229,16 +145,15 @@ function CategoryDonut({
 function SummaryRow({
   item,
   index,
-  metric,
   selected,
   onSelect,
 }: {
   item: CategorySummaryItem
   index: number
-  metric: CategoryMetric
   selected: boolean
   onSelect: (categoryId: string) => void
 }) {
+  const presentation = getCategoryPresentation(item.name)
   const content = (
     <>
       <span
@@ -254,22 +169,10 @@ function SummaryRow({
         {item.name}
       </span>
       <span className="min-w-16 text-right text-xs tabular-nums sm:min-w-24 sm:text-sm">
-        <span
-          className={cn(
-            'block',
-            metric === 'amount' ? 'font-semibold' : 'text-muted-foreground',
-          )}
-        >
+        <span className="block font-semibold">
           {formatCurrency(item.amount)}
         </span>
-        <span
-          className={cn(
-            'block text-[0.625rem] sm:text-xs',
-            metric === 'ratio'
-              ? 'font-semibold text-success'
-              : 'text-muted-foreground',
-          )}
-        >
+        <span className="block text-[0.625rem] text-muted-foreground sm:text-xs">
           {formatPercent(item.ratio)}
         </span>
       </span>
@@ -290,7 +193,7 @@ function SummaryRow({
         aria-current={selected ? 'true' : undefined}
         className={cn(
           'flex min-h-10 w-full items-center gap-2 rounded-lg px-1.5 outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50',
-          selected && 'bg-success/10',
+          selected && presentation.selectionClassName,
         )}
         onClick={() => onSelect(item.id)}
         type="button"
@@ -304,17 +207,13 @@ function SummaryRow({
 function CategorySummaryPanel({
   data,
   selectedCategory,
-  metric,
   listMode,
-  onMetricChange,
   onListModeChange,
   onCategoryChange,
 }: {
   data: AnalysisCategoriesViewModel
   selectedCategory: CategoryAnalysisItem
-  metric: CategoryMetric
   listMode: CategoryListMode
-  onMetricChange: (metric: CategoryMetric) => void
   onListModeChange: (mode: CategoryListMode) => void
   onCategoryChange: (categoryId: string) => void
 }) {
@@ -331,14 +230,10 @@ function CategorySummaryPanel({
 
   return (
     <AnalysisPanel id="category-summary">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-base font-semibold sm:text-lg">カテゴリ別支出</h2>
-        <MetricToggle onChange={onMetricChange} value={metric} />
-      </div>
+      <h2 className="text-base font-semibold sm:text-lg">カテゴリ別支出</h2>
       <div className="mx-auto mt-4 grid max-w-4xl items-center gap-4 min-[390px]:grid-cols-[9rem_minmax(0,1fr)] sm:mt-5 sm:grid-cols-[15rem_minmax(0,1fr)] sm:gap-8">
         <CategoryDonut
           items={items}
-          metric={metric}
           total={data.totalExpenseAmount}
         />
         <ul className="min-w-0 space-y-0.5">
@@ -347,7 +242,6 @@ function CategorySummaryPanel({
               index={index}
               item={item}
               key={item.id}
-              metric={metric}
               onSelect={onCategoryChange}
               selected={item.id === selectedCategory.id}
             />
@@ -598,18 +492,7 @@ function TrendPanel({
               stroke={analysisChartColors[0]}
               strokeWidth={2.5}
               type="monotone"
-            >
-              {group === 'month' ? (
-                <LabelList
-                  dataKey="expenseAmount"
-                  fill="var(--foreground)"
-                  fontSize={10}
-                  formatter={(value) => formatCurrency(Number(value ?? 0))}
-                  offset={10}
-                  position="top"
-                />
-              ) : null}
-            </Line>
+            />
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -633,16 +516,17 @@ function formatTransactionDate(value: string) {
 function TransactionRow({
   item,
   categoryName,
+  onOpen,
 }: {
   item: CategoryTransactionItem
   categoryName: string
+  onOpen: (id: string) => void
 }) {
   return (
     <button
-      aria-label={`${item.name}の取引詳細（準備中）`}
-      className="grid w-full grid-cols-[minmax(5.8rem,auto)_auto_minmax(0,1fr)_auto] items-center gap-2 px-1 py-3 text-left disabled:cursor-default disabled:opacity-100 sm:grid-cols-[8rem_auto_minmax(0,1fr)_auto] sm:gap-4 sm:px-2"
-      disabled
-      title="取引詳細は準備中です"
+      aria-label={`${item.name}を編集`}
+      className="grid w-full grid-cols-[minmax(5.8rem,auto)_auto_minmax(0,1fr)_auto] items-center gap-2 px-1 py-3 text-left outline-none transition-colors hover:bg-muted/45 focus-visible:ring-3 focus-visible:ring-ring/50 sm:grid-cols-[8rem_auto_minmax(0,1fr)_auto] sm:gap-4 sm:px-2"
+      onClick={() => onOpen(item.id)}
       type="button"
     >
       <span className="text-[0.6875rem] font-medium sm:text-sm">
@@ -682,7 +566,7 @@ function TransactionRow({
   )
 }
 
-function TransactionsPanel({ category }: { category: CategoryAnalysisItem }) {
+function TransactionsPanel({ category, onOpen }: { category: CategoryAnalysisItem; onOpen: (id: string) => void }) {
   const transactions = category.transactions.slice(0, 3)
   return (
     <AnalysisPanel className="p-0">
@@ -709,6 +593,7 @@ function TransactionsPanel({ category }: { category: CategoryAnalysisItem }) {
               categoryName={category.name}
               item={transaction}
               key={transaction.id}
+              onOpen={onOpen}
             />
           ))}
         </div>
@@ -765,13 +650,13 @@ function EmptyCategories({ rangeLabel }: { rangeLabel: string }) {
 }
 
 export function AnalysisCategoriesContent() {
+  const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
-  const rawMetric = searchParams.get('metric')
   const rawGroup = searchParams.get('group')
   const rawListMode = searchParams.get('list')
   const rawCategoryId = searchParams.get('category')
-  const { metric, group, listMode } = normalizeCategoryUrlState({
-    metric: rawMetric,
+  const { group, listMode } = normalizeCategoryUrlState({
     group: rawGroup,
     listMode: rawListMode,
   })
@@ -784,7 +669,7 @@ export function AnalysisCategoriesContent() {
   useEffect(() => {
     const next = new URLSearchParams(searchParams)
     let changed = false
-    if (rawMetric && rawMetric !== metric) {
+    if (searchParams.has('metric')) {
       next.delete('metric')
       changed = true
     }
@@ -813,11 +698,9 @@ export function AnalysisCategoriesContent() {
     categories.data,
     group,
     listMode,
-    metric,
     rawCategoryId,
     rawGroup,
     rawListMode,
-    rawMetric,
     searchParams,
     setSearchParams,
   ])
@@ -826,6 +709,14 @@ export function AnalysisCategoriesContent() {
     const next = new URLSearchParams(searchParams)
     next.set(name, value)
     setSearchParams(next)
+  }
+
+  const openTransaction = (transactionId: string) => {
+    navigate(`/app/transactions/${encodeURIComponent(transactionId)}/edit`, {
+      state: {
+        returnTo: `${location.pathname}${location.search}${location.hash}`,
+      },
+    })
   }
 
   if (categories.isPending) {
@@ -859,10 +750,8 @@ export function AnalysisCategoriesContent() {
       <CategorySummaryPanel
         data={categories.data}
         listMode={listMode}
-        metric={metric}
         onCategoryChange={(categoryId) => setParam('category', categoryId)}
         onListModeChange={(mode) => setParam('list', mode)}
-        onMetricChange={(nextMetric) => setParam('metric', nextMetric)}
         selectedCategory={selectedCategory}
       />
       <SubcategoryPanel category={selectedCategory} />
@@ -871,7 +760,7 @@ export function AnalysisCategoriesContent() {
         group={group}
         onGroupChange={(nextGroup) => setParam('group', nextGroup)}
       />
-      <TransactionsPanel category={selectedCategory} />
+      <TransactionsPanel category={selectedCategory} onOpen={openTransaction} />
     </div>
   )
 }

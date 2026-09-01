@@ -52,7 +52,7 @@ src/
 ## 認証
 
 - `onIdTokenChanged`をクライアントの認証状態の正本とする。
-- 通常環境はGoogle popupでログインする。Auth Emulatorの開発設定で`VITE_FIREBASE_DEV_USER_ENABLED=true`の場合だけ固定Google mock credentialを使い、保護routeは認証状態の確定を待ってから判定する。
+- Google popupでログインする。`VITE_FIREBASE_AUTH_EMULATOR_URL`を設定した開発環境では、Auth Emulatorがローカルのモック認証ポップアップを提供する。保護routeは認証状態の確定を待ってから判定する。
 - ID tokenを手動で永続化せず、API呼び出し時にFirebase SDKから取得する。
 - ログアウト時はTanStack Queryのキャッシュを破棄する。
 - 未認証ユーザーの戻り先は安全なアプリ内pathだけを許可する。

@@ -122,7 +122,13 @@ function categoryResponse(empty = false) {
 
 function LocationProbe() {
   const location = useLocation()
-  return <output data-testid="location">{location.search}</output>
+  return (
+    <>
+      <output data-testid="pathname">{location.pathname}</output>
+      <output data-testid="location">{location.search}</output>
+      <output data-testid="return-to">{String((location.state as { returnTo?: unknown } | null)?.returnTo ?? '')}</output>
+    </>
+  )
 }
 
 function renderCategories(initialEntry = '/app/analysis?view=categories') {
@@ -166,6 +172,11 @@ describe('AnalysisCategoriesContent', () => {
     expect(screen.getByRole('heading', { name: '食費の推移' })).toBeVisible()
     expect(screen.getByRole('heading', { name: '食費の取引一覧' })).toBeVisible()
     expect(screen.getByText('ランチ')).toBeVisible()
+    expect(
+      screen
+        .getAllByRole('button')
+        .find((button) => button.getAttribute('aria-current') === 'true'),
+    ).toHaveClass('bg-warning/10')
     expect(requests).toHaveLength(1)
     const params = new URL(requests[0]).searchParams
     expect(params.get('start_date')).toBe('2026-03-01')
@@ -182,16 +193,15 @@ describe('AnalysisCategoriesContent', () => {
       }),
     )
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
-    renderCategories('/app/analysis?view=categories&month=2026-08-01')
+    renderCategories('/app/analysis?view=categories&metric=ratio&month=2026-08-01')
     await screen.findByRole('heading', { name: 'カテゴリ別支出' })
 
-    await user.click(screen.getByRole('button', { name: '割合' }))
-    expect(screen.getByTestId('location')).toHaveTextContent('metric=ratio')
+    await waitFor(() => {
+      expect(screen.getByTestId('location')).not.toHaveTextContent('metric=')
+    })
+    expect(screen.queryByRole('button', { name: '金額' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '割合' })).not.toBeInTheDocument()
     expect(screen.getByTestId('location')).toHaveTextContent('month=2026-08-01')
-    expect(screen.getByRole('button', { name: '割合' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    )
 
     await user.click(
       screen.getByRole('button', { name: 'すべてのカテゴリを表示' }),
@@ -259,5 +269,22 @@ describe('AnalysisCategoriesContent', () => {
     ).toBeVisible()
     await user.click(screen.getByRole('button', { name: 'もう一度試す' }))
     expect(await screen.findByText('この期間の支出はありません')).toBeVisible()
+  })
+
+  it('opens the editor from a category transaction', async () => {
+    server.use(
+      http.get('http://api.test/api/v1/analytics/categories', () =>
+        HttpResponse.json(categoryResponse()),
+      ),
+    )
+    renderCategories('/app/analysis?view=categories&category=1')
+
+    await screen.findByRole('button', { name: 'ランチを編集' })
+    await userEvent.setup({ advanceTimers: vi.advanceTimersByTime }).click(
+      screen.getByRole('button', { name: 'ランチを編集' }),
+    )
+
+    expect(screen.getByTestId('pathname')).toHaveTextContent('/app/transactions/1/edit')
+    expect(screen.getByTestId('return-to')).toHaveTextContent('/app/analysis?view=categories&category=1')
   })
 })

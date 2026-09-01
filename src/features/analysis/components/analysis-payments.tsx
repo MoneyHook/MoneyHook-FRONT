@@ -7,10 +7,9 @@ import {
   MoreHorizontal,
   QrCode,
   WalletCards,
-  type LucideIcon,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   CartesianGrid,
   Cell,
@@ -26,6 +25,7 @@ import {
 
 import { ErrorState } from '@/shared/components/app-state'
 import { Skeleton } from '@/shared/components/ui/skeleton'
+import { getPaymentIconSource } from '@/shared/lib/payment-icon'
 import { cn } from '@/shared/lib/utils'
 
 import { useAnalysisPayments } from '../api/use-analysis-payments'
@@ -50,12 +50,6 @@ const paymentIconClasses = [
   'bg-chart-5/12 text-chart-5',
   'bg-muted text-muted-foreground',
 ]
-
-const paymentTypeIcons: Record<string, LucideIcon> = {
-  カード: CreditCard,
-  現金: Banknote,
-  QRペイ: QrCode,
-}
 
 function AnalysisPanel({
   children,
@@ -98,10 +92,31 @@ function PaymentIcon({
   index: number
   size?: 'default' | 'large'
 }) {
+  const iconSource = payment.id === 'unclassified'
+    ? null
+    : getPaymentIconSource({ paymentName: payment.name, paymentTypeName: payment.typeName })
   const Icon =
     payment.id === 'unclassified'
       ? MoreHorizontal
-      : paymentTypeIcons[payment.typeName ?? ''] ?? WalletCards
+      : payment.typeName === 'カード'
+        ? CreditCard
+        : payment.typeName === '現金'
+          ? Banknote
+          : payment.typeName === 'QRペイ'
+            ? QrCode
+            : WalletCards
+
+  if (iconSource) {
+    return (
+      <img
+        alt=""
+        className={cn('shrink-0 rounded-full', size === 'large' ? 'size-10 sm:size-12' : 'size-8')}
+        height={size === 'large' ? 48 : 32}
+        src={iconSource}
+        width={size === 'large' ? 48 : 32}
+      />
+    )
+  }
 
   return (
     <span
@@ -365,9 +380,15 @@ function formatTransactionDate(value: string) {
   return `${month}月${day}日（${weekday}）`
 }
 
-function PaymentTransactionRow({ item }: { item: PaymentTransactionItem }) {
+function PaymentTransactionRow({ item, onOpen }: { item: PaymentTransactionItem; onOpen: (id: string) => void }) {
   return (
-    <li className="grid grid-cols-[minmax(5.8rem,auto)_minmax(0,1fr)_auto] items-center gap-2 px-1 py-3 sm:grid-cols-[8rem_minmax(0,1fr)_auto] sm:gap-4 sm:px-2">
+    <li>
+      <button
+        aria-label={`${item.name}を編集`}
+        className="grid w-full grid-cols-[minmax(5.8rem,auto)_minmax(0,1fr)_auto] items-center gap-2 px-1 py-3 text-left outline-none transition-colors hover:bg-muted/45 focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/50 sm:grid-cols-[8rem_minmax(0,1fr)_auto] sm:gap-4 sm:px-2"
+        onClick={() => onOpen(item.id)}
+        type="button"
+      >
       <span className="text-[0.6875rem] font-medium sm:text-sm">
         {formatTransactionDate(item.date)}
       </span>
@@ -389,11 +410,12 @@ function PaymentTransactionRow({ item }: { item: PaymentTransactionItem }) {
           </span>
         ) : null}
       </span>
+      </button>
     </li>
   )
 }
 
-function PaymentTransactions({ payment }: { payment: PaymentMethodItem }) {
+function PaymentTransactions({ payment, onOpen }: { payment: PaymentMethodItem; onOpen: (id: string) => void }) {
   const [expanded, setExpanded] = useState(false)
   const visibleTransactions = expanded
     ? payment.transactions
@@ -410,7 +432,7 @@ function PaymentTransactions({ payment }: { payment: PaymentMethodItem }) {
       {visibleTransactions.length > 0 ? (
         <ul className="divide-y rounded-xl border bg-card px-2 sm:px-3">
           {visibleTransactions.map((transaction) => (
-            <PaymentTransactionRow item={transaction} key={transaction.id} />
+            <PaymentTransactionRow item={transaction} key={transaction.id} onOpen={onOpen} />
           ))}
         </ul>
       ) : (
@@ -440,10 +462,12 @@ function PaymentTransactions({ payment }: { payment: PaymentMethodItem }) {
 
 function PaymentDetailsPanel({
   data,
+  onOpen,
   selectedPayment,
   onPaymentChange,
 }: {
   data: AnalysisPaymentsViewModel
+  onOpen: (id: string) => void
   selectedPayment: PaymentMethodItem | null
   onPaymentChange: (paymentId: string | null) => void
 }) {
@@ -501,7 +525,7 @@ function PaymentDetailsPanel({
                   )}
                 />
               </button>
-              {isSelected ? <PaymentTransactions payment={payment} /> : null}
+              {isSelected ? <PaymentTransactions onOpen={onOpen} payment={payment} /> : null}
             </li>
           )
         })}
@@ -541,6 +565,8 @@ function EmptyPayments({ rangeLabel }: { rangeLabel: string }) {
 }
 
 export function AnalysisPaymentsContent() {
+  const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
   const rawPaymentId = searchParams.get('payment')
   const range = useMemo(() => createAnalysisRange(), [])
@@ -566,6 +592,14 @@ export function AnalysisPaymentsContent() {
       next.delete('payment')
     }
     setSearchParams(next)
+  }
+
+  const openTransaction = (transactionId: string) => {
+    navigate(`/app/transactions/${encodeURIComponent(transactionId)}/edit`, {
+      state: {
+        returnTo: `${location.pathname}${location.search}${location.hash}`,
+      },
+    })
   }
 
   if (payments.isPending) {
@@ -600,6 +634,7 @@ export function AnalysisPaymentsContent() {
       <PaymentTrendPanel data={payments.data} />
       <PaymentDetailsPanel
         data={payments.data}
+        onOpen={openTransaction}
         onPaymentChange={setPayment}
         selectedPayment={selectedPayment}
       />

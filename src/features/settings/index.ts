@@ -1,2 +1,5 @@
 export { BudgetSettings } from './components/budget-settings'
+export { PaymentSettings } from './components/payment-settings'
+export { RecurringTransactionSettings } from './components/recurring-transaction-settings'
 export { SettingsSection } from './components/settings-section'
+export { SettingsSummary } from './components/settings-summary'
