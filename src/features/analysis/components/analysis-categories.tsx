@@ -35,7 +35,6 @@ import {
   type CategoryAnalysisItem,
   type CategoryGroup,
   type CategoryListMode,
-  type CategoryMetric,
   type CategorySummaryItem,
   type CategoryTransactionItem,
   type SubcategoryAnalysisItem,
@@ -99,50 +98,12 @@ function CategoryIcon({ name }: { name: string }) {
   )
 }
 
-function MetricToggle({
-  value,
-  onChange,
-}: {
-  value: CategoryMetric
-  onChange: (value: CategoryMetric) => void
-}) {
-  return (
-    <div
-      aria-label="カテゴリ集計の表示形式"
-      className="grid grid-cols-2 rounded-xl bg-muted p-1"
-      role="group"
-    >
-      {(['amount', 'ratio'] as const).map((metric) => {
-        const isActive = metric === value
-        return (
-          <button
-            aria-pressed={isActive}
-            className={cn(
-              'min-h-8 rounded-lg px-3 text-xs font-semibold transition-[background-color,color,box-shadow] sm:text-sm',
-              isActive
-                ? 'bg-card text-success shadow-sm'
-                : 'text-muted-foreground hover:text-foreground',
-            )}
-            key={metric}
-            onClick={() => onChange(metric)}
-            type="button"
-          >
-            {metric === 'amount' ? '金額' : '割合'}
-          </button>
-        )
-      })}
-    </div>
-  )
-}
-
 function CategoryDonut({
   items,
   total,
-  metric,
 }: {
   items: CategorySummaryItem[]
   total: number
-  metric: CategoryMetric
 }) {
   return (
     <div className="relative mx-auto size-36 sm:size-56">
@@ -174,7 +135,7 @@ function CategoryDonut({
           総支出
         </span>
         <strong className="mt-0.5 text-sm font-semibold tabular-nums sm:text-xl">
-          {metric === 'amount' ? formatCurrency(total) : '100.0%'}
+          {formatCurrency(total)}
         </strong>
       </div>
     </div>
@@ -184,13 +145,11 @@ function CategoryDonut({
 function SummaryRow({
   item,
   index,
-  metric,
   selected,
   onSelect,
 }: {
   item: CategorySummaryItem
   index: number
-  metric: CategoryMetric
   selected: boolean
   onSelect: (categoryId: string) => void
 }) {
@@ -210,22 +169,10 @@ function SummaryRow({
         {item.name}
       </span>
       <span className="min-w-16 text-right text-xs tabular-nums sm:min-w-24 sm:text-sm">
-        <span
-          className={cn(
-            'block',
-            metric === 'amount' ? 'font-semibold' : 'text-muted-foreground',
-          )}
-        >
+        <span className="block font-semibold">
           {formatCurrency(item.amount)}
         </span>
-        <span
-          className={cn(
-            'block text-[0.625rem] sm:text-xs',
-            metric === 'ratio'
-              ? 'font-semibold text-success'
-              : 'text-muted-foreground',
-          )}
-        >
+        <span className="block text-[0.625rem] text-muted-foreground sm:text-xs">
           {formatPercent(item.ratio)}
         </span>
       </span>
@@ -260,17 +207,13 @@ function SummaryRow({
 function CategorySummaryPanel({
   data,
   selectedCategory,
-  metric,
   listMode,
-  onMetricChange,
   onListModeChange,
   onCategoryChange,
 }: {
   data: AnalysisCategoriesViewModel
   selectedCategory: CategoryAnalysisItem
-  metric: CategoryMetric
   listMode: CategoryListMode
-  onMetricChange: (metric: CategoryMetric) => void
   onListModeChange: (mode: CategoryListMode) => void
   onCategoryChange: (categoryId: string) => void
 }) {
@@ -287,14 +230,10 @@ function CategorySummaryPanel({
 
   return (
     <AnalysisPanel id="category-summary">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-base font-semibold sm:text-lg">カテゴリ別支出</h2>
-        <MetricToggle onChange={onMetricChange} value={metric} />
-      </div>
+      <h2 className="text-base font-semibold sm:text-lg">カテゴリ別支出</h2>
       <div className="mx-auto mt-4 grid max-w-4xl items-center gap-4 min-[390px]:grid-cols-[9rem_minmax(0,1fr)] sm:mt-5 sm:grid-cols-[15rem_minmax(0,1fr)] sm:gap-8">
         <CategoryDonut
           items={items}
-          metric={metric}
           total={data.totalExpenseAmount}
         />
         <ul className="min-w-0 space-y-0.5">
@@ -303,7 +242,6 @@ function CategorySummaryPanel({
               index={index}
               item={item}
               key={item.id}
-              metric={metric}
               onSelect={onCategoryChange}
               selected={item.id === selectedCategory.id}
             />
@@ -715,12 +653,10 @@ export function AnalysisCategoriesContent() {
   const navigate = useNavigate()
   const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
-  const rawMetric = searchParams.get('metric')
   const rawGroup = searchParams.get('group')
   const rawListMode = searchParams.get('list')
   const rawCategoryId = searchParams.get('category')
-  const { metric, group, listMode } = normalizeCategoryUrlState({
-    metric: rawMetric,
+  const { group, listMode } = normalizeCategoryUrlState({
     group: rawGroup,
     listMode: rawListMode,
   })
@@ -733,7 +669,7 @@ export function AnalysisCategoriesContent() {
   useEffect(() => {
     const next = new URLSearchParams(searchParams)
     let changed = false
-    if (rawMetric && rawMetric !== metric) {
+    if (searchParams.has('metric')) {
       next.delete('metric')
       changed = true
     }
@@ -762,11 +698,9 @@ export function AnalysisCategoriesContent() {
     categories.data,
     group,
     listMode,
-    metric,
     rawCategoryId,
     rawGroup,
     rawListMode,
-    rawMetric,
     searchParams,
     setSearchParams,
   ])
@@ -816,10 +750,8 @@ export function AnalysisCategoriesContent() {
       <CategorySummaryPanel
         data={categories.data}
         listMode={listMode}
-        metric={metric}
         onCategoryChange={(categoryId) => setParam('category', categoryId)}
         onListModeChange={(mode) => setParam('list', mode)}
-        onMetricChange={(nextMetric) => setParam('metric', nextMetric)}
         selectedCategory={selectedCategory}
       />
       <SubcategoryPanel category={selectedCategory} />

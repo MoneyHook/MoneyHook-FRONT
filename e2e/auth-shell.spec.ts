@@ -120,6 +120,25 @@ test('protects app routes and restores a deep link after login', async ({ page }
   await expect(page.getByRole('heading', { name: '設定' })).toBeVisible()
 })
 
+test('opens each settings summary card in its dedicated management page', async ({ page }) => {
+  await signInWithEmulator(page)
+  await page.goto('/app/settings')
+
+  for (const [cardName, path, heading] of [
+    ['アカウントの設定を開く', 'settings/account', 'アカウント'],
+    ['予算の設定を開く', 'settings/budget', '予算'],
+    ['支払い方法の設定を開く', 'settings/payments', '支払い方法'],
+    ['収支の自動入力の設定を開く', 'settings/recurring-transactions', '収支の自動入力'],
+    ['表示の設定を開く', 'settings/appearance', '表示'],
+  ] as const) {
+    await page.getByRole('link', { name: cardName }).click()
+    await expect(page).toHaveURL(appUrl(path))
+    await expect(page.getByRole('heading', { name: heading })).toBeVisible()
+    await page.getByRole('link', { name: '設定へ戻る' }).click()
+    await expect(page).toHaveURL(appUrl('settings'))
+  }
+})
+
 test('keeps the analysis width stable at 1024px', async ({ page }) => {
   await page.setViewportSize({ width: 1024, height: 900 })
   await signInWithEmulator(page)

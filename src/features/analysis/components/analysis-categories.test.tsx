@@ -193,16 +193,15 @@ describe('AnalysisCategoriesContent', () => {
       }),
     )
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
-    renderCategories('/app/analysis?view=categories&month=2026-08-01')
+    renderCategories('/app/analysis?view=categories&metric=ratio&month=2026-08-01')
     await screen.findByRole('heading', { name: 'カテゴリ別支出' })
 
-    await user.click(screen.getByRole('button', { name: '割合' }))
-    expect(screen.getByTestId('location')).toHaveTextContent('metric=ratio')
+    await waitFor(() => {
+      expect(screen.getByTestId('location')).not.toHaveTextContent('metric=')
+    })
+    expect(screen.queryByRole('button', { name: '金額' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '割合' })).not.toBeInTheDocument()
     expect(screen.getByTestId('location')).toHaveTextContent('month=2026-08-01')
-    expect(screen.getByRole('button', { name: '割合' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    )
 
     await user.click(
       screen.getByRole('button', { name: 'すべてのカテゴリを表示' }),

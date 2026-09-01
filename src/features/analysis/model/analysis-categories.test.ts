@@ -148,18 +148,16 @@ describe('analysis categories model', () => {
   it('normalizes unknown URL state to stable defaults', () => {
     expect(
       normalizeCategoryUrlState({
-        metric: 'unknown',
         group: 'quarter',
         listMode: 'expanded',
       }),
-    ).toEqual({ metric: 'amount', group: 'month', listMode: 'top' })
+    ).toEqual({ group: 'month', listMode: 'top' })
     expect(
       normalizeCategoryUrlState({
-        metric: 'ratio',
         group: 'day',
         listMode: 'all',
       }),
-    ).toEqual({ metric: 'ratio', group: 'day', listMode: 'all' })
+    ).toEqual({ group: 'day', listMode: 'all' })
   })
 
   it('keeps an empty response stable', () => {

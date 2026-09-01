@@ -5,7 +5,6 @@ import type {
 
 import type { AnalysisRange } from './analysis-overview'
 
-export type CategoryMetric = 'amount' | 'ratio'
 export type CategoryGroup = 'day' | 'week' | 'month'
 export type CategoryListMode = 'top' | 'all'
 
@@ -58,7 +57,6 @@ export type AnalysisCategoriesViewModel = {
 }
 
 export type CategoryUrlState = {
-  metric: CategoryMetric
   group: CategoryGroup
   listMode: CategoryListMode
 }
@@ -108,10 +106,6 @@ function buildTransaction(
   }
 }
 
-export function normalizeCategoryMetric(value: string | null): CategoryMetric {
-  return value === 'ratio' ? 'ratio' : 'amount'
-}
-
 export function normalizeCategoryGroup(value: string | null): CategoryGroup {
   return value === 'day' || value === 'week' ? value : 'month'
 }
@@ -123,16 +117,13 @@ export function normalizeCategoryListMode(
 }
 
 export function normalizeCategoryUrlState({
-  metric,
   group,
   listMode,
 }: {
-  metric: string | null
   group: string | null
   listMode: string | null
 }): CategoryUrlState {
   return {
-    metric: normalizeCategoryMetric(metric),
     group: normalizeCategoryGroup(group),
     listMode: normalizeCategoryListMode(listMode),
   }
@@ -225,4 +216,3 @@ export function getSelectedCategory(
     null
   )
 }
-

@@ -4,7 +4,14 @@ import { AnalysisPage } from '@/pages/analysis'
 import { HomePage } from '@/pages/home'
 import { LoginPage } from '@/pages/login'
 import { AppNotFoundPage, PublicNotFoundPage } from '@/pages/not-found'
-import { SettingsPage } from '@/pages/settings'
+import {
+  AccountSettingsPage,
+  AppearanceSettingsPage,
+  BudgetSettingsPage,
+  PaymentSettingsPage,
+  RecurringTransactionSettingsPage,
+  SettingsPage,
+} from '@/pages/settings'
 import {
   EditTransactionPage,
   NewTransactionPage,
@@ -41,6 +48,14 @@ export const router = createBrowserRouter([
           { path: 'transactions/:transactionId/edit', element: <EditTransactionPage /> },
           { path: 'analysis', element: <AnalysisPage /> },
           { path: 'settings', element: <SettingsPage /> },
+          { path: 'settings/account', element: <AccountSettingsPage /> },
+          { path: 'settings/budget', element: <BudgetSettingsPage /> },
+          { path: 'settings/payments', element: <PaymentSettingsPage /> },
+          {
+            path: 'settings/recurring-transactions',
+            element: <RecurringTransactionSettingsPage />,
+          },
+          { path: 'settings/appearance', element: <AppearanceSettingsPage /> },
           { path: '*', element: <AppNotFoundPage /> },
         ],
       },

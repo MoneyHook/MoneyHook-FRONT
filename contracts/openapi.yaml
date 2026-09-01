@@ -1606,14 +1606,18 @@ components:
               payment_id: {$ref: '#/components/schemas/NullableIdentifier'}
     DeletedFixed:
       type: object
-      required: [monthly_transaction_id, monthly_transaction_name, monthly_transaction_amount, monthly_transaction_date, category_name, sub_category_name]
+      required: [monthly_transaction_id, monthly_transaction_name, monthly_transaction_amount, monthly_transaction_sign, monthly_transaction_date, category_id, category_name, sub_category_id, sub_category_name, payment_id]
       properties:
         monthly_transaction_id: {$ref: '#/components/schemas/Identifier'}
         monthly_transaction_name: {type: string}
         monthly_transaction_amount: {type: integer, format: int64, minimum: 0}
+        monthly_transaction_sign: {type: integer, enum: [-1, 1]}
         monthly_transaction_date: {type: integer}
+        category_id: {$ref: '#/components/schemas/Identifier'}
         category_name: {type: string}
+        sub_category_id: {$ref: '#/components/schemas/Identifier'}
         sub_category_name: {type: string}
+        payment_id: {$ref: '#/components/schemas/NullableIdentifier'}
     Category:
       type: object
       required: [category_id, category_name]
