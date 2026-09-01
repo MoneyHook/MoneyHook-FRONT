@@ -10,6 +10,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react'
+import { ja } from 'react-day-picker/locale'
 import { useMemo, useState, type FormEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -27,7 +28,9 @@ import { useGetCategoryWithSubCategoryList } from '@/shared/api/generated/catego
 import { useGetPaymentResources, useGetPaymentTypes } from '@/shared/api/generated/payment/payment'
 import { ErrorState } from '@/shared/components/app-state'
 import { Button } from '@/shared/components/ui/button'
+import { Calendar } from '@/shared/components/ui/calendar'
 import { Input } from '@/shared/components/ui/input'
+import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -80,6 +83,30 @@ function getReturnTo(state: unknown, fallback: string) {
 
 function getTransactionMonth(date: string) {
   return `${date.slice(0, 7)}-01`
+}
+
+function parseCalendarDate(value: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+  if (!match) {
+    return undefined
+  }
+
+  const [, yearString, monthString, dayString] = match
+  const year = Number(yearString)
+  const month = Number(monthString)
+  const day = Number(dayString)
+  const date = new Date(year, month - 1, day)
+
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day
+    ? date
+    : undefined
+}
+
+function formatCalendarDate(date: Date) {
+  const year = String(date.getFullYear()).padStart(4, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
 function transactionQueryPrefix() {
@@ -227,6 +254,7 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
   const [selectionSheet, setSelectionSheet] = useState<SelectionSheet>(null)
   const [categorySelectionStep, setCategorySelectionStep] = useState<CategorySelectionStep>('category')
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [datePickerOpen, setDatePickerOpen] = useState(false)
 
   const fallbackReturnTo = transaction
     ? `/app/transactions?month=${getTransactionMonth(transaction.transaction_date)}&view=list`
@@ -253,6 +281,7 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
     (subcategory) => subcategory.sub_category_id === form.subcategoryId,
   )
   const selectedPayment = payments.find((payment) => payment.payment_id === form.paymentId)
+  const selectedDate = parseCalendarDate(form.transactionDate)
   const frequentTransactions =
     frequentTransactionsQuery.data?.status === 200
       ? frequentTransactionsQuery.data.data.transaction_list
@@ -478,19 +507,39 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
         </div>
 
         <FormSection>
-          <label className="flex min-h-16 cursor-pointer items-center gap-3 border-b px-4 sm:px-5" htmlFor="new-transaction-date">
-            <CalendarDays aria-hidden="true" className="size-6 shrink-0 text-muted-foreground" />
-            <span className="font-medium">日付</span>
-            <Input
-              aria-invalid={errors.transactionDate ? true : undefined}
-              className="ml-auto h-10 w-auto border-0 px-0 text-right font-medium shadow-none focus-visible:ring-0"
-              id="new-transaction-date"
-              max="9999-12-31"
-              onChange={(event) => setValue('transactionDate', event.target.value)}
-              type="date"
-              value={form.transactionDate}
-            />
-          </label>
+          <Popover onOpenChange={setDatePickerOpen} open={datePickerOpen}>
+            <PopoverTrigger asChild>
+              <button
+                aria-invalid={errors.transactionDate ? true : undefined}
+                aria-label="日付"
+                className="flex min-h-16 w-full items-center gap-3 border-b px-4 text-left outline-none transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 sm:px-5"
+                type="button"
+              >
+                <CalendarDays aria-hidden="true" className="size-6 shrink-0 text-muted-foreground" />
+                <span className="font-medium">日付</span>
+                <span className={cn('ml-auto font-medium', !selectedDate && 'text-muted-foreground')}>
+                  {selectedDate ? `${selectedDate.getFullYear()}年${selectedDate.getMonth() + 1}月${selectedDate.getDate()}日` : '選択してください'}
+                </span>
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-fit max-w-[calc(100vw-2rem)] p-0" sideOffset={8}>
+              <Calendar
+                aria-label="取引日を選択"
+                defaultMonth={selectedDate}
+                endMonth={new Date(9999, 11, 31)}
+                locale={ja}
+                mode="single"
+                onSelect={(date) => {
+                  if (!date) {
+                    return
+                  }
+                  setValue('transactionDate', formatCalendarDate(date))
+                  setDatePickerOpen(false)
+                }}
+                selected={selectedDate}
+              />
+            </PopoverContent>
+          </Popover>
           {errors.transactionDate ? <p className="px-4 pb-3 text-sm text-destructive" role="alert">{errors.transactionDate}</p> : null}
           <FormRow className="border-b">
             <label className="font-medium" htmlFor="new-transaction-amount">金額</label>

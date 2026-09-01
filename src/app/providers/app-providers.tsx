@@ -20,7 +20,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
           <QueryClientProvider client={queryClient}>
             <TooltipProvider delayDuration={250}>
               <AuthProvider>{children}</AuthProvider>
-              <Toaster position="bottom-center" />
+              <Toaster position="bottom-right" />
             </TooltipProvider>
           </QueryClientProvider>
         </ChartPaletteProvider>

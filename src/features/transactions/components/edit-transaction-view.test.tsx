@@ -147,7 +147,9 @@ describe('EditTransactionView', () => {
 
     fireEvent.change(screen.getByLabelText('金額'), { target: { value: '1500' } })
     fireEvent.change(screen.getByLabelText('取引名'), { target: { value: '昼食' } })
-    fireEvent.change(screen.getByLabelText('日付'), { target: { value: '2026-09-02' } })
+    fireEvent.click(screen.getByRole('button', { name: '日付' }))
+    fireEvent.click(screen.getByRole('button', { name: '次の月へ' }))
+    fireEvent.click(screen.getByRole('button', { name: /2026年9月2日/ }))
     fireEvent.click(screen.getByRole('button', { name: '保存' }))
 
     await waitFor(() => {

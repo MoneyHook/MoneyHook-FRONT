@@ -1,11 +1,14 @@
 import {
   AlertCircle,
+  Banknote,
   CreditCard,
   LoaderCircle,
   Pencil,
   Plus,
+  QrCode,
   Trash2,
   WalletCards,
+  X,
 } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { toast } from 'sonner'
@@ -26,15 +29,17 @@ import {
   AlertDialogTitle,
 } from '@/shared/components/ui/alert-dialog'
 import { Button } from '@/shared/components/ui/button'
-import { Input } from '@/shared/components/ui/input'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/shared/components/ui/select'
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/shared/components/ui/dialog'
+import { Input } from '@/shared/components/ui/input'
 import { Skeleton } from '@/shared/components/ui/skeleton'
+import { cn } from '@/shared/lib/utils'
 import { getPaymentIconSource } from '@/shared/lib/payment-icon'
 
 import { usePaymentSettings } from '../api/use-payment-settings'
@@ -70,6 +75,16 @@ function formValuesFromPayment(
 
 function errorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback
+}
+
+function PaymentTypeIcon({ paymentTypeName }: { paymentTypeName: string }) {
+  if (paymentTypeName.includes('カード')) {
+    return <CreditCard aria-hidden="true" className="size-4" />
+  }
+  if (paymentTypeName.includes('QR')) {
+    return <QrCode aria-hidden="true" className="size-4" />
+  }
+  return <Banknote aria-hidden="true" className="size-4" />
 }
 
 function PaymentForm({
@@ -109,9 +124,8 @@ function PaymentForm({
   }
 
   return (
-    <form className="space-y-5 border-t pt-6" noValidate onSubmit={(event) => void handleSubmit(event)}>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2 sm:col-span-2">
+    <form className="space-y-5" noValidate onSubmit={(event) => void handleSubmit(event)}>
+      <div className="space-y-2">
           <label className="text-sm font-medium" htmlFor="payment-name">
             支払い方法名
           </label>
@@ -125,33 +139,35 @@ function PaymentForm({
             value={values.paymentName}
           />
           {errors.paymentName ? <p className="text-sm text-destructive" role="alert">{errors.paymentName}</p> : null}
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium" htmlFor="payment-type">
-            支払いの種類
-          </label>
-          <Select
-            disabled={isSaving}
-            onValueChange={(value) => update('paymentTypeId', value)}
-            value={values.paymentTypeId}
-          >
-            <SelectTrigger
-              aria-invalid={errors.paymentTypeId ? true : undefined}
-              id="payment-type"
-            >
-              <SelectValue placeholder="支払いの種類を選択" />
-            </SelectTrigger>
-            <SelectContent>
-              {paymentTypes.map((type) => (
-                <SelectItem key={type.payment_type_id} value={type.payment_type_id}>
-                  {type.payment_type_name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {errors.paymentTypeId ? <p className="text-sm text-destructive" role="alert">{errors.paymentTypeId}</p> : null}
-        </div>
       </div>
+
+      <fieldset className="space-y-2">
+        <legend className="text-sm font-medium">支払いの種類</legend>
+        <div aria-label="支払いの種類" className="grid grid-cols-3 gap-2" role="radiogroup">
+          {paymentTypes.map((type) => {
+            const isSelected = values.paymentTypeId === type.payment_type_id
+
+            return (
+              <button
+                aria-checked={isSelected}
+                className={cn(
+                  'flex min-h-11 items-center justify-center gap-2 rounded-lg border px-2 text-sm font-medium outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50',
+                  isSelected && 'border-primary bg-primary/5 text-primary',
+                )}
+                disabled={isSaving}
+                key={type.payment_type_id}
+                onClick={() => update('paymentTypeId', type.payment_type_id)}
+                role="radio"
+                type="button"
+              >
+                <PaymentTypeIcon paymentTypeName={type.payment_type_name} />
+                <span className="truncate">{type.payment_type_name}</span>
+              </button>
+            )
+          })}
+        </div>
+        {errors.paymentTypeId ? <p className="text-sm text-destructive" role="alert">{errors.paymentTypeId}</p> : null}
+      </fieldset>
 
       {selectedType?.is_payment_due_later ? (
         <div className="grid gap-4 sm:grid-cols-2">
@@ -168,9 +184,9 @@ function PaymentForm({
         </div>
       ) : null}
 
-      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+      <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
         <Button disabled={isSaving} onClick={onCancel} type="button" variant="outline">キャンセル</Button>
-        <Button disabled={isSaving} type="submit" variant="outline">
+        <Button disabled={isSaving} type="submit">
           {isSaving ? <LoaderCircle aria-hidden="true" className="animate-spin" /> : null}
           {editor.mode === 'add' ? '追加する' : '保存する'}
         </Button>
@@ -179,7 +195,7 @@ function PaymentForm({
   )
 }
 
-export function PaymentSettings() {
+export function PaymentSettings({ showHeader = true }: { showHeader?: boolean }) {
   const { addMutation, deleteMutation, editMutation, paymentsQuery, paymentTypesQuery } = usePaymentSettings()
   const [editor, setEditor] = useState<EditorState>(null)
   const [paymentToDelete, setPaymentToDelete] = useState<PaymentResourceListResponsePaymentListItem | null>(null)
@@ -224,6 +240,7 @@ export function PaymentSettings() {
       action={<Button disabled={isLoading || hasError} onClick={() => setEditor({ mode: 'add', payment: null })} size="lg" type="button" variant="outline"><Plus aria-hidden="true" />支払い方法を追加</Button>}
       description="取引に使う支払い方法を管理できます。カードは締め日と支払日も設定できます。"
       icon={WalletCards}
+      showHeader={showHeader}
       title="支払い方法"
       titleId="payment-settings-title"
     >
@@ -233,8 +250,29 @@ export function PaymentSettings() {
         {payments.length === 0 ? <div className="rounded-xl border border-dashed px-4 py-8 text-center"><CreditCard aria-hidden="true" className="mx-auto mb-3 size-6 text-muted-foreground" /><p className="font-medium">支払い方法がありません</p><p className="mt-1 text-sm text-muted-foreground">追加すると、取引の登録時に選択できます。</p></div> : <ul className="divide-y rounded-xl border">
           {payments.map((payment) => { const type = paymentTypes.find((item) => item.payment_type_id === payment.payment_type_id); const iconSource = getPaymentIconSource({ paymentName: payment.payment_name, paymentTypeName: type?.payment_type_name }); return <li className="flex items-center gap-3 px-4 py-3" key={payment.payment_id}>{iconSource ? <img alt="" className="size-9 shrink-0 rounded-lg" height="36" src={iconSource} width="36" /> : <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground"><CreditCard aria-hidden="true" className="size-4" /></span>}<div className="min-w-0 flex-1"><p className="truncate font-medium">{payment.payment_name}</p><p className="text-sm text-muted-foreground">{typeName(payment.payment_type_id)}{type?.is_payment_due_later && payment.payment_date !== null ? ` ・ 締め日 ${payment.closing_date}日 / 支払日 ${payment.payment_date}日` : ''}</p></div><div className="flex shrink-0 gap-1"><Button aria-label={`${payment.payment_name}を編集`} onClick={() => setEditor({ mode: 'edit', payment })} size="icon-sm" type="button" variant="ghost"><Pencil aria-hidden="true" /></Button><Button aria-label={`${payment.payment_name}を削除`} disabled={deleteMutation.isPending} onClick={() => setPaymentToDelete(payment)} size="icon-sm" type="button" variant="destructive"><Trash2 aria-hidden="true" /></Button></div></li> })}
         </ul>}
-        {editor ? <PaymentForm editor={editor} isSaving={isSaving} key={editor.mode === 'edit' ? editor.payment.payment_id : 'add'} onCancel={() => setEditor(null)} onSave={savePayment} paymentTypes={paymentTypes} /> : null}
       </div> : null}
+      <Dialog onOpenChange={(open) => !open && !isSaving && setEditor(null)} open={editor !== null}>
+        {editor ? (
+          <DialogContent>
+            <DialogHeader className="flex flex-row items-center justify-between gap-4 space-y-0">
+              <div>
+                <DialogTitle>
+                  {editor.mode === 'add' ? '支払い方法を追加' : '支払い方法を編集'}
+                </DialogTitle>
+                <DialogDescription className="sr-only">
+                  支払い方法の名前、種類、締め日、支払日を入力します。
+                </DialogDescription>
+              </div>
+              <DialogClose asChild>
+                <Button aria-label="編集を閉じる" disabled={isSaving} size="icon-sm" type="button" variant="ghost">
+                  <X aria-hidden="true" />
+                </Button>
+              </DialogClose>
+            </DialogHeader>
+            <PaymentForm editor={editor} isSaving={isSaving} key={editor.mode === 'edit' ? editor.payment.payment_id : 'add'} onCancel={() => setEditor(null)} onSave={savePayment} paymentTypes={paymentTypes} />
+          </DialogContent>
+        ) : null}
+      </Dialog>
       <AlertDialog onOpenChange={(open) => !open && setPaymentToDelete(null)} open={paymentToDelete !== null}>
         <AlertDialogContent>
           <AlertDialogHeader>

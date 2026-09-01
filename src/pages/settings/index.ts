@@ -1,1 +1,8 @@
-export { SettingsPage } from './settings-page'
+export {
+  AccountSettingsPage,
+  AppearanceSettingsPage,
+  BudgetSettingsPage,
+  PaymentSettingsPage,
+  RecurringTransactionSettingsPage,
+  SettingsPage,
+} from './settings-page'

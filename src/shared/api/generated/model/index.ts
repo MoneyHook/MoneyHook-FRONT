@@ -25,6 +25,7 @@ export * from './categoryWithSubcategoryResponseCategoryListItem';
 export * from './categoryWithSubcategoryResponseCategoryListItemSubCategoryListItem';
 export * from './dateString';
 export * from './deletedFixed';
+export * from './deletedFixedMonthlyTransactionSign';
 export * from './deleteFailureResponse';
 export * from './editSubcategoryRequest';
 export * from './errorResponse';

@@ -13,7 +13,7 @@ import { SettingsSection } from './settings-section'
 
 const saveErrorMessage = '予算を保存できませんでした。もう一度お試しください。'
 
-export function BudgetSettings() {
+export function BudgetSettings({ showHeader = true }: { showHeader?: boolean }) {
   const { budgetQuery, currentMonth, saveMutation } = useBudgetSettings()
   const [editedAmount, setEditedAmount] = useState<string | null>(null)
   const [validationError, setValidationError] = useState<string | null>(null)
@@ -56,6 +56,7 @@ export function BudgetSettings() {
     <SettingsSection
       description="毎月の支出上限を設定できます。設定は今月から適用されます。"
       icon={WalletCards}
+      showHeader={showHeader}
       title="予算"
       titleId="budget-settings-title"
     >

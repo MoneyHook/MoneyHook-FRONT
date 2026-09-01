@@ -170,7 +170,7 @@ describe('NewTransactionView', () => {
     const incomeTab = screen.getByRole('tab', { name: '収入' })
     const saveButton = screen.getByRole('button', { name: '保存' })
     const candidateButton = screen.getByRole('button', { name: 'ランチを候補から適用' })
-    const dateInput = screen.getByLabelText('日付')
+    const dateRow = screen.getByRole('button', { name: '日付' })
 
     expect(expenseTab).toHaveClass('bg-card', 'text-expense')
     fireEvent.click(incomeTab)
@@ -180,8 +180,12 @@ describe('NewTransactionView', () => {
     expect(saveButton).toHaveClass('w-full', 'sm:w-auto')
     expect(candidateButton).toHaveClass('min-h-16', 'rounded-xl', 'px-3', 'py-2')
     expect(candidateButton.compareDocumentPosition(saveButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    expect(dateInput.closest('label')).toContainElement(dateInput)
-    expect(dateInput.closest('label')).toContainHTML('<svg')
+    expect(dateRow).toHaveClass('min-h-16', 'w-full', 'border-b')
+    expect(dateRow).toContainHTML('<svg')
+
+    fireEvent.click(dateRow)
+    expect(await screen.findByRole('dialog')).toBeVisible()
+    expect(screen.getByRole('button', { name: /2026年8月30日/ })).toBeVisible()
   })
 
   it('selects a category and subcategory in the same sheet', async () => {
