@@ -7,7 +7,6 @@ const viteCommand = [
   'VITE_FIREBASE_PROJECT_ID=demo-moneyhooks',
   'VITE_FIREBASE_APP_ID=1:123456789:web:moneyhooks',
   'VITE_FIREBASE_AUTH_EMULATOR_URL=http://localhost:9099',
-  'VITE_FIREBASE_DEV_USER_ENABLED=true',
   `pnpm dev --host 0.0.0.0 --port ${process.env.PLAYWRIGHT_VITE_PORT ?? '3000'}`,
 ].join(' ')
 
