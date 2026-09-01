@@ -219,12 +219,10 @@ describe('SettingsPage', () => {
     toastSuccess.mockReset()
     registerBudgetHandlers()
     registerPaymentHandlers()
-    vi.stubGlobal('confirm', vi.fn(() => true))
   })
 
   afterEach(() => {
     vi.useRealTimers()
-    vi.unstubAllGlobals()
   })
 
   it('shows the signed-in account and supports logging out', () => {
@@ -459,7 +457,9 @@ describe('SettingsPage', () => {
     expect(await screen.findByText('メインカード')).toBeVisible()
 
     fireEvent.click(screen.getByRole('button', { name: 'メインカードを削除' }))
-    expect(window.confirm).toHaveBeenCalledWith('「メインカード」を削除しますか？')
+    expect(screen.getByRole('alertdialog')).toBeVisible()
+    expect(screen.getByText('「メインカード」を削除します。この操作は取り消せません。')).toBeVisible()
+    fireEvent.click(screen.getByRole('button', { name: '削除する' }))
     await waitFor(() => expect(screen.queryByText('メインカード')).not.toBeInTheDocument())
   })
 
@@ -477,6 +477,7 @@ describe('SettingsPage', () => {
 
     await screen.findByText('楽天カード')
     fireEvent.click(screen.getByRole('button', { name: '楽天カードを削除' }))
+    fireEvent.click(screen.getByRole('button', { name: '削除する' }))
 
     await waitFor(() => {
       expect(toastError).toHaveBeenCalledWith('関連する取引があるため削除できません')
