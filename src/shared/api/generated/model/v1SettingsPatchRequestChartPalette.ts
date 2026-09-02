@@ -16,12 +16,12 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { V1SettingsResponseAccentColor } from './v1SettingsResponseAccentColor';
-import type { V1SettingsResponseChartPalette } from './v1SettingsResponseChartPalette';
-import type { V1SettingsResponseThemeMode } from './v1SettingsResponseThemeMode';
 
-export interface V1SettingsResponse {
-  accent_color: V1SettingsResponseAccentColor;
-  theme_mode: V1SettingsResponseThemeMode;
-  chart_palette: V1SettingsResponseChartPalette;
-}
+export type V1SettingsPatchRequestChartPalette = typeof V1SettingsPatchRequestChartPalette[keyof typeof V1SettingsPatchRequestChartPalette];
+
+
+export const V1SettingsPatchRequestChartPalette = {
+  default: 'default',
+  colorful: 'colorful',
+  monochrome: 'monochrome',
+} as const;

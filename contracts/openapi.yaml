@@ -1044,14 +1044,16 @@ components:
       properties:
         accent_color: {type: string, enum: [blue, green, violet, rose, black]}
         theme_mode: {type: string, enum: [light, dark, system]}
+        chart_palette: {type: string, enum: [default, colorful, monochrome]}
       description: At least one property must be supplied.
     V1SettingsResponse:
       type: object
       additionalProperties: false
-      required: [accent_color, theme_mode]
+      required: [accent_color, theme_mode, chart_palette]
       properties:
         accent_color: {type: string, enum: [blue, green, violet, rose, black]}
         theme_mode: {type: string, enum: [light, dark, system]}
+        chart_palette: {type: string, enum: [default, colorful, monochrome]}
     V1TransactionRequest:
       type: object
       additionalProperties: false

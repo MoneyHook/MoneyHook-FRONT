@@ -4,27 +4,23 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from '@/features/auth'
 import { Toaster } from '@/shared/components/ui/sonner'
 import { TooltipProvider } from '@/shared/components/ui/tooltip'
-import { AccentProvider } from '@/shared/hooks/accent-provider'
-import { ChartPaletteProvider } from '@/shared/hooks/chart-palette-provider'
+import { AppearanceProvider } from '@/shared/hooks/appearance-provider'
 
 import { createAppQueryClient } from './query-client'
-import { AppThemeProvider } from './theme-provider'
 
 export function AppProviders({ children }: { children: ReactNode }) {
   const [queryClient] = useState(createAppQueryClient)
 
   return (
-    <AppThemeProvider>
-      <AccentProvider>
-        <ChartPaletteProvider>
-          <QueryClientProvider client={queryClient}>
-            <TooltipProvider delayDuration={250}>
-              <AuthProvider>{children}</AuthProvider>
-              <Toaster position="bottom-right" />
-            </TooltipProvider>
-          </QueryClientProvider>
-        </ChartPaletteProvider>
-      </AccentProvider>
-    </AppThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <AppearanceProvider>
+          <TooltipProvider delayDuration={250}>
+            {children}
+            <Toaster position="bottom-right" />
+          </TooltipProvider>
+        </AppearanceProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   )
 }
