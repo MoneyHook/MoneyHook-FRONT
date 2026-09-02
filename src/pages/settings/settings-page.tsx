@@ -8,7 +8,6 @@ import {
   Settings,
   Sun,
 } from 'lucide-react'
-import { useTheme } from 'next-themes'
 import { useMemo, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -25,12 +24,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avat
 import { Button } from '@/shared/components/ui/button'
 import {
   type AccentColor,
-  useAccent,
-} from '@/shared/hooks/accent-context'
-import {
   type ChartPalette,
-  useChartPalette,
-} from '@/shared/hooks/chart-palette-context'
+  useAppearance,
+} from '@/shared/hooks/appearance-context'
 
 const themeOptions = [
   { value: 'light', label: 'ライト', icon: Sun },
@@ -72,8 +68,8 @@ function AppearancePanel({
   const titleId = `appearance-${title}`
 
   return (
-    <section aria-labelledby={titleId} className="rounded-2xl border bg-card p-5 sm:p-6">
-      <div className="grid gap-6 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-8">
+    <section aria-labelledby={titleId} className="rounded-2xl border bg-card p-4 sm:p-5">
+      <div className="grid gap-5 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-8">
         <div className="space-y-2">
           <h2 className="text-xl font-semibold tracking-[-0.03em]" id={titleId}>
             {title}
@@ -87,10 +83,10 @@ function AppearancePanel({
 }
 
 function ThemePicker() {
-  const { setTheme, theme = 'system' } = useTheme()
+  const { setTheme, theme } = useAppearance()
 
   return (
-    <div className="grid gap-3 sm:grid-cols-3">
+    <div className="grid grid-cols-3 gap-2 sm:gap-3">
       {themeOptions.map((option) => {
         const Icon = option.icon
 
@@ -104,11 +100,11 @@ function ThemePicker() {
               type="radio"
               value={option.value}
             />
-            <span className="flex min-h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-border bg-background px-3 py-4 text-center transition-colors hover:bg-muted peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50 peer-checked:border-foreground peer-checked:bg-muted">
-              <Icon aria-hidden="true" className="size-6" />
-              <span className="text-sm font-semibold">{option.label}</span>
+            <span className="flex min-h-20 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-border bg-background px-1.5 py-2 text-center transition-colors hover:bg-muted peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50 peer-checked:border-foreground peer-checked:bg-muted sm:min-h-24 sm:gap-2 sm:px-3 sm:py-3">
+              <Icon aria-hidden="true" className="size-5 sm:size-6" />
+              <span className="text-xs font-semibold leading-4 sm:text-sm sm:leading-5">{option.label}</span>
               {theme === option.value ? (
-                <Check aria-hidden="true" className="absolute right-3 top-3 size-5 text-foreground" />
+                <Check aria-hidden="true" className="absolute right-2 top-2 size-4 text-foreground sm:right-3 sm:top-3 sm:size-5" />
               ) : null}
             </span>
           </label>
@@ -119,10 +115,10 @@ function ThemePicker() {
 }
 
 function AccentColorPicker() {
-  const { accent, setAccent } = useAccent()
+  const { accent, setAccent } = useAppearance()
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+    <div className="grid grid-cols-3 gap-2 sm:gap-3">
         {accentOptions.map((option) => (
           <label key={option.value} className="group relative block">
             <input
@@ -133,24 +129,24 @@ function AccentColorPicker() {
               type="radio"
               value={option.value}
             />
-            <span className="flex min-h-36 cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-border bg-background px-3 py-4 text-center transition-colors hover:bg-muted peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50 peer-checked:border-foreground peer-checked:bg-muted">
+            <span className="flex min-h-24 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-border bg-background px-1.5 py-2 text-center transition-colors hover:bg-muted peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50 peer-checked:border-foreground peer-checked:bg-muted sm:min-h-28 sm:gap-2 sm:px-3 sm:py-3">
               <span
                 aria-hidden="true"
-                className="size-8 shrink-0 rounded-full border border-foreground/15 shadow-sm"
+                className="size-6 shrink-0 rounded-full border border-foreground/15 shadow-sm sm:size-7"
                 style={{
                   backgroundColor: `var(--accent-swatch-${option.value})`,
                 }}
               />
               <span className="min-w-0">
-                <span className="block truncate text-sm font-semibold">{option.label}</span>
-                <span className="mt-1 block text-xs leading-5 text-muted-foreground">
+                <span className="block break-words text-xs font-semibold leading-4 sm:text-sm sm:leading-5">{option.label}</span>
+                <span className="mt-0.5 block break-words text-[0.6875rem] leading-4 text-muted-foreground sm:mt-1 sm:text-xs sm:leading-5">
                   {option.description}
                 </span>
               </span>
               {accent === option.value ? (
                 <Check
                   aria-hidden="true"
-                  className="absolute right-3 top-3 size-5 text-foreground"
+                  className="absolute right-2 top-2 size-4 text-foreground sm:right-3 sm:top-3 sm:size-5"
                 />
               ) : null}
             </span>
@@ -161,10 +157,10 @@ function AccentColorPicker() {
 }
 
 function ChartPalettePicker() {
-  const { chartPalette, setChartPalette } = useChartPalette()
+  const { chartPalette, setChartPalette } = useAppearance()
 
   return (
-    <div className="grid gap-3 sm:grid-cols-3">
+    <div className="grid grid-cols-3 gap-2 sm:gap-3">
         {chartPaletteOptions.map((option) => (
           <label key={option.value} className="group relative block">
             <input
@@ -175,11 +171,11 @@ function ChartPalettePicker() {
               type="radio"
               value={option.value}
             />
-            <span className="flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-2xl border border-border bg-background px-4 py-4 text-center transition-colors hover:bg-muted peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50 peer-checked:border-foreground peer-checked:bg-muted">
-              <span className="flex items-center gap-2" aria-hidden="true">
+            <span className="flex min-h-24 cursor-pointer flex-col items-center justify-center rounded-xl border border-border bg-background px-1.5 py-2 text-center transition-colors hover:bg-muted peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50 peer-checked:border-foreground peer-checked:bg-muted sm:min-h-28 sm:px-3 sm:py-3">
+              <span className="flex flex-nowrap items-center justify-center gap-0.5 sm:gap-1.5" aria-hidden="true">
                 {[1, 2, 3, 4, 5].map((index) => (
                   <span
-                    className="size-5 rounded-full border border-foreground/10 shadow-sm"
+                    className="size-3 rounded-full border border-foreground/10 shadow-sm sm:size-4"
                     key={index}
                     style={{
                       backgroundColor: `var(--chart-palette-swatch-${option.value}-${index})`,
@@ -187,12 +183,12 @@ function ChartPalettePicker() {
                   />
                 ))}
               </span>
-              <span className="mt-4 block truncate text-base font-semibold">{option.label}</span>
-              <span className="mt-1 text-xs leading-5 text-muted-foreground">
+              <span className="mt-2 block break-words text-xs font-semibold leading-4 sm:mt-3 sm:text-sm sm:leading-5">{option.label}</span>
+              <span className="mt-0.5 break-words text-[0.6875rem] leading-4 text-muted-foreground sm:mt-1 sm:text-xs sm:leading-5">
                 {option.description}
               </span>
               {chartPalette === option.value ? (
-                <Check aria-hidden="true" className="absolute right-3 top-3 size-5 text-foreground" />
+                <Check aria-hidden="true" className="absolute right-2 top-2 size-4 text-foreground sm:right-3 sm:top-3 sm:size-5" />
               ) : null}
             </span>
           </label>
@@ -281,7 +277,7 @@ function SettingsDetailPage({
 }) {
   return (
     <div
-      className="motion-route-enter mx-auto w-full max-w-5xl px-5 py-8 md:px-10 md:py-12"
+      className="motion-route-enter mx-auto w-full max-w-5xl px-5 pb-24 pt-8 md:px-10 md:pb-12 md:pt-12"
     >
       <header className="border-b pb-6">
         <Button asChild className="-ml-2 mb-4" type="button" variant="ghost">
@@ -311,7 +307,7 @@ export function SettingsPage() {
   return (
     <section
       aria-labelledby="page-title"
-      className="motion-route-enter mx-auto w-full max-w-3xl px-5 py-8 md:px-10 md:py-12"
+      className="motion-route-enter mx-auto w-full max-w-3xl px-5 pb-24 pt-8 md:px-10 md:pb-12 md:pt-12"
     >
       <header className="flex items-start gap-4 border-b pb-6">
         <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">

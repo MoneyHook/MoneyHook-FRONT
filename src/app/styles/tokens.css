@@ -75,6 +75,16 @@
   --chart-palette-swatch-monochrome-5: color-mix(in oklch, var(--primary) 28%, var(--background));
 
   --radius: 0.75rem;
+
+  --login-card-border: oklch(0.58 0.11 250 / 48%);
+  --login-card-background: oklch(1 0 0 / 92%);
+  --login-shadow: oklch(0.205 0.028 264 / 9%);
+  --login-shadow-accent: oklch(0.58 0.18 250 / 14%);
+  --login-orbit: oklch(0.58 0.18 250 / 20%);
+  --login-orbit-strong: oklch(0.58 0.18 250 / 32%);
+  --login-illustration-surface: oklch(0.95 0.04 250 / 70%);
+  --login-illustration-line: oklch(0.58 0.18 250 / 42%);
+  --google-mark: oklch(0.58 0.18 250);
 }
 
 .dark {
@@ -129,6 +139,16 @@
   --sidebar-accent-foreground: oklch(0.9 0.035 250);
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
+
+  --login-card-border: oklch(0.72 0.12 250 / 55%);
+  --login-card-background: oklch(0.235 0.014 145 / 92%);
+  --login-shadow: oklch(0.08 0.008 145 / 28%);
+  --login-shadow-accent: oklch(0.72 0.12 250 / 18%);
+  --login-orbit: oklch(0.72 0.12 250 / 22%);
+  --login-orbit-strong: oklch(0.72 0.12 250 / 38%);
+  --login-illustration-surface: oklch(0.31 0.055 250 / 70%);
+  --login-illustration-line: oklch(0.72 0.12 250 / 48%);
+  --google-mark: oklch(0.72 0.12 250);
 }
 
 :root[data-chart-palette='colorful'] {
