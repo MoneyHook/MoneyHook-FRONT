@@ -1,9 +1,91 @@
 import { Navigate, useSearchParams } from 'react-router-dom'
+import { BarChart3, CheckCircle2, PieChart, ShieldCheck, TrendingUp } from 'lucide-react'
 
 import { LoginPanel, useAuth } from '@/features/auth'
 import { Brand } from '@/shared/components/brand'
 import { FullScreenLoading } from '@/shared/components/app-state'
 import { getSafeAppRedirect } from '@/shared/lib/safe-redirect'
+
+const benefits = [
+  {
+    icon: ShieldCheck,
+    title: '安全に同期',
+    description: 'Googleアカウントで\nデータをしっかり保護',
+  },
+  {
+    icon: PieChart,
+    title: '家計をひと目で把握',
+    description: '収支や支出をグラフで\n分かりやすく可視化',
+  },
+  {
+    icon: CheckCircle2,
+    title: 'シンプルに管理',
+    description: 'ムダなく続けられる\nシンプルな操作性',
+  },
+] as const
+
+function LoginVisual() {
+  return (
+    <section aria-label="MoneyHooksの特徴" className="login-visual motion-auth-visual">
+      <div className="login-visual-orbit login-visual-orbit-large" />
+      <div className="login-visual-orbit login-visual-orbit-small" />
+      <div className="login-visual-spark login-visual-spark-top" />
+      <div className="login-visual-spark login-visual-spark-bottom" />
+
+      <div className="login-dashboard" aria-hidden="true">
+        <div className="login-dashboard-sidebar">
+          <span />
+          <span />
+          <span />
+          <span />
+        </div>
+        <div className="login-dashboard-main">
+          <div className="login-dashboard-toolbar">
+            <span />
+            <span />
+          </div>
+          <div className="login-chart">
+            <span className="login-chart-line login-chart-line-one" />
+            <span className="login-chart-line login-chart-line-two" />
+            <span className="login-chart-line login-chart-line-three" />
+            <span className="login-chart-line login-chart-line-four" />
+            <span className="login-chart-point login-chart-point-one" />
+            <span className="login-chart-point login-chart-point-two" />
+            <span className="login-chart-point login-chart-point-three" />
+          </div>
+          <div className="login-dashboard-footer">
+            <span />
+            <span />
+            <span />
+          </div>
+        </div>
+      </div>
+
+      <div className="login-summary-card login-summary-card-income" aria-hidden="true">
+        <span>今月の収支</span>
+        <strong>¥128,500</strong>
+        <small><TrendingUp /> 12.5%</small>
+      </div>
+      <div className="login-summary-card login-summary-card-pie" aria-hidden="true">
+        <PieChart />
+      </div>
+      <div className="login-summary-card login-summary-card-bars" aria-hidden="true">
+        <BarChart3 />
+      </div>
+
+      <div className="login-benefits">
+        {benefits.map(({ icon: Icon, title, description }) => (
+          <div className="login-benefit" key={title}>
+            <span className="login-benefit-icon"><Icon aria-hidden="true" /></span>
+            <strong>{title}</strong>
+            <p>{description}</p>
+          </div>
+        ))}
+      </div>
+      <p className="login-data-note"><ShieldCheck aria-hidden="true" />あなたのデータは安全に保護されます</p>
+    </section>
+  )
+}
 
 export function LoginPage() {
   const { status } = useAuth()
@@ -19,22 +101,16 @@ export function LoginPage() {
   }
 
   return (
-    <main className="relative min-h-svh overflow-hidden bg-background">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute right-[8vw] top-1/2 hidden size-[30rem] -translate-y-1/2 rounded-full border border-primary/20 md:block"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute right-[15vw] top-1/2 hidden size-72 -translate-y-1/2 rounded-full border border-primary/35 md:block"
-      />
-
+    <main className="login-page relative min-h-svh overflow-hidden bg-background">
       <header className="absolute inset-x-0 top-0 z-10 px-6 py-6 md:px-10 md:py-8">
         <Brand />
       </header>
 
-      <div className="relative z-10 mx-auto flex min-h-svh w-full max-w-6xl items-center px-6 py-28 md:px-10">
-        <LoginPanel />
+      <div className="relative z-10 mx-auto grid min-h-svh w-full max-w-7xl items-center gap-12 px-6 py-28 md:grid-cols-[minmax(0,1.1fr)_minmax(24rem,0.9fr)] md:gap-16 md:px-12 lg:gap-24 lg:px-16">
+        <LoginVisual />
+        <div className="flex justify-center md:justify-end">
+          <LoginPanel />
+        </div>
       </div>
     </main>
   )
