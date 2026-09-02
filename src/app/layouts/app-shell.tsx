@@ -3,6 +3,7 @@ import {
   ChartPie,
   House,
   LogOut,
+  Plus,
   Settings,
   type LucideIcon,
 } from 'lucide-react'
@@ -159,31 +160,53 @@ function DesktopSidebar({ pathname }: { pathname: string }) {
 }
 
 function MobileNavigation({ pathname }: { pathname: string }) {
+  const mobileNavigationItems = [
+    navigationItems[0],
+    navigationItems[1],
+    { label: '追加', path: '/app/transactions/new', icon: Plus },
+    navigationItems[2],
+    navigationItems[3],
+  ]
+
   return (
     <nav
       aria-label="メインナビゲーション"
       className="fixed inset-x-0 bottom-0 z-30 border-t bg-surface-elevated/95 px-2 pb-[max(0.35rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur md:hidden"
     >
-      <ul className="grid grid-cols-4">
-        {navigationItems.map((item) => {
+      <ul className="grid grid-cols-5">
+        {mobileNavigationItems.map((item) => {
           const isActive = isNavigationItemActive(pathname, item.path)
+          const isAddAction = item.path === '/app/transactions/new'
           const Icon = item.icon
           return (
             <li key={item.path}>
               <NavLink
                 aria-current={isActive ? 'page' : undefined}
+                aria-label={isAddAction ? '新しい取引を追加' : undefined}
                 className={({ isPending }) =>
                   [
                     'relative flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg text-[0.7rem] font-medium transition-colors',
-                    isActive
+                    isAddAction ? 'text-primary' : '',
+                    !isAddAction && isActive
                       ? 'text-primary after:absolute after:inset-x-5 after:top-0 after:h-0.5 after:rounded-full after:bg-primary'
-                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                      : !isAddAction
+                        ? 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                        : '',
                     isPending ? 'opacity-60' : '',
                   ].join(' ')
                 }
                 to={item.path}
               >
-                <Icon aria-hidden="true" className="size-5" />
+                <span
+                  className={cn(
+                    'flex items-center justify-center',
+                    isAddAction
+                      ? '-mt-5 size-11 rounded-full bg-primary text-primary-foreground shadow-md ring-4 ring-surface-elevated'
+                      : 'size-5',
+                  )}
+                >
+                  <Icon aria-hidden="true" className={isAddAction ? 'size-6' : 'size-5'} />
+                </span>
                 <span>{item.label}</span>
               </NavLink>
             </li>

@@ -34,6 +34,7 @@ function renderAppShell(initialEntry = '/app/home') {
         <Routes>
           <Route element={<AppShell />}>
             <Route path="/app/home" element={<p>ホームの本文</p>} />
+            <Route path="/app/transactions" element={<p>取引の本文</p>} />
             <Route path="/app/settings" element={<p>設定の本文</p>} />
           </Route>
         </Routes>
@@ -142,6 +143,16 @@ describe('AppShell', () => {
     ).not.toBeInTheDocument()
     expect(
       screen.getByRole('navigation', { name: 'メインナビゲーション' }),
+    ).toBeInTheDocument()
+    const mobileNavigation = screen.getByRole('navigation', {
+      name: 'メインナビゲーション',
+    })
+    expect(mobileNavigation.querySelectorAll('a')).toHaveLength(5)
+    expect(
+      screen.getByRole('link', { name: '新しい取引を追加' }),
+    ).toHaveAttribute('href', '/app/transactions/new')
+    expect(
+      screen.getByRole('link', { name: '新しい取引を追加' }).querySelector('svg'),
     ).toBeInTheDocument()
     expect(getFloatingSidebarTrigger()).toHaveClass('hidden')
   })
