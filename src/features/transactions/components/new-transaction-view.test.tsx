@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -34,7 +34,22 @@ const categories = [
   },
 ]
 
-function registerHandlers({ createStatus = 201, frequentStatus = 200 } = {}) {
+const frequentTransaction = {
+  transaction_name: 'ランチ',
+  category_id: '10',
+  sub_category_id: '11',
+  fixed_flg: false,
+  payment_id: '30',
+  category_name: '食費',
+  sub_category_name: '外食',
+}
+
+function registerHandlers({
+  createStatus = 201,
+  frequentPending = false,
+  frequentStatus = 200,
+  frequentTransactions = [frequentTransaction],
+} = {}) {
   server.use(
     http.get('http://api.test/api/category/getCategoryWithSubCategoryList', () =>
       HttpResponse.json({ category_list: categories }),
@@ -53,23 +68,15 @@ function registerHandlers({ createStatus = 201, frequentStatus = 200 } = {}) {
         ],
       }),
     ),
-    http.get('http://api.test/api/transaction/getFrequentTransactionName', () =>
-      frequentStatus === 200
-        ? HttpResponse.json({
-            transaction_list: [
-              {
-                transaction_name: 'ランチ',
-                category_id: '10',
-                sub_category_id: '11',
-                fixed_flg: false,
-                payment_id: '30',
-                category_name: '食費',
-                sub_category_name: '外食',
-              },
-            ],
-          })
-        : HttpResponse.json({ message: '候補を取得できませんでした' }, { status: frequentStatus }),
-    ),
+    http.get('http://api.test/api/transaction/getFrequentTransactionName', async () => {
+      if (frequentPending) {
+        await new Promise<void>(() => undefined)
+      }
+
+      return frequentStatus === 200
+        ? HttpResponse.json({ transaction_list: frequentTransactions })
+        : HttpResponse.json({ message: '候補を取得できませんでした' }, { status: frequentStatus })
+    }),
     http.post('http://api.test/api/v1/transactions', async ({ request }) => {
       if (createStatus !== 201) {
         return HttpResponse.json({ message: '保存に失敗しました' }, { status: createStatus })
@@ -114,7 +121,7 @@ describe('NewTransactionView', () => {
     registerHandlers()
     renderNewTransaction()
 
-    await screen.findByText('取引候補')
+    await screen.findByText('よく使う項目')
     fireEvent.click(screen.getByRole('button', { name: '保存' }))
 
     expect(await screen.findByText('金額は1〜9,999,999円の整数で入力してください。')).toBeVisible()
@@ -124,7 +131,12 @@ describe('NewTransactionView', () => {
 
   it('applies a transaction candidate and saves the API-compatible payload', async () => {
     let submittedBody: unknown
-    registerHandlers()
+    const candidateTransactions = Array.from({ length: 7 }, (_, index) => (
+      index === 6
+        ? frequentTransaction
+        : { ...frequentTransaction, transaction_name: `候補${index + 1}` }
+    ))
+    registerHandlers({ frequentTransactions: candidateTransactions })
     server.use(
       http.post('http://api.test/api/v1/transactions', async ({ request }) => {
         submittedBody = await request.json()
@@ -133,6 +145,7 @@ describe('NewTransactionView', () => {
     )
     renderNewTransaction()
 
+    fireEvent.click(await screen.findByRole('button', { name: '取引候補をもっと表示' }))
     await screen.findByRole('button', { name: 'ランチを候補から適用' })
     fireEvent.change(screen.getByLabelText('金額'), { target: { value: '1200' } })
     fireEvent.click(screen.getByRole('tab', { name: '収入' }))
@@ -162,6 +175,40 @@ describe('NewTransactionView', () => {
     })
   })
 
+  it('shows six transaction candidates at first and reveals six more at a time', async () => {
+    const candidateTransactions = Array.from({ length: 13 }, (_, index) => ({
+      ...frequentTransaction,
+      transaction_name: `候補${index + 1}`,
+    }))
+    registerHandlers({ frequentTransactions: candidateTransactions })
+    renderNewTransaction()
+
+    const candidates = await screen.findByRole('region', { name: 'よく使う項目' })
+    const getCandidateButtons = () => within(candidates).getAllByRole('button', { name: /候補\d+を候補から適用/ })
+
+    expect(getCandidateButtons()).toHaveLength(6)
+    fireEvent.click(within(candidates).getByRole('button', { name: '取引候補をもっと表示' }))
+    expect(getCandidateButtons()).toHaveLength(12)
+    fireEvent.click(within(candidates).getByRole('button', { name: '取引候補をもっと表示' }))
+    expect(getCandidateButtons()).toHaveLength(13)
+    expect(within(candidates).queryByRole('button', { name: '取引候補をもっと表示' })).not.toBeInTheDocument()
+  })
+
+  it('shows only the category badge and transaction name in a candidate', async () => {
+    registerHandlers({ frequentTransactions: [{ ...frequentTransaction, fixed_flg: true }] })
+    renderNewTransaction()
+
+    const candidates = await screen.findByRole('region', { name: 'よく使う項目' })
+    const candidate = within(candidates).getByRole('button', { name: 'ランチを候補から適用' })
+
+    expect(candidate).toHaveTextContent('ランチ')
+    expect(candidate).not.toHaveTextContent('食費')
+    expect(candidate).not.toHaveTextContent('外食')
+    expect(candidate).not.toHaveTextContent('固定費')
+    expect(candidate.querySelector('img')).toBeNull()
+    expect(candidate.querySelector('svg')).not.toBeNull()
+  })
+
   it('uses semantic colors for the selected transaction sign', async () => {
     registerHandlers()
     renderNewTransaction()
@@ -178,7 +225,8 @@ describe('NewTransactionView', () => {
     expect(saveButton).toHaveAttribute('data-variant', 'default')
     expect(saveButton).toHaveAttribute('data-size', 'lg')
     expect(saveButton).toHaveClass('w-full', 'sm:w-auto')
-    expect(candidateButton).toHaveClass('min-h-16', 'rounded-xl', 'px-3', 'py-2')
+    expect(candidateButton).toHaveClass('rounded-full')
+    expect(candidateButton.querySelector('[data-slot="badge"]')).toHaveClass('h-9', 'px-3', 'text-sm')
     expect(candidateButton.compareDocumentPosition(saveButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     expect(dateRow).toHaveClass('min-h-16', 'w-full', 'border-b')
     expect(dateRow).toContainHTML('<svg')
@@ -218,7 +266,7 @@ describe('NewTransactionView', () => {
     renderNewTransaction()
 
     await screen.findByLabelText('金額')
-    expect(screen.queryByText('取引候補')).not.toBeInTheDocument()
+    expect(screen.queryByText('よく使う項目')).not.toBeInTheDocument()
     fireEvent.change(screen.getByLabelText('金額'), { target: { value: '800' } })
     fireEvent.change(screen.getByLabelText('取引名'), { target: { value: '朝食' } })
     fireEvent.click(screen.getByRole('button', { name: /カテゴリ.*選択してください.*サブカテゴリを選択/ }))
@@ -229,6 +277,14 @@ describe('NewTransactionView', () => {
     await waitFor(() => expect(submittedBody).toEqual(expect.objectContaining({
       transaction: expect.objectContaining({ transaction_name: '朝食', category_id: '10', sub_category_id: '11' }),
     })))
+  })
+
+  it('shows the add form while transaction candidates are still loading', async () => {
+    registerHandlers({ frequentPending: true })
+    renderNewTransaction()
+
+    expect(await screen.findByLabelText('金額')).toBeVisible()
+    expect(screen.queryByText('よく使う項目')).not.toBeInTheDocument()
   })
 
   it('shows the resolved payment icon in the selection sheet', async () => {
