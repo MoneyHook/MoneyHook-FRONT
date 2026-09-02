@@ -117,6 +117,109 @@
   }
 }
 
+@keyframes auth-visual-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-1.25rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes auth-orbit-float {
+  0%, 100% { transform: translate3d(0, -50%, 0) rotate(0deg); }
+  50% { transform: translate3d(0, calc(-50% - 0.75rem), 0) rotate(4deg); }
+}
+
+@keyframes auth-spark-pulse {
+  0%, 100% { opacity: 0.45; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+
+.login-card {
+  border: 1px solid var(--login-card-border);
+  border-radius: 1.25rem;
+  background: var(--login-card-background);
+  box-shadow: 0 1.5rem 4rem var(--login-shadow), 0 0.25rem 0.75rem var(--login-shadow-accent);
+  padding: clamp(2rem, 5vw, 3.5rem);
+}
+
+.login-eyebrow {
+  display: inline-flex;
+  align-self: center;
+  margin: 0 auto;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-foreground);
+  padding: 0.4rem 0.85rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.login-title-break { display: inline; }
+
+.login-google-button { border-color: var(--login-card-border); }
+.login-google-button:hover { border-color: var(--primary); box-shadow: 0 0.5rem 1.25rem var(--login-shadow-accent); }
+.login-google-mark { color: var(--google-mark); font-size: 1.35rem; font-weight: 800; line-height: 1; }
+
+.login-trust-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  border-radius: 1rem;
+  background: var(--muted);
+  padding: 0.85rem 0.5rem;
+  color: var(--muted-foreground);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-align: center;
+}
+.login-trust-row span { display: grid; justify-items: center; gap: 0.35rem; }
+.login-trust-row svg { color: var(--primary); width: 1rem; }
+
+.login-visual { position: relative; min-height: 35rem; padding: 2rem 0 4.5rem; animation: auth-visual-enter 700ms 100ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.login-visual-orbit { position: absolute; left: 50%; top: 45%; border: 1px solid var(--login-orbit); border-radius: 50%; transform: translateY(-50%); animation: auth-orbit-float 7s ease-in-out infinite; }
+.login-visual-orbit-large { width: min(34rem, 95%); aspect-ratio: 1; }
+.login-visual-orbit-small { width: min(25rem, 70%); aspect-ratio: 1; border-color: var(--login-orbit-strong); animation-delay: -2s; animation-duration: 9s; }
+.login-visual-spark { position: absolute; width: 1.25rem; aspect-ratio: 1; border-radius: 50%; background: var(--primary); opacity: 0.5; animation: auth-spark-pulse 3s ease-in-out infinite; }
+.login-visual-spark-top { right: 8%; top: 18%; }
+.login-visual-spark-bottom { bottom: 31%; left: 8%; width: 0.85rem; animation-delay: -1.4s; }
+.login-dashboard { position: absolute; left: 7%; top: 28%; display: flex; width: 72%; min-height: 15rem; overflow: hidden; border: 1px solid var(--login-orbit); border-radius: 1rem; background: var(--login-card-background); box-shadow: 0 1.25rem 2.5rem var(--login-shadow-accent); transform: rotate(-3deg); }
+.login-dashboard-sidebar { display: grid; align-content: start; gap: 0.9rem; width: 22%; padding: 1.5rem 0.75rem; background: var(--login-illustration-surface); }
+.login-dashboard-sidebar span, .login-dashboard-toolbar span, .login-dashboard-footer span { display: block; height: 0.45rem; border-radius: 999px; background: var(--login-illustration-line); }
+.login-dashboard-sidebar span:nth-child(1) { width: 85%; height: 0.7rem; }
+.login-dashboard-sidebar span:nth-child(2) { width: 68%; }
+.login-dashboard-sidebar span:nth-child(3) { width: 74%; }
+.login-dashboard-sidebar span:nth-child(4) { width: 50%; }
+.login-dashboard-main { flex: 1; padding: 1.5rem; }
+.login-dashboard-toolbar { display: flex; justify-content: space-between; gap: 1rem; }
+.login-dashboard-toolbar span:first-child { width: 40%; height: 0.7rem; }
+.login-dashboard-toolbar span:last-child { width: 18%; }
+.login-chart { position: relative; height: 8rem; margin-top: 1.5rem; border-bottom: 1px solid var(--login-orbit); }
+.login-chart-line { position: absolute; height: 0.3rem; border-radius: 999px; background: var(--primary); transform-origin: left center; }
+.login-chart-line-one { left: 6%; top: 68%; width: 24%; transform: rotate(-20deg); }
+.login-chart-line-two { left: 29%; top: 60%; width: 20%; transform: rotate(17deg); }
+.login-chart-line-three { left: 48%; top: 66%; width: 23%; transform: rotate(-25deg); }
+.login-chart-line-four { left: 69%; top: 43%; width: 20%; transform: rotate(-8deg); }
+.login-chart-point { position: absolute; width: 0.65rem; aspect-ratio: 1; border: 3px solid var(--primary); border-radius: 50%; background: var(--background); }
+.login-chart-point-one { left: 27%; top: 54%; }.login-chart-point-two { left: 47%; top: 61%; }.login-chart-point-three { left: 68%; top: 37%; }
+.login-dashboard-footer { display: flex; gap: 0.75rem; margin-top: 1.25rem; }.login-dashboard-footer span { flex: 1; height: 2.5rem; border-radius: 0.5rem; background: var(--login-illustration-surface); }
+.login-summary-card { position: absolute; display: grid; border: 1px solid var(--login-orbit); border-radius: 0.9rem; background: var(--background); box-shadow: 0 1rem 2rem var(--login-shadow); }
+.login-summary-card-income { right: 3%; top: 37%; gap: 0.3rem; min-width: 8rem; padding: 0.9rem; transform: rotate(3deg); }.login-summary-card-income span { color: var(--muted-foreground); font-size: 0.6rem; }.login-summary-card-income strong { font-size: 1.1rem; }.login-summary-card-income small { display: inline-flex; align-items: center; gap: 0.25rem; color: var(--success); font-size: 0.6rem; }.login-summary-card-income svg { width: 0.75rem; }
+.login-summary-card-pie { left: 5%; top: 58%; place-items: center; width: 5.5rem; aspect-ratio: 1; color: var(--primary); transform: rotate(-7deg); }.login-summary-card-pie svg { width: 2.25rem; }
+.login-summary-card-bars { right: 10%; top: 67%; place-items: center; width: 4.5rem; aspect-ratio: 1; color: var(--primary); transform: rotate(5deg); }.login-summary-card-bars svg { width: 2rem; }
+.login-benefits { position: absolute; inset: auto 0 2.25rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; text-align: center; }.login-benefit { display: grid; justify-items: center; gap: 0.4rem; }.login-benefit-icon { display: grid; place-items: center; width: 2.5rem; aspect-ratio: 1; border-radius: 0.8rem; background: var(--accent); color: var(--primary); }.login-benefit-icon svg { width: 1.15rem; }.login-benefit strong { font-size: 0.75rem; }.login-benefit p { margin: 0; white-space: pre-line; color: var(--muted-foreground); font-size: 0.65rem; line-height: 1.55; }
+.login-data-note { position: absolute; inset: auto 0 0; display: flex; align-items: center; justify-content: center; gap: 0.4rem; margin: 0; color: var(--muted-foreground); font-size: 0.7rem; }.login-data-note svg { width: 1rem; color: var(--primary); }
+
+@media (max-width: 48.0625rem) {
+  .login-visual { display: none; }
+  .login-card { padding: 2rem 1.25rem; }
+  .login-title-break { display: block; }
+}
+
 @keyframes route-enter {
   from {
     opacity: 0;
