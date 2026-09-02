@@ -53,6 +53,7 @@ import { getCategoryPresentation } from '@/shared/lib/category-presentation'
 import { getPaymentIconSource } from '@/shared/lib/payment-icon'
 import { cn } from '@/shared/lib/utils'
 
+import { TransactionCandidates } from './transaction-candidates'
 import {
   createNewTransactionValues,
   validateNewTransaction,
@@ -630,41 +631,7 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
           </button>
         </FormSection>
 
-        {frequentTransactions.length ? (
-          <section aria-labelledby="transaction-candidates-title" className="border-y py-4 sm:py-5">
-            <div className="flex items-baseline justify-between gap-3">
-              <div>
-                <h2 className="text-base font-semibold tracking-[-0.03em]" id="transaction-candidates-title">取引候補</h2>
-                <p className="mt-0.5 text-xs text-muted-foreground">よく登録する内容をまとめて入力できます。</p>
-              </div>
-            </div>
-            <div className="mt-3 grid gap-1.5 sm:grid-cols-2">
-              {frequentTransactions.map((transaction) => {
-                const candidatePayment = payments.find((payment) => payment.payment_id === transaction.payment_id)
-
-                return (
-                <button
-                  aria-label={`${transaction.transaction_name}を候補から適用`}
-                  className="group flex min-h-16 w-full items-center gap-2.5 rounded-xl border bg-card px-3 py-2 text-left outline-none transition-[background-color,border-color,transform] hover:-translate-y-px hover:border-foreground/15 hover:bg-muted/45 focus-visible:ring-3 focus-visible:ring-ring/50"
-                  key={`${transaction.transaction_name}-${transaction.category_id}-${transaction.sub_category_id}`}
-                  onClick={() => selectFrequentTransaction(transaction)}
-                  type="button"
-                >
-                  <CategoryIcon iconSizeClassName="size-4" name={transaction.category_name} sizeClassName="size-9" />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold">{transaction.transaction_name}</span>
-                    <span className="mt-0.5 flex items-center gap-1 truncate text-xs text-muted-foreground">
-                      <span className="truncate">{transaction.category_name} · {transaction.sub_category_name}</span>
-                      {transaction.fixed_flg ? <span className="shrink-0 text-xs">固定費</span> : null}
-                    </span>
-                  </span>
-                  {candidatePayment ? <PaymentIcon paymentName={candidatePayment.payment_name} paymentTypeName={paymentTypeNames.get(candidatePayment.payment_type_id)} sizeClassName="size-7" /> : null}
-                </button>
-                )
-              })}
-            </div>
-          </section>
-        ) : null}
+        {frequentTransactions.length ? <TransactionCandidates onSelect={selectFrequentTransaction} transactions={frequentTransactions} /> : null}
         <div className="flex justify-end">
           <Button className="w-full sm:w-auto" disabled={isSaving || isDeleting} size="lg" type="submit">
             {isSaving ? <LoaderCircle aria-hidden="true" className="animate-spin" /> : null}
