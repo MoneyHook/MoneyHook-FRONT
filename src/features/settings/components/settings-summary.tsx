@@ -5,15 +5,13 @@ import {
   Repeat2,
   WalletCards,
 } from 'lucide-react'
-import { useTheme } from 'next-themes'
 import { Link } from 'react-router-dom'
 
 import { useAuth } from '@/features/auth'
 import { useGetV1Budget } from '@/shared/api/generated/budget/budget'
 import { useGetDeletedFixed, useGetFixed } from '@/shared/api/generated/fixed/fixed'
 import { useGetPaymentResources } from '@/shared/api/generated/payment/payment'
-import { useAccent } from '@/shared/hooks/accent-context'
-import { useChartPalette } from '@/shared/hooks/chart-palette-context'
+import { useAppearance } from '@/shared/hooks/appearance-context'
 
 import { getCurrentMonthStart } from '../model/budget-settings'
 
@@ -74,9 +72,7 @@ function SummaryCard({ description, icon: Icon, title, to, value }: SummaryCardP
 
 export function SettingsSummary() {
   const { user } = useAuth()
-  const { theme } = useTheme()
-  const { accent } = useAccent()
-  const { chartPalette } = useChartPalette()
+  const { theme, accent, chartPalette } = useAppearance()
   const budgetQuery = useGetV1Budget({ month: getCurrentMonthStart() })
   const paymentsQuery = useGetPaymentResources()
   const activeRulesQuery = useGetFixed()
@@ -147,7 +143,7 @@ export function SettingsSummary() {
         icon={Monitor}
         title="表示"
         to="/app/settings/appearance"
-        value={themeLabels[theme === 'dark' || theme === 'light' ? theme : 'system']}
+        value={themeLabels[theme]}
       />
     </div>
   )

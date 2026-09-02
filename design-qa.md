@@ -134,6 +134,8 @@ final result: passed
 
 ---
 
+---
+
 # Analysis Fixed Costs Design QA
 
 ## Evidence
@@ -235,5 +237,86 @@ fixed result: passed
 ## Follow-up polish
 
 - P3: a future product-wide payment metadata contract could provide persistent brand-safe icons and colors instead of rank-based presentation.
+
+final result: passed
+
+---
+
+---
+
+# Login screen Design QA
+
+## Evidence
+
+- Source visual truth: `/tmp/codex-remote-attachments/01a05d08-9523-7002-9c6a-5b7321cf0542/375F854A-9BBE-49CF-AD4D-133174E11D4A/1-写真1.jpg`
+- Implementation screenshots: `/private/tmp/moneyhooks-login-desktop.png`, `/private/tmp/moneyhooks-login-mobile.png`
+- Source dimensions: 1280 × 720 px
+- Implementation dimensions: 1280 × 720 px desktop, 390 × 844 px mobile
+- CSS viewport / density: 1280 × 720 and 390 × 844 CSS px, browser default density
+- State: unauthenticated login screen, initial entrance animation settled
+
+## Comparison
+
+- Full-view: passed. The desktop layout follows the reference's brand header, left-side financial visual, right-side login card, pale surfaces, and wide whitespace. The mobile layout collapses to a focused login card with the supporting visual hidden.
+- Focused regions: passed. Heading hierarchy, Google CTA, security consent copy, trust row, feature icons, and floating summary elements are aligned and readable.
+- Fonts and typography: passed. Existing Geist Variable stack is retained; heading weight, tracking, and Japanese line wrapping were checked at both viewports.
+- Spacing and layout rhythm: passed. Card padding, rounded corners, feature spacing, and mobile viewport fit were checked.
+- Colors and visual tokens: passed. Existing semantic tokens remain the source of truth; login-specific derived colors are defined in `tokens.css`.
+- Image quality and asset fidelity: passed. Existing MoneyHooks logo asset is retained and supporting visuals use the project's icon library and responsive UI composition.
+- Copy and content: passed. Existing Japanese login copy and Google-only authentication behavior are preserved.
+
+## Primary interactions tested
+
+- Google login button remains present and accessible.
+- Existing authentication tests confirm the Google sign-in handler is invoked once.
+- Error and busy states remain covered by the existing auth component behavior.
+- No browser console errors were observed during the visual check.
+
+## Comparison history
+
+- Initial implementation: mobile heading wrapped as `ログイ / ン` at 390 px.
+- Fix: forced the mobile title break to `MoneyHooksへ / ログイン`.
+- Post-fix evidence: `/private/tmp/moneyhooks-login-mobile.png`; no P0/P1/P2 findings remain.
+
+final result: passed
+
+---
+
+# Transaction candidate Badge Design QA
+
+## Evidence
+
+- Source visual truth: `/var/folders/dp/_xcq39fs11l2lsjpd4jd4qvr0000gn/T/codex-clipboard-2d348dc8-03f3-42d8-8bcb-df7a6c3d7acc.png`
+- Implementation screenshots: `/private/tmp/moneyhooks-transaction-candidates-final-mobile.png`, `/private/tmp/moneyhooks-transaction-candidates-final-viewport.png`, `/private/tmp/moneyhooks-transaction-candidates-final-expanded-mobile.png`
+- Source dimensions: 1672 × 941 px composite reference containing normal and expanded mobile states.
+- Implementation dimensions: 390 × 1052 px full-page normal, 390 × 844 px focused viewport, and 390 × 1140 px full-page expanded state.
+- State: authenticated local development user, add transaction screen, light theme, initial six candidates and expanded twelve candidates.
+- Browser: Codex in-app browser at `http://localhost:3000/app/transactions/new`.
+
+## Comparison
+
+- The implementation uses a rounded bordered section, compact wrapping pill badges, category icon + transaction name, and a dashed circular expand affordance.
+- The surrounding form remains the existing product screen; source-only camera/memo/category-search/bottom-navigation details were outside this requested component scope.
+- Normal state shows six badges. “取引候補をもっと表示” adds six candidates per click, and clicking a badge preserves the existing form application behavior.
+
+## Required fidelity surfaces
+
+- Fonts and typography: existing Geist/Japanese stack and compact label hierarchy are retained; the Badge uses `h-9`, `text-sm`, and `px-3` for the requested large size.
+- Spacing and layout rhythm: badges wrap with consistent `gap-2`; the section uses the existing rounded surface and a compact `size-11` expand control.
+- Colors and tokens: outline, category icon colors, focus, and expand control use existing semantic tokens; no raw colors were added.
+- Image quality and asset fidelity: no raster assets were needed; existing Lucide category icons are used.
+- Copy and content: heading is `よく使う項目`; each candidate exposes only the category icon and transaction name.
+
+## Interaction and browser checks
+
+- Initial candidate count: 6; after one action: 12.
+- Clicking `家賃を候補から適用` populated the transaction name field.
+- Browser console errors: none.
+- Component and full test suites cover loading, error, empty, visibility, and application states.
+
+## Findings
+
+- No actionable P0, P1, or P2 findings remain.
+- Accepted deviation: the source expanded reference uses a bottom sheet, while the established product requirement uses six-at-a-time inline expansion. The visual language and affordance are matched without changing that behavior.
 
 final result: passed

@@ -4,8 +4,7 @@ import { http, HttpResponse } from 'msw'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { AccentProvider } from '@/shared/hooks/accent-provider'
-import { ChartPaletteProvider } from '@/shared/hooks/chart-palette-provider'
+import { AppearanceProvider } from '@/shared/hooks/appearance-provider'
 import { server } from '@/test/msw/server'
 
 const authState = vi.hoisted(() => ({
@@ -13,7 +12,9 @@ const authState = vi.hoisted(() => ({
     displayName: 'MoneyHooksユーザー',
     email: 'user@example.com',
     photoURL: null,
+    uid: 'user-1',
   },
+  status: 'authenticated',
   signOut: vi.fn(),
 }))
 
@@ -53,6 +54,23 @@ import {
 type BudgetRequest = {
   monthly_budget_amount: number
   effective_from: string
+}
+
+function registerAppearanceSettingsHandlers() {
+  let settings = {
+    accent_color: 'blue',
+    chart_palette: 'default',
+    theme_mode: 'system',
+  }
+
+  server.use(
+    http.get('http://api.test/api/v1/settings', () => HttpResponse.json(settings)),
+    http.patch('http://api.test/api/v1/settings', async ({ request }) => {
+      const patch = (await request.json()) as Partial<typeof settings>
+      settings = { ...settings, ...patch }
+      return HttpResponse.json(settings)
+    }),
+  )
 }
 
 type PaymentRequest = {
@@ -362,11 +380,9 @@ function renderSettingsPage(page: SettingsTestPage = 'summary') {
   return render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter>
-        <AccentProvider>
-          <ChartPaletteProvider>
+        <AppearanceProvider>
             <Page />
-          </ChartPaletteProvider>
-        </AccentProvider>
+        </AppearanceProvider>
       </MemoryRouter>
     </QueryClientProvider>,
   )
@@ -384,6 +400,7 @@ describe('SettingsPage', () => {
     toastError.mockReset()
     toastSuccess.mockReset()
     registerBudgetHandlers()
+    registerAppearanceSettingsHandlers()
     registerPaymentHandlers()
     registerRecurringTransactionHandlers()
   })
@@ -455,7 +472,6 @@ describe('SettingsPage', () => {
     fireEvent.click(screen.getByRole('radio', { name: /^ブルー/ }))
 
     await waitFor(() => {
-      expect(localStorage.getItem('moneyhooks-accent')).toBe('blue')
       expect(document.documentElement.dataset.accent).toBe('blue')
     })
   })
@@ -470,7 +486,6 @@ describe('SettingsPage', () => {
     fireEvent.click(screen.getByRole('radio', { name: /^カラフル/ }))
 
     await waitFor(() => {
-      expect(localStorage.getItem('moneyhooks-chart-palette')).toBe('colorful')
       expect(document.documentElement.dataset.chartPalette).toBe('colorful')
     })
   })

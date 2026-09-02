@@ -664,7 +664,7 @@ export function TransactionsView() {
 
       <Button
         aria-label="新しい取引を追加"
-        className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-30 size-14 rounded-full shadow-lg md:bottom-6 md:right-8"
+        className="fixed bottom-6 right-8 z-30 hidden size-14 rounded-full shadow-lg md:inline-flex"
         onClick={() => navigate('/app/transactions/new')}
         size="icon-lg"
         title="新しい取引を追加"
