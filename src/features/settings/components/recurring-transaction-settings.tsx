@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/components/ui/dialog'
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/shared/components/ui/empty'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 
 import { useRecurringTransactionSettings } from '../api/use-recurring-transaction-settings'
@@ -60,6 +61,7 @@ export function RecurringTransactionSettings({ showHeader = true }: { showHeader
   const hasError = settings.activeRulesQuery.isError || settings.pausedRulesQuery.isError || settings.categoriesQuery.isError || settings.paymentsQuery.isError
   const isSaving = settings.addMutation.isPending || settings.editMutation.isPending
   const error = settings.activeRulesQuery.error ?? settings.pausedRulesQuery.error ?? settings.categoriesQuery.error ?? settings.paymentsQuery.error
+  const hasRules = activeRules.length > 0 || pausedRules.length > 0
 
   const saveRule = async (values: RecurringTransactionFormValues) => {
     try {
@@ -108,10 +110,19 @@ export function RecurringTransactionSettings({ showHeader = true }: { showHeader
     <SettingsSection action={<Button disabled={isLoading || hasError} onClick={() => setEditor({ include: true, mode: 'add', rule: null })} size="lg" type="button" variant="outline"><Plus aria-hidden="true" />自動入力を追加</Button>} description="指定日に毎月の収入・支出を自動登録します。保存済みの取引履歴は変更しません。" icon={Repeat2} showHeader={showHeader} title="収支の自動入力" titleId="recurring-transaction-settings-title">
       {isLoading ? <div aria-label="自動入力を読み込んでいます" className="space-y-3" role="status"><Skeleton className="h-16 w-full" /><Skeleton className="h-16 w-full" /></div> : null}
       {hasError ? <div className="space-y-4"><Alert variant="destructive"><AlertCircle aria-hidden="true" /><AlertTitle>自動入力を読み込めません</AlertTitle><AlertDescription>{errorMessage(error, '自動入力の設定を取得できませんでした。')}</AlertDescription></Alert><Button onClick={retry} size="lg" type="button" variant="outline">もう一度試す</Button></div> : null}
-      {!isLoading && !hasError ? <div className="space-y-6">
+      {!isLoading && !hasError ? hasRules ? <div className="space-y-6">
         <div className="space-y-3"><div><h3 className="font-medium">有効な自動入力</h3><p className="mt-1 text-sm text-muted-foreground">指定日の日次処理で取引を作成します。</p></div><RecurringTransactionRuleList emptyMessage="有効な自動入力はありません。" isPaused={false} onDelete={setRuleToDelete} onEdit={(rule) => setEditor({ include: true, mode: 'edit', rule })} onSetIncluded={setIncluded} payments={payments} rules={activeRules} /></div>
-        <div className="space-y-3 border-t pt-5"><div><h3 className="font-medium">停止中</h3><p className="mt-1 text-sm text-muted-foreground">再開するまで新しい取引は自動作成されません。</p></div><RecurringTransactionRuleList emptyMessage="停止中の自動入力はありません。" isPaused onDelete={setRuleToDelete} onEdit={(rule) => setEditor({ include: false, mode: 'edit', rule })} onSetIncluded={setIncluded} payments={payments} rules={pausedRules} /></div>
-      </div> : null}
+        {pausedRules.length > 0 ? <div className="space-y-3 border-t pt-5"><div><h3 className="font-medium">停止中</h3><p className="mt-1 text-sm text-muted-foreground">再開するまで新しい取引は自動作成されません。</p></div><RecurringTransactionRuleList emptyMessage="停止中の自動入力はありません。" isPaused onDelete={setRuleToDelete} onEdit={(rule) => setEditor({ include: false, mode: 'edit', rule })} onSetIncluded={setIncluded} payments={payments} rules={pausedRules} /></div> : null}
+      </div> : (
+        <Empty className="min-h-56">
+          <EmptyHeader>
+            <EmptyMedia variant="icon"><Repeat2 aria-hidden="true" /></EmptyMedia>
+            <EmptyTitle>有効な自動入力はありません。</EmptyTitle>
+            <EmptyDescription>毎月の収入・支出を指定日に自動登録できます。</EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>「自動入力を追加」から設定を始められます。</EmptyContent>
+        </Empty>
+      ) : null}
       <Dialog onOpenChange={(open) => !open && !isSaving && setEditor(null)} open={editor !== null}>
         {editor ? (
           <DialogContent className="max-w-lg">

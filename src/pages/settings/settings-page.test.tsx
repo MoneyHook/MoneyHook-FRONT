@@ -674,6 +674,26 @@ describe('SettingsPage', () => {
     expect(screen.getByRole('button', { name: 'ジムを再開' })).toBeEnabled()
   })
 
+  it('hides the paused section when there are no paused recurring transactions', async () => {
+    registerRecurringTransactionHandlers({ initialPaused: [] })
+    renderSettingsPage('recurring')
+
+    await screen.findByText('家賃')
+
+    expect(screen.queryByText('停止中')).not.toBeInTheDocument()
+  })
+
+  it('shows the shadcn empty state when there are no recurring transactions', async () => {
+    registerRecurringTransactionHandlers({ initialActive: [], initialPaused: [] })
+    renderSettingsPage('recurring')
+
+    const emptyTitle = await screen.findByText('有効な自動入力はありません。')
+
+    expect(emptyTitle.closest('[data-slot="empty"]')).toBeInTheDocument()
+    expect(screen.getByText('毎月の収入・支出を指定日に自動登録できます。')).toBeVisible()
+    expect(screen.queryByText('停止中')).not.toBeInTheDocument()
+  })
+
   it('creates a recurring transaction after validating and selecting its category', async () => {
     const { addRequests } = registerRecurringTransactionHandlers({ initialActive: [], initialPaused: [] })
     renderSettingsPage('recurring')

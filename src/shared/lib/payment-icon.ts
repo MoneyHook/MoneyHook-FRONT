@@ -4,6 +4,11 @@ type PaymentIconInput = {
 }
 
 type PaymentKind = 'bank' | 'card' | 'cash' | 'qr' | 'transfer'
+type BrandedPaymentKind = Exclude<PaymentKind, 'cash' | 'transfer'>
+type BrandedIconRule = {
+  aliases: string[]
+  fileName: string
+}
 
 const iconPath = (fileName: string) => `/payment-icons/${fileName}.svg`
 
@@ -15,21 +20,46 @@ function normalize(value: string) {
     .replace(/[\s\u3000・_-]/g, '')
 }
 
+function normalizePaymentName(value: string, kind: BrandedPaymentKind) {
+  const normalized = normalize(value)
+  return kind === 'bank' ? normalized.replace(/銀行|bank/g, '') : normalized
+}
+
 function getPaymentKind(paymentTypeName: string | null | undefined): PaymentKind | null {
   switch (normalize(paymentTypeName ?? '')) {
+    case 'bank':
+    case 'bankaccount':
     case '銀行':
     case '銀行口座':
+    case '口座':
       return 'bank'
+    case 'card':
+    case 'credit':
+    case 'creditcard':
     case 'カード':
+    case 'クレカ':
+    case 'クレジット':
     case 'クレジットカード':
+    case 'カード払い':
       return 'card'
+    case 'cash':
     case '現金':
       return 'cash'
+    case 'qr':
+    case 'qrpay':
+    case 'qrcode':
     case 'qrペイ':
+    case 'qrコード':
     case 'qr決済':
     case 'qrコード決済':
+    case 'qrpayment':
+    case 'コード決済':
+    case 'codepayment':
+    case 'スマホ決済':
       return 'qr'
+    case 'banktransfer':
     case '振込':
+    case '振り込み':
     case '銀行振込':
       return 'transfer'
     default:
@@ -37,61 +67,41 @@ function getPaymentKind(paymentTypeName: string | null | undefined): PaymentKind
   }
 }
 
-const brandedIcons: Record<Exclude<PaymentKind, 'cash' | 'transfer'>, Record<string, string>> = {
-  bank: {
-    イオン銀行: 'bank_aeon',
-    aeonbank: 'bank_aeon',
-    'auじぶん銀行': 'bank_jibun',
-    じぶん銀行: 'bank_jibun',
-    みずほ銀行: 'bank_mizuho',
-    三菱ufj銀行: 'bank_mufg',
-    三菱東京ufj銀行: 'bank_mufg',
-    paypay銀行: 'bank_paypay',
-    楽天銀行: 'bank_rakuten',
-    住信sbiネット銀行: 'bank_sbi',
-    三井住友銀行: 'bank_smbc',
-    sonybank: 'bank_sony',
-    ソニー銀行: 'bank_sony',
-    ゆうちょ銀行: 'bank_yucho',
-    ゆうちょ: 'bank_yucho',
-  },
-  card: {
-    イオンカード: 'card_aeon',
-    aeoncard: 'card_aeon',
-    アメックス: 'card_amex',
-    アメリカンエキスプレス: 'card_amex',
-    americanexpress: 'card_amex',
-    amex: 'card_amex',
-    'aupayカード': 'card_au_pay',
-    dカード: 'card_d',
-    dcard: 'card_d',
-    エポスカード: 'card_epos',
-    eposcard: 'card_epos',
-    jcbカード: 'card_jcb',
-    jcb: 'card_jcb',
-    paypayカード: 'card_paypay',
-    paypay: 'card_paypay',
-    楽天カード: 'card_rakuten',
-    セゾンカード: 'card_saison',
-    クレディセゾン: 'card_saison',
-    三井住友カード: 'card_smbc',
-    smbcカード: 'card_smbc',
-  },
-  qr: {
-    aeonpay: 'qr_aeon_pay',
-    イオンペイ: 'qr_aeon_pay',
-    aupay: 'qr_au_pay',
-    d払い: 'qr_dbarai',
-    dbarai: 'qr_dbarai',
-    famipay: 'qr_famipay',
-    'jcoinpay': 'qr_jcoin',
-    jcoin: 'qr_jcoin',
-    メルペイ: 'qr_merpay',
-    merpay: 'qr_merpay',
-    paypay: 'qr_paypay',
-    楽天ペイ: 'qr_rakuten_pay',
-    rakutenpay: 'qr_rakuten_pay',
-  },
+const brandedIcons: Record<BrandedPaymentKind, BrandedIconRule[]> = {
+  bank: [
+    { aliases: ['イオン', 'AEON'], fileName: 'bank_aeon' },
+    { aliases: ['auじぶん', 'じぶん'], fileName: 'bank_jibun' },
+    { aliases: ['みずほ', 'Mizuho'], fileName: 'bank_mizuho' },
+    { aliases: ['三菱東京UFJ', '三菱UFJ', 'Mitsubishi UFJ', 'MUFG'], fileName: 'bank_mufg' },
+    { aliases: ['PayPay', 'ペイペイ'], fileName: 'bank_paypay' },
+    { aliases: ['楽天', 'Rakuten'], fileName: 'bank_rakuten' },
+    { aliases: ['住信SBIネット', 'SBIネット', 'Sumishin SBI Net', '住信SBI', 'SBI'], fileName: 'bank_sbi' },
+    { aliases: ['三井住友', 'Sumitomo Mitsui', 'SMBC', 'Olive', 'オリーブ'], fileName: 'bank_smbc' },
+    { aliases: ['ソニー', 'Sony'], fileName: 'bank_sony' },
+    { aliases: ['ゆうちょ', 'Japan Post'], fileName: 'bank_yucho' },
+  ],
+  card: [
+    { aliases: ['イオンカード', 'AEON Card', 'イオン'], fileName: 'card_aeon' },
+    { aliases: ['アメリカン・エキスプレス', 'American Express', 'アメックス', 'Amex'], fileName: 'card_amex' },
+    { aliases: ['au PAY カード', 'au PAY Card', 'au PAY', 'au WALLET クレジットカード', 'auカード', 'auwallet'], fileName: 'card_au_pay' },
+    { aliases: ['dカード', 'd Card', 'dcard'], fileName: 'card_d' },
+    { aliases: ['エポスカード', 'EPOS Card', 'エポス', 'EPOS'], fileName: 'card_epos' },
+    { aliases: ['JCBカード', 'JCB Card', 'JCB'], fileName: 'card_jcb' },
+    { aliases: ['PayPayカード', 'PayPay Card', 'PayPay', 'ペイペイ'], fileName: 'card_paypay' },
+    { aliases: ['楽天カード', 'Rakuten Card', '楽天'], fileName: 'card_rakuten' },
+    { aliases: ['セゾンカード', 'SAISON CARD', 'クレディセゾン', 'セゾン', 'Saison'], fileName: 'card_saison' },
+    { aliases: ['三井住友カード', 'Sumitomo Mitsui Card', 'SMBCカード', '三井住友', 'SMBC', 'Oliveフレキシブルペイ', 'Olive', 'オリーブ'], fileName: 'card_smbc' },
+  ],
+  qr: [
+    { aliases: ['イオンペイ', 'AEON Pay', 'AEONPAY'], fileName: 'qr_aeon_pay' },
+    { aliases: ['au PAY', 'auペイ', 'aupay', 'エーユーペイ'], fileName: 'qr_au_pay' },
+    { aliases: ['d払い', 'd Barai', 'dbarai'], fileName: 'qr_dbarai' },
+    { aliases: ['ファミペイ', 'FamiPay', 'Fami Pay'], fileName: 'qr_famipay' },
+    { aliases: ['J-Coin Pay', 'J Coin Pay', 'Jコインペイ', 'jcoinpay', 'jcoin'], fileName: 'qr_jcoin' },
+    { aliases: ['メルペイ', 'Merpay', 'Mer Pay'], fileName: 'qr_merpay' },
+    { aliases: ['PayPay', 'Pay Pay', 'ペイペイ'], fileName: 'qr_paypay' },
+    { aliases: ['楽天ペイ', 'Rakuten Pay', '楽天Pay', 'rakutenpay'], fileName: 'qr_rakuten_pay' },
+  ],
 }
 
 const genericIcons: Record<PaymentKind, string> = {
@@ -102,6 +112,15 @@ const genericIcons: Record<PaymentKind, string> = {
   transfer: 'generic_transfer',
 }
 
+function getBrandedIconFileName(kind: BrandedPaymentKind, paymentName: string) {
+  const normalizedPaymentName = normalizePaymentName(paymentName, kind)
+
+  return brandedIcons[kind]
+    .flatMap((rule) => rule.aliases.map((alias) => ({ alias: normalizePaymentName(alias, kind), fileName: rule.fileName })))
+    .sort((left, right) => right.alias.length - left.alias.length)
+    .find(({ alias }) => normalizedPaymentName.includes(alias))?.fileName
+}
+
 /** Returns a decorative payment icon URL, or null when the payment type is unavailable. */
 export function getPaymentIconSource({ paymentName, paymentTypeName }: PaymentIconInput) {
   const kind = getPaymentKind(paymentTypeName)
@@ -109,7 +128,7 @@ export function getPaymentIconSource({ paymentName, paymentTypeName }: PaymentIc
 
   const fileName = kind === 'cash' || kind === 'transfer'
     ? genericIcons[kind]
-    : brandedIcons[kind][normalize(paymentName)] ?? genericIcons[kind]
+    : getBrandedIconFileName(kind, paymentName) ?? genericIcons[kind]
 
   return iconPath(fileName)
 }
