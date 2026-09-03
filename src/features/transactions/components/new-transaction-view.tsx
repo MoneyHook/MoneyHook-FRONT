@@ -53,7 +53,7 @@ import { getCategoryPresentation } from '@/shared/lib/category-presentation'
 import { getPaymentIconSource } from '@/shared/lib/payment-icon'
 import { cn } from '@/shared/lib/utils'
 
-import { TransactionCandidates } from './transaction-candidates'
+import { TransactionCandidateChip, TransactionCandidates } from './transaction-candidates'
 import {
   createNewTransactionValues,
   validateNewTransaction,
@@ -62,7 +62,7 @@ import {
   type NewTransactionSign,
 } from '../model/new-transaction'
 
-type SelectionSheet = 'category' | 'payment' | null
+type SelectionSheet = 'category' | 'payment' | 'candidate' | null
 type CategorySelectionStep = 'category' | 'subcategory'
 
 type TransactionNavigationState = {
@@ -152,7 +152,7 @@ function FormSection({ children, className }: { children: React.ReactNode; class
 }
 
 function FormRow({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={cn('flex min-h-16 items-center gap-3 px-4 sm:px-5', className)}>{children}</div>
+  return <div className={cn('flex min-h-14 items-center gap-3 px-4 sm:min-h-16 sm:px-5', className)}>{children}</div>
 }
 
 function CategoryIcon({ name, iconSizeClassName = 'size-5', sizeClassName = 'size-11' }: { name: string; iconSizeClassName?: string; sizeClassName?: string }) {
@@ -478,8 +478,8 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
         </div>
       </header>
 
-      <form className="mt-8 space-y-6" id="transaction-form" noValidate onSubmit={(event) => void handleSubmit(event)}>
-        <div aria-label="取引区分" className="grid grid-cols-2 rounded-2xl bg-muted p-1.5" role="tablist">
+      <form className="mt-8 space-y-5 sm:space-y-6" id="transaction-form" noValidate onSubmit={(event) => void handleSubmit(event)}>
+        <div aria-label="取引区分" className="grid grid-cols-2 rounded-2xl bg-muted p-1 sm:p-1.5" role="tablist">
           {([
             { sign: -1 as const, label: '支出' },
             { sign: 1 as const, label: '収入' },
@@ -489,7 +489,7 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
               <button
                 aria-selected={isSelected}
                 className={cn(
-                  'min-h-12 rounded-xl px-4 font-semibold outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50',
+                  'min-h-10 rounded-xl px-3 font-semibold outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-12 sm:px-4',
                   isSelected
                     ? item.sign === -1
                       ? 'bg-card text-expense shadow-sm'
@@ -513,7 +513,7 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
               <button
                 aria-invalid={errors.transactionDate ? true : undefined}
                 aria-label="日付"
-                className="flex min-h-16 w-full items-center gap-3 border-b px-4 text-left outline-none transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 sm:px-5"
+                className="flex min-h-14 w-full items-center gap-3 border-b px-4 text-left outline-none transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-16 sm:px-5"
                 type="button"
               >
                 <CalendarDays aria-hidden="true" className="size-6 shrink-0 text-muted-foreground" />
@@ -523,7 +523,7 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
                 </span>
               </button>
             </PopoverTrigger>
-            <PopoverContent align="end" className="w-fit max-w-[calc(100vw-2rem)] p-0" sideOffset={8}>
+            <PopoverContent align="end" className="w-fit max-w-[calc(100vw-2rem)] overflow-hidden p-0" sideOffset={8}>
               <Calendar
                 aria-label="取引日を選択"
                 defaultMonth={selectedDate}
@@ -576,7 +576,7 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
           <button
             aria-describedby={errors.categoryId || errors.subcategoryId ? 'new-transaction-category-error' : undefined}
             aria-invalid={errors.categoryId || errors.subcategoryId ? true : undefined}
-            className="flex min-h-28 w-full items-center gap-3 px-4 text-left outline-none transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 sm:px-5"
+            className="flex min-h-24 w-full items-center gap-3 px-4 text-left outline-none transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-28 sm:px-5"
             onClick={openCategorySelection}
             type="button"
           >
@@ -616,7 +616,7 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
 
         <FormSection>
           <button
-            className="flex min-h-28 w-full items-center gap-3 px-4 text-left outline-none transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 sm:px-5"
+            className="flex min-h-24 w-full items-center gap-3 px-4 text-left outline-none transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-28 sm:px-5"
             onClick={() => setSelectionSheet('payment')}
             type="button"
           >
@@ -631,7 +631,7 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
           </button>
         </FormSection>
 
-        {frequentTransactions.length ? <TransactionCandidates onSelect={selectFrequentTransaction} transactions={frequentTransactions} /> : null}
+        {frequentTransactions.length ? <TransactionCandidates onOpenMore={() => setSelectionSheet('candidate')} onSelect={selectFrequentTransaction} transactions={frequentTransactions} /> : null}
         <div className="flex justify-end">
           <Button className="w-full sm:w-auto" disabled={isSaving || isDeleting} size="lg" type="submit">
             {isSaving ? <LoaderCircle aria-hidden="true" className="animate-spin" /> : null}
@@ -639,6 +639,27 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
           </Button>
         </div>
       </form>
+
+      <Sheet onOpenChange={(open) => !open && setSelectionSheet(null)} open={selectionSheet === 'candidate'}>
+        <SheetContent className="max-h-[85svh] overflow-y-auto rounded-t-3xl p-0" showCloseButton={false} side="bottom">
+          <SheetHeader className="border-b px-5 py-4 text-left">
+            <SheetTitle>おすすめをすべて表示</SheetTitle>
+            <SheetDescription>すべての候補から選択できます</SheetDescription>
+          </SheetHeader>
+          <div className="flex flex-wrap gap-2 p-4 sm:p-5">
+            {frequentTransactions.map((transaction) => (
+              <TransactionCandidateChip
+                key={`${transaction.transaction_name}-${transaction.category_id}-${transaction.sub_category_id}`}
+                onSelect={(selectedTransaction) => {
+                  selectFrequentTransaction(selectedTransaction)
+                  setSelectionSheet(null)
+                }}
+                transaction={transaction}
+              />
+            ))}
+          </div>
+        </SheetContent>
+      </Sheet>
 
       <Sheet onOpenChange={(open) => { if (!open) { setSelectionSheet(null); setCategorySelectionStep('category') } }} open={selectionSheet === 'category'}>
         <SheetContent className="max-h-[85svh] overflow-y-auto rounded-t-3xl p-0" showCloseButton={false} side="bottom">
