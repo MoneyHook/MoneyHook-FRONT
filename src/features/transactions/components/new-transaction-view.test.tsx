@@ -146,10 +146,11 @@ describe('NewTransactionView', () => {
     renderNewTransaction()
 
     fireEvent.click(await screen.findByRole('button', { name: '取引候補をもっと表示' }))
-    await screen.findByRole('button', { name: 'ランチを候補から適用' })
+    const candidateSheet = await screen.findByRole('dialog')
+    fireEvent.click(within(candidateSheet).getByRole('button', { name: 'ランチを候補から適用' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     fireEvent.change(screen.getByLabelText('金額'), { target: { value: '1200' } })
     fireEvent.click(screen.getByRole('tab', { name: '収入' }))
-    fireEvent.click(screen.getByRole('button', { name: 'ランチを候補から適用' }))
     expect(screen.getAllByText('食費').length).toBeGreaterThan(0)
     expect(screen.getByText('外食')).toBeVisible()
 
@@ -175,7 +176,7 @@ describe('NewTransactionView', () => {
     })
   })
 
-  it('shows six transaction candidates at first and reveals six more at a time', async () => {
+  it('opens all transaction candidates in a bottom sheet', async () => {
     const candidateTransactions = Array.from({ length: 13 }, (_, index) => ({
       ...frequentTransaction,
       transaction_name: `候補${index + 1}`,
@@ -184,13 +185,33 @@ describe('NewTransactionView', () => {
     renderNewTransaction()
 
     const candidates = await screen.findByRole('region', { name: 'よく使う項目' })
+    expect(candidates).toHaveClass('py-3', 'sm:py-5')
     const getCandidateButtons = () => within(candidates).getAllByRole('button', { name: /候補\d+を候補から適用/ })
 
     expect(getCandidateButtons()).toHaveLength(6)
     fireEvent.click(within(candidates).getByRole('button', { name: '取引候補をもっと表示' }))
-    expect(getCandidateButtons()).toHaveLength(12)
-    fireEvent.click(within(candidates).getByRole('button', { name: '取引候補をもっと表示' }))
-    expect(getCandidateButtons()).toHaveLength(13)
+    const candidateSheet = await screen.findByRole('dialog')
+
+    expect(within(candidateSheet).getByRole('heading', { name: 'おすすめをすべて表示' })).toBeVisible()
+    expect(within(candidateSheet).getByText('すべての候補から選択できます')).toBeVisible()
+    expect(within(candidateSheet).getAllByRole('button', { name: /候補\d+を候補から適用/ })).toHaveLength(13)
+
+    fireEvent.click(within(candidateSheet).getByRole('button', { name: '候補13を候補から適用' }))
+    await waitFor(() => expect(screen.getByLabelText('取引名')).toHaveValue('候補13'))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('does not show the more button when there are six or fewer transaction candidates', async () => {
+    const candidateTransactions = Array.from({ length: 6 }, (_, index) => ({
+      ...frequentTransaction,
+      transaction_name: `候補${index + 1}`,
+    }))
+    registerHandlers({ frequentTransactions: candidateTransactions })
+    renderNewTransaction()
+
+    const candidates = await screen.findByRole('region', { name: 'よく使う項目' })
+
+    expect(within(candidates).getAllByRole('button', { name: /候補\d+を候補から適用/ })).toHaveLength(6)
     expect(within(candidates).queryByRole('button', { name: '取引候補をもっと表示' })).not.toBeInTheDocument()
   })
 
@@ -215,24 +236,38 @@ describe('NewTransactionView', () => {
 
     const expenseTab = await screen.findByRole('tab', { name: '支出' })
     const incomeTab = screen.getByRole('tab', { name: '収入' })
+    const transactionTypeTabs = screen.getByRole('tablist', { name: '取引区分' })
     const saveButton = screen.getByRole('button', { name: '保存' })
     const candidateButton = screen.getByRole('button', { name: 'ランチを候補から適用' })
     const dateRow = screen.getByRole('button', { name: '日付' })
+    const transactionForm = document.getElementById('transaction-form')
 
     expect(expenseTab).toHaveClass('bg-card', 'text-expense')
+    expect(expenseTab).toHaveClass('min-h-10', 'sm:min-h-12', 'px-3', 'sm:px-4')
+    expect(transactionTypeTabs).toHaveClass('p-1', 'sm:p-1.5')
     fireEvent.click(incomeTab)
     expect(incomeTab).toHaveClass('bg-card', 'text-income')
     expect(saveButton).toHaveAttribute('data-variant', 'default')
     expect(saveButton).toHaveAttribute('data-size', 'lg')
     expect(saveButton).toHaveClass('w-full', 'sm:w-auto')
+    expect(transactionForm).toHaveClass('space-y-5', 'sm:space-y-6')
     expect(candidateButton).toHaveClass('rounded-full')
     expect(candidateButton.querySelector('[data-slot="badge"]')).toHaveClass('h-9', 'px-3', 'text-sm')
     expect(candidateButton.compareDocumentPosition(saveButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    expect(dateRow).toHaveClass('min-h-16', 'w-full', 'border-b')
+    expect(dateRow).toHaveClass('min-h-14', 'sm:min-h-16', 'w-full', 'border-b')
     expect(dateRow).toContainHTML('<svg')
+    const categoryButton = screen.getByRole('button', { name: /カテゴリ.*選択してください.*サブカテゴリを選択/ })
+    expect(categoryButton).toHaveClass('min-h-24', 'sm:min-h-28')
+    const paymentButton = screen.getByRole('button', { name: '支払い方法選択しない' })
+    expect(paymentButton).toHaveClass('min-h-24', 'sm:min-h-28')
 
     fireEvent.click(dateRow)
-    expect(await screen.findByRole('dialog')).toBeVisible()
+    const datePicker = await screen.findByRole('dialog')
+    expect(datePicker).toBeVisible()
+    expect(datePicker).toHaveClass('overflow-hidden')
+    const todayCell = datePicker.querySelector('[data-today="true"]')
+    expect(todayCell).not.toBeNull()
+    expect(todayCell).not.toHaveClass('bg-accent')
     expect(screen.getByRole('button', { name: /2026年8月30日/ })).toBeVisible()
   })
 
