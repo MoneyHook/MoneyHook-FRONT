@@ -62,7 +62,7 @@ function Calendar({
           defaultClassNames.day_button,
         ),
         today: cn(
-          'rounded-md bg-accent text-accent-foreground data-[selected=true]:rounded-none',
+          'rounded-md data-[selected=true]:rounded-none',
           defaultClassNames.today,
         ),
         outside: cn('text-muted-foreground aria-selected:text-muted-foreground', defaultClassNames.outside),
