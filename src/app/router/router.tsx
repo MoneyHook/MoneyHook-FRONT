@@ -8,6 +8,7 @@ import {
   AccountSettingsPage,
   AppearanceSettingsPage,
   BudgetSettingsPage,
+  CsvImportPage,
   PaymentSettingsPage,
   RecurringTransactionSettingsPage,
   SettingsPage,
@@ -50,6 +51,7 @@ export const router = createBrowserRouter([
           { path: 'settings', element: <SettingsPage /> },
           { path: 'settings/account', element: <AccountSettingsPage /> },
           { path: 'settings/budget', element: <BudgetSettingsPage /> },
+          { path: 'settings/import', element: <CsvImportPage /> },
           { path: 'settings/payments', element: <PaymentSettingsPage /> },
           {
             path: 'settings/recurring-transactions',

@@ -52,10 +52,10 @@ export function TransactionCandidates({ transactions, onSelect, onOpenMore }: Tr
   const hasMoreTransactions = transactions.length > CANDIDATES_PREVIEW_COUNT
 
   return (
-    <section aria-labelledby="transaction-candidates-title" className="rounded-2xl border bg-card px-4 py-3 sm:px-5 sm:py-5">
+    <section aria-labelledby="transaction-candidates-title" className="rounded-2xl border bg-card px-4 py-2 sm:px-5 sm:py-5">
       <div className="flex items-baseline justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold tracking-[-0.03em]" id="transaction-candidates-title">よく使う項目</h2>
+          <h2 className="text-sm font-semibold tracking-[-0.03em] sm:text-base" id="transaction-candidates-title">よく使う項目</h2>
         </div>
         {hasMoreTransactions ? (
           <Button
