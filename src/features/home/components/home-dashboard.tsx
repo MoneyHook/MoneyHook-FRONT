@@ -395,7 +395,7 @@ function CategoryRow({ category, index }: { category: CategorySummary; index: nu
       </span>
       <span className="mt-0.5 h-1 overflow-hidden rounded-full bg-muted sm:mt-1 sm:h-1.5">
         <span
-          className="block h-full rounded-full bg-chart-1"
+          className="block h-full rounded-full bg-primary"
           style={{ width: `${category.barRatio}%` }}
         />
       </span>
@@ -529,7 +529,7 @@ function FixedSummaryCard({ data, month }: { data: HomeDashboardViewModel; month
           </p>
           <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted sm:mt-3 sm:h-2">
             <span
-              className="block h-full rounded-full bg-chart-1"
+              className="block h-full rounded-full bg-primary"
               style={{ width: `${Math.min(data.fixedTotalExpenseRatio, 100)}%` }}
             />
           </div>
