@@ -152,7 +152,7 @@ function FormSection({ children, className }: { children: React.ReactNode; class
 }
 
 function FormRow({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={cn('flex min-h-14 items-center gap-3 px-4 sm:min-h-16 sm:px-5', className)}>{children}</div>
+  return <div className={cn('flex min-h-12 items-center gap-3 px-4 sm:min-h-16 sm:px-5', className)}>{children}</div>
 }
 
 function CategoryIcon({ name, iconSizeClassName = 'size-5', sizeClassName = 'size-11' }: { name: string; iconSizeClassName?: string; sizeClassName?: string }) {
@@ -448,7 +448,7 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
           <Button aria-label="前の画面へ戻る" onClick={() => navigate(returnTo)} size="icon-lg" variant="ghost">
             <X aria-hidden="true" className="size-7" />
           </Button>
-          <h1 className="text-xl font-semibold tracking-[-0.04em]" id="transaction-page-title">取引を{isEdit ? '編集' : '追加'}</h1>
+          <h1 className="text-lg font-semibold tracking-[-0.04em] sm:text-xl" id="transaction-page-title">取引を{isEdit ? '編集' : '追加'}</h1>
           <span className="w-9" />
         </header>
         <div className="mt-10">
@@ -463,23 +463,23 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
   }
 
   return (
-    <section aria-labelledby="transaction-page-title" className="motion-route-enter mx-auto w-full max-w-2xl px-4 pb-10 pt-4 sm:px-6 sm:pt-7">
-      <header className="flex items-center justify-between gap-3">
-        <Button aria-label="前の画面へ戻る" onClick={() => navigate(returnTo)} size="icon-lg" variant="ghost">
-          <X aria-hidden="true" className="size-7" />
-        </Button>
-        <h1 className="text-xl font-semibold tracking-[-0.04em] sm:text-2xl" id="transaction-page-title">取引を{isEdit ? '編集' : '追加'}</h1>
-        <div className="flex items-center gap-1">
-          {isEdit ? (
-            <Button aria-label="取引を削除" disabled={isSaving || isDeleting} onClick={() => setDeleteDialogOpen(true)} size="icon-lg" type="button" variant="destructive">
-              <Trash2 aria-hidden="true" />
-            </Button>
-          ) : null}
-        </div>
-      </header>
+    <section aria-labelledby="transaction-page-title" className="motion-route-enter mx-auto flex h-[100dvh] w-full max-w-2xl flex-col overflow-hidden px-4 pt-3 sm:block sm:h-auto sm:overflow-visible sm:px-6 sm:pb-10 sm:pt-7">
+      <div className="shrink-0">
+        <header className="flex items-center justify-between gap-2 sm:gap-3">
+          <Button aria-label="前の画面へ戻る" className="size-8 sm:size-9" onClick={() => navigate(returnTo)} size="icon" variant="ghost">
+            <X aria-hidden="true" className="size-6 sm:size-7" />
+          </Button>
+          <h1 className="text-lg font-semibold tracking-[-0.04em] sm:text-2xl" id="transaction-page-title">取引を{isEdit ? '編集' : '追加'}</h1>
+          <div className="flex items-center gap-1">
+            {isEdit ? (
+              <Button aria-label="取引を削除" className="size-8 sm:size-9" disabled={isSaving || isDeleting} onClick={() => setDeleteDialogOpen(true)} size="icon" type="button" variant="destructive">
+                <Trash2 aria-hidden="true" className="size-5" />
+              </Button>
+            ) : null}
+          </div>
+        </header>
 
-      <form className="mt-8 space-y-5 sm:space-y-6" id="transaction-form" noValidate onSubmit={(event) => void handleSubmit(event)}>
-        <div aria-label="取引区分" className="grid grid-cols-2 rounded-2xl bg-muted p-1 sm:p-1.5" role="tablist">
+        <div aria-label="取引区分" className="mt-3 grid grid-cols-2 rounded-2xl bg-muted p-0.5 sm:mt-8 sm:p-1.5" role="tablist">
           {([
             { sign: -1 as const, label: '支出' },
             { sign: 1 as const, label: '収入' },
@@ -489,7 +489,7 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
               <button
                 aria-selected={isSelected}
                 className={cn(
-                  'min-h-10 rounded-xl px-3 font-semibold outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-12 sm:px-4',
+                  'min-h-10 rounded-xl px-3 text-sm font-semibold outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-12 sm:px-4 sm:text-base',
                   isSelected
                     ? item.sign === -1
                       ? 'bg-card text-expense shadow-sm'
@@ -506,19 +506,22 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
             )
           })}
         </div>
+      </div>
 
+      <form className="mt-3 min-h-0 flex-1 overflow-y-auto pb-24 sm:mt-8 sm:block sm:overflow-visible sm:pb-0" id="transaction-form" noValidate onSubmit={(event) => void handleSubmit(event)}>
+        <div className="space-y-4 sm:space-y-6">
         <FormSection>
           <Popover onOpenChange={setDatePickerOpen} open={datePickerOpen}>
             <PopoverTrigger asChild>
               <button
                 aria-invalid={errors.transactionDate ? true : undefined}
                 aria-label="日付"
-                className="flex min-h-14 w-full items-center gap-3 border-b px-4 text-left outline-none transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-16 sm:px-5"
+                className="flex min-h-12 w-full items-center gap-3 border-b px-4 text-left outline-none transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-16 sm:px-5"
                 type="button"
               >
                 <CalendarDays aria-hidden="true" className="size-6 shrink-0 text-muted-foreground" />
-                <span className="font-medium">日付</span>
-                <span className={cn('ml-auto font-medium', !selectedDate && 'text-muted-foreground')}>
+                <span className="text-sm font-medium sm:text-base">日付</span>
+                <span className={cn('ml-auto text-sm font-medium sm:text-base', !selectedDate && 'text-muted-foreground')}>
                   {selectedDate ? `${selectedDate.getFullYear()}年${selectedDate.getMonth() + 1}月${selectedDate.getDate()}日` : '選択してください'}
                 </span>
               </button>
@@ -543,11 +546,11 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
           </Popover>
           {errors.transactionDate ? <p className="px-4 pb-3 text-sm text-destructive" role="alert">{errors.transactionDate}</p> : null}
           <FormRow className="border-b">
-            <label className="font-medium" htmlFor="new-transaction-amount">金額</label>
-            <span className="ml-auto text-xl font-semibold">¥</span>
+            <label className="text-sm font-medium sm:text-base" htmlFor="new-transaction-amount">金額</label>
+            <span className="ml-auto text-lg font-semibold sm:text-xl">¥</span>
             <Input
               aria-invalid={errors.amount ? true : undefined}
-              className="h-12 max-w-44 border-0 px-0 text-right text-2xl font-semibold tracking-[-0.04em] tabular-nums shadow-none focus-visible:ring-0"
+              className="h-12 max-w-44 border-0 px-0 text-right text-xl font-semibold tracking-[-0.04em] tabular-nums shadow-none focus-visible:ring-0 sm:text-2xl"
               id="new-transaction-amount"
               inputMode="numeric"
               maxLength={7}
@@ -557,8 +560,8 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
             />
           </FormRow>
           {errors.amount ? <p className="px-4 pb-3 text-sm text-destructive" role="alert">{errors.amount}</p> : null}
-          <FormRow>
-            <label className="font-medium" htmlFor="new-transaction-name">取引名</label>
+          <FormRow className="min-h-14 sm:min-h-16">
+            <label className="text-sm font-medium sm:text-base" htmlFor="new-transaction-name">取引名</label>
             <Input
               aria-invalid={errors.transactionName ? true : undefined}
               className="ml-auto h-11 max-w-64 text-right"
@@ -576,18 +579,18 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
           <button
             aria-describedby={errors.categoryId || errors.subcategoryId ? 'new-transaction-category-error' : undefined}
             aria-invalid={errors.categoryId || errors.subcategoryId ? true : undefined}
-            className="flex min-h-24 w-full items-center gap-3 px-4 text-left outline-none transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-28 sm:px-5"
+            className="flex min-h-20 w-full items-center gap-3 px-4 text-left outline-none transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-28 sm:px-5"
             onClick={openCategorySelection}
             type="button"
           >
-            <span className="font-medium">カテゴリ</span>
+            <span className="text-sm font-medium sm:text-base">カテゴリ</span>
             <span className="ml-auto flex min-w-0 items-center gap-3 text-right">
               {selectedCategory ? <CategoryIcon name={selectedCategory.category_name} /> : null}
               <span className="min-w-0">
-                <span className={cn('block truncate text-lg font-medium', !selectedCategory && 'text-muted-foreground')}>
+                <span className={cn('block truncate text-base font-medium sm:text-lg', !selectedCategory && 'text-muted-foreground')}>
                   {selectedCategory?.category_name ?? '選択してください'}
                 </span>
-                <span className={cn('mt-0.5 block truncate text-sm', !selectedSubcategory && 'text-muted-foreground')}>
+                <span className={cn('mt-0.5 block truncate text-xs sm:text-sm', !selectedSubcategory && 'text-muted-foreground')}>
                   {selectedSubcategory?.sub_category_name ?? 'サブカテゴリを選択'}
                 </span>
               </span>
@@ -597,7 +600,7 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
           {errors.categoryId || errors.subcategoryId ? <p className="px-4 pb-3 text-sm text-destructive" id="new-transaction-category-error" role="alert">{errors.categoryId ?? errors.subcategoryId}</p> : null}
           <div className="border-t" />
           <FormRow>
-            <span className="flex items-center gap-2 font-medium">
+            <span className="flex items-center gap-2 text-sm font-medium sm:text-base">
               固定費フラグ
               <Info aria-hidden="true" className="size-4 text-muted-foreground" />
             </span>
@@ -616,14 +619,14 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
 
         <FormSection>
           <button
-            className="flex min-h-24 w-full items-center gap-3 px-4 text-left outline-none transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-28 sm:px-5"
+            className="flex min-h-20 w-full items-center gap-3 px-4 text-left outline-none transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-28 sm:px-5"
             onClick={() => setSelectionSheet('payment')}
             type="button"
           >
-            <span className="font-medium">支払い方法</span>
+            <span className="text-sm font-medium sm:text-base">支払い方法</span>
             <span className="ml-auto flex min-w-0 items-center gap-3">
               {selectedPayment ? <PaymentIcon paymentName={selectedPayment.payment_name} paymentTypeName={paymentTypeNames.get(selectedPayment.payment_type_id)} sizeClassName="size-11" /> : null}
-              <span className={cn('truncate text-lg font-medium', !selectedPayment && 'text-muted-foreground')}>
+              <span className={cn('truncate text-base font-medium sm:text-lg', !selectedPayment && 'text-muted-foreground')}>
                 {paymentsQuery.isError ? '取得できませんでした' : selectedPayment?.payment_name ?? '選択しない'}
               </span>
             </span>
@@ -632,31 +635,34 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
         </FormSection>
 
         {frequentTransactions.length ? <TransactionCandidates onOpenMore={() => setSelectionSheet('candidate')} onSelect={selectFrequentTransaction} transactions={frequentTransactions} /> : null}
-        <div className="flex justify-end">
-          <Button className="w-full sm:w-auto" disabled={isSaving || isDeleting} size="lg" type="submit">
-            {isSaving ? <LoaderCircle aria-hidden="true" className="animate-spin" /> : null}
-            保存
-          </Button>
         </div>
       </form>
+      <div className="fixed right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-30 sm:static sm:mt-6 sm:flex sm:justify-end">
+        <Button className="h-12 rounded-full px-5 shadow-lg sm:h-9 sm:rounded-lg sm:px-2.5 sm:shadow-none" disabled={isSaving || isDeleting} form="transaction-form" size="lg" type="submit">
+          {isSaving ? <LoaderCircle aria-hidden="true" className="animate-spin" /> : null}
+          保存
+        </Button>
+      </div>
 
       <Sheet onOpenChange={(open) => !open && setSelectionSheet(null)} open={selectionSheet === 'candidate'}>
-        <SheetContent className="max-h-[85svh] overflow-y-auto rounded-t-3xl p-0" showCloseButton={false} side="bottom">
-          <SheetHeader className="border-b px-5 py-4 text-left">
+        <SheetContent className="max-h-[85svh] overflow-hidden rounded-t-3xl p-0" showCloseButton={false} side="bottom">
+          <SheetHeader className="shrink-0 border-b px-5 py-4 text-left">
             <SheetTitle>おすすめをすべて表示</SheetTitle>
             <SheetDescription>すべての候補から選択できます</SheetDescription>
           </SheetHeader>
-          <div className="flex flex-wrap gap-2 p-4 sm:p-5">
-            {frequentTransactions.map((transaction) => (
-              <TransactionCandidateChip
-                key={`${transaction.transaction_name}-${transaction.category_id}-${transaction.sub_category_id}`}
-                onSelect={(selectedTransaction) => {
-                  selectFrequentTransaction(selectedTransaction)
-                  setSelectionSheet(null)
-                }}
-                transaction={transaction}
-              />
-            ))}
+          <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">
+            <div className="flex flex-wrap gap-2">
+              {frequentTransactions.map((transaction) => (
+                <TransactionCandidateChip
+                  key={`${transaction.transaction_name}-${transaction.category_id}-${transaction.sub_category_id}`}
+                  onSelect={(selectedTransaction) => {
+                    selectFrequentTransaction(selectedTransaction)
+                    setSelectionSheet(null)
+                  }}
+                  transaction={transaction}
+                />
+              ))}
+            </div>
           </div>
         </SheetContent>
       </Sheet>
