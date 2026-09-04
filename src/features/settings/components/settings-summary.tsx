@@ -1,6 +1,7 @@
 import {
   ChevronRight,
   CircleUserRound,
+  FileUp,
   Monitor,
   Repeat2,
   WalletCards,
@@ -130,6 +131,13 @@ export function SettingsSummary() {
         title="支払い方法"
         to="/app/settings/payments"
         value={paymentValue}
+      />
+      <SummaryCard
+        description="CSV明細を確認して、取引をまとめて登録します。"
+        icon={FileUp}
+        title="データインポート"
+        to="/app/settings/import"
+        value="CSV取引を追加"
       />
       <SummaryCard
         description="指定日に毎月の収入・支出を自動登録します。"

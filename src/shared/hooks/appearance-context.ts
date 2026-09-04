@@ -4,9 +4,25 @@ export const THEME_MODES = ['light', 'dark', 'system'] as const
 export const ACCENT_COLORS = ['blue', 'green', 'violet', 'rose', 'black'] as const
 export const CHART_PALETTES = ['default', 'colorful', 'monochrome'] as const
 
+export const THEME_STORAGE_KEY = 'moneyhooks-theme'
+export const ACCENT_STORAGE_KEY = 'moneyhooks-accent'
+export const CHART_PALETTE_STORAGE_KEY = 'moneyhooks-chart-palette'
+
 export type ThemeMode = (typeof THEME_MODES)[number]
 export type AccentColor = (typeof ACCENT_COLORS)[number]
 export type ChartPalette = (typeof CHART_PALETTES)[number]
+
+export function isThemeMode(value: string | null): value is ThemeMode {
+  return value !== null && THEME_MODES.includes(value as ThemeMode)
+}
+
+export function isAccentColor(value: string | null): value is AccentColor {
+  return value !== null && ACCENT_COLORS.includes(value as AccentColor)
+}
+
+export function isChartPalette(value: string | null): value is ChartPalette {
+  return value !== null && CHART_PALETTES.includes(value as ChartPalette)
+}
 
 export type AppearanceSettings = {
   theme: ThemeMode
