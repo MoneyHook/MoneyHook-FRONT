@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
@@ -10,8 +17,14 @@ import {
 } from '@/shared/api/generated/settings/settings'
 
 import {
+  ACCENT_STORAGE_KEY,
   AppearanceContext,
+  CHART_PALETTE_STORAGE_KEY,
   DEFAULT_APPEARANCE_SETTINGS,
+  isAccentColor,
+  isChartPalette,
+  isThemeMode,
+  THEME_STORAGE_KEY,
   type AccentColor,
   type AppearanceSettings,
   type ChartPalette,
@@ -20,6 +33,49 @@ import {
 
 function resolveTheme(theme: ThemeMode, systemPrefersDark: boolean): 'light' | 'dark' {
   return theme === 'system' ? (systemPrefersDark ? 'dark' : 'light') : theme
+}
+
+function readStoredValue(key: string): string | null {
+  if (typeof window === 'undefined') {
+    return null
+  }
+
+  try {
+    return window.localStorage.getItem(key)
+  } catch {
+    return null
+  }
+}
+
+function readStoredAppearanceSettings(): AppearanceSettings {
+  const storedTheme = readStoredValue(THEME_STORAGE_KEY)
+  const storedAccent = readStoredValue(ACCENT_STORAGE_KEY)
+  const storedChartPalette = readStoredValue(CHART_PALETTE_STORAGE_KEY)
+
+  return {
+    theme: isThemeMode(storedTheme) ? storedTheme : DEFAULT_APPEARANCE_SETTINGS.theme,
+    accent: isAccentColor(storedAccent)
+      ? storedAccent
+      : DEFAULT_APPEARANCE_SETTINGS.accent,
+    chartPalette: isChartPalette(storedChartPalette)
+      ? storedChartPalette
+      : DEFAULT_APPEARANCE_SETTINGS.chartPalette,
+  }
+}
+
+function persistAppearanceSettings(settings: AppearanceSettings): void {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  try {
+    const storage = window.localStorage
+    storage.setItem(THEME_STORAGE_KEY, settings.theme)
+    storage.setItem(ACCENT_STORAGE_KEY, settings.accent)
+    storage.setItem(CHART_PALETTE_STORAGE_KEY, settings.chartPalette)
+  } catch {
+    // Ignore storage failures and keep the setting active for this session.
+  }
 }
 
 export function AppearanceProvider({ children }: { children: ReactNode }) {
@@ -40,7 +96,7 @@ function AppearanceSettingsProvider({
   status: ReturnType<typeof useAuth>['status']
 }) {
   const queryClient = useQueryClient()
-  const [settings, setSettings] = useState<AppearanceSettings>(DEFAULT_APPEARANCE_SETTINGS)
+  const [settings, setSettings] = useState<AppearanceSettings>(readStoredAppearanceSettings)
   const [systemPrefersDark, setSystemPrefersDark] = useState(false)
   const settingsQuery = useGetV1Settings({
     query: { enabled: status === 'authenticated' },
@@ -75,11 +131,15 @@ function AppearanceSettingsProvider({
     })
   }, [settingsQuery.data, status])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     document.documentElement.classList.toggle('dark', resolvedTheme === 'dark')
     document.documentElement.dataset.accent = settings.accent
     document.documentElement.dataset.chartPalette = settings.chartPalette
   }, [resolvedTheme, settings.accent, settings.chartPalette])
+
+  useEffect(() => {
+    persistAppearanceSettings(settings)
+  }, [settings])
 
   const save = useCallback((patch: Partial<AppearanceSettings>) => {
     const previousSettings = settings
