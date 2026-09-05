@@ -19,7 +19,7 @@
 
 ### Branch名
 
-形式は`<type>/<kebab-case-summary>`です。summaryには小文字英数字とhyphenだけを使い、空白、日本語、underscoreを使いません。
+形式は`<type>/<英語kebab-case-summary>`です。typeは用途別の接頭辞、summaryは変更内容を表す英語にします。summaryには小文字英数字とhyphenだけを使い、空白、日本語、underscoreを使いません。
 
 | 種類 | 例 |
 |---|---|
@@ -35,10 +35,10 @@ branch名は変更内容が分かる具体的な語句にします。`feature/up
 
 ## Commit message
 
-[Conventional Commits](https://www.conventionalcommits.org/)に沿って、次の形式を使います。
+[Conventional Commits](https://www.conventionalcommits.org/)のtype分類を使い、次の形式にします。typeとscopeは英語の識別子、メッセージは日本語にします。
 
 ```text
-<type>(<optional-scope>): <具体的な変更内容>
+<type>(<optional-scope>): <日本語による具体的な変更内容>
 ```
 
 scopeは変更対象のfeatureや領域を補足する場合だけ付けます。
@@ -64,12 +64,18 @@ docs: ローカル起動手順とGit運用ルールを整理
 
 - 「更新」「修正」「作業」だけで終わらせず、何をどう変えたか記載する。
 - 1 commitは1つの論理的変更にまとめる。
+- commit messageは日本語で記載する。typeとscopeを除き、英語だけのメッセージにはしない。
 - squash merge後のcommitになるため、PRタイトルも同じ形式にする。
 
 ## Pull Request
 
 - 通常の作業branchは`develop`をbaseにする。
-- PR本文に変更概要、影響範囲、実行した確認、未実行または失敗した確認を記載する。
+- PRタイトルはcommit messageと同じ`<type>(<optional-scope>): <日本語による具体的な変更内容>`形式にする。typeとscopeを除き、タイトルは日本語で記載する。
+- PR本文は日本語で記載し、次の項目を必ず含める。
+  - 変更概要
+  - 影響範囲
+  - 実行した確認
+  - 未実行または失敗した確認（ない場合も「なし」と記載する）
 - repositoryで有効なrequired checksをすべて通す。CI導入前は、変更範囲に応じたローカル検証結果をPRへ記載する。
 - conflictを解消し、意図しないファイルや生成物が含まれていないことを確認する。
 - squash mergeを使用し、merge後は作業branchを削除する。
