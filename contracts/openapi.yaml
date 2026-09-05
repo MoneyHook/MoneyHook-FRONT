@@ -800,6 +800,24 @@ paths:
         '409': {$ref: '#/components/responses/AuthIdentityConflict'}
         '500': {$ref: '#/components/responses/V1InternalError'}
 
+  /api/payment/reorder:
+    put:
+      tags: [Payment]
+      operationId: reorderPaymentResources
+      summary: Replace the authenticated user's payment resource order
+      security: [BearerAuth: []]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/PaymentResourceOrderRequest'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '422': {$ref: '#/components/responses/StringMutationFailure'}
+        '401': {$ref: '#/components/responses/V1Unauthorized'}
+        '409': {$ref: '#/components/responses/AuthIdentityConflict'}
+        '500': {$ref: '#/components/responses/V1InternalError'}
+
   /api/payment/deletePayment/{paymentId}:
     delete:
       tags: [Payment]
@@ -1693,6 +1711,13 @@ components:
           required: [payment_id]
           properties:
             payment_id: {$ref: '#/components/schemas/Identifier'}
+    PaymentResourceOrderRequest:
+      type: object
+      required: [payment_ids]
+      properties:
+        payment_ids:
+          type: array
+          items: {$ref: '#/components/schemas/Identifier'}
     PaymentResourceListResponse:
       type: object
       required: [payment_list]

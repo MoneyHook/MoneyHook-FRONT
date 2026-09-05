@@ -75,6 +75,7 @@ export * from './paymentGroupResponsePaymentListItem';
 export * from './paymentGroupResponsePaymentListItemTransactionListItem';
 export * from './paymentResourceListResponse';
 export * from './paymentResourceListResponsePaymentListItem';
+export * from './paymentResourceOrderRequest';
 export * from './paymentTypeListResponse';
 export * from './paymentTypeListResponsePaymentTypeListItem';
 export * from './paymentWriteRequest';

@@ -1,7 +1,25 @@
 import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import {
   AlertCircle,
   Banknote,
   CreditCard,
+  GripVertical,
   LoaderCircle,
   Pencil,
   Plus,
@@ -41,6 +59,7 @@ import { Input } from '@/shared/components/ui/input'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { cn } from '@/shared/lib/utils'
 import { getPaymentIconSource } from '@/shared/lib/payment-icon'
+import { getGetPaymentResourcesQueryKey } from '@/shared/api/generated/payment/payment'
 
 import { usePaymentSettings } from '../api/use-payment-settings'
 import {
@@ -85,6 +104,51 @@ function PaymentTypeIcon({ paymentTypeName }: { paymentTypeName: string }) {
     return <QrCode aria-hidden="true" className="size-4" />
   }
   return <Banknote aria-hidden="true" className="size-4" />
+}
+
+function SortablePaymentRow({
+  payment,
+  paymentTypes,
+  onEdit,
+  onDelete,
+  isDeleting,
+  isReordering,
+}: {
+  payment: PaymentResourceListResponsePaymentListItem
+  paymentTypes: PaymentTypeListResponsePaymentTypeListItem[]
+  onEdit: (payment: PaymentResourceListResponsePaymentListItem) => void
+  onDelete: (payment: PaymentResourceListResponsePaymentListItem) => void
+  isDeleting: boolean
+  isReordering: boolean
+}) {
+  const { attributes, listeners, setActivatorNodeRef, setNodeRef, transform, transition, isDragging } = useSortable({ id: payment.payment_id })
+  const type = paymentTypes.find((item) => item.payment_type_id === payment.payment_type_id)
+  const iconSource = getPaymentIconSource({ paymentName: payment.payment_name, paymentTypeName: type?.payment_type_name })
+
+  return (
+    <li
+      className={cn('flex items-center gap-3 bg-card px-4 py-3', isDragging && 'z-10 opacity-50 shadow-lg')}
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+    >
+      <Button
+        aria-label={`${payment.payment_name}を並べ替え`}
+        className="shrink-0 cursor-grab touch-none active:cursor-grabbing"
+        disabled={isReordering}
+        ref={setActivatorNodeRef}
+        size="icon-sm"
+        type="button"
+        variant="ghost"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical aria-hidden="true" />
+      </Button>
+      {iconSource ? <img alt="" className="size-9 shrink-0 rounded-lg" height="36" src={iconSource} width="36" /> : <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground"><CreditCard aria-hidden="true" className="size-4" /></span>}
+      <div className="min-w-0 flex-1"><p className="truncate font-medium">{payment.payment_name}</p><p className="text-sm text-muted-foreground">{type?.payment_type_name ?? '未分類'}{type?.is_payment_due_later && payment.payment_date !== null ? ` ・ 締め日 ${payment.closing_date}日 / 支払日 ${payment.payment_date}日` : ''}</p></div>
+      <div className="flex shrink-0 gap-1"><Button aria-label={`${payment.payment_name}を編集`} disabled={isReordering} onClick={() => onEdit(payment)} size="icon-sm" type="button" variant="ghost"><Pencil aria-hidden="true" /></Button><Button aria-label={`${payment.payment_name}を削除`} disabled={isDeleting || isReordering} onClick={() => onDelete(payment)} size="icon-sm" type="button" variant="destructive"><Trash2 aria-hidden="true" /></Button></div>
+    </li>
+  )
 }
 
 function PaymentForm({
@@ -196,15 +260,18 @@ function PaymentForm({
 }
 
 export function PaymentSettings({ showHeader = true }: { showHeader?: boolean }) {
-  const { addMutation, deleteMutation, editMutation, paymentsQuery, paymentTypesQuery } = usePaymentSettings()
+  const { addMutation, deleteMutation, editMutation, paymentsQuery, paymentTypesQuery, queryClient, reorderMutation } = usePaymentSettings()
   const [editor, setEditor] = useState<EditorState>(null)
   const [paymentToDelete, setPaymentToDelete] = useState<PaymentResourceListResponsePaymentListItem | null>(null)
   const payments = paymentsQuery.data?.status === 200 ? paymentsQuery.data.data.payment_list : []
   const paymentTypes = paymentTypesQuery.data?.status === 200 ? paymentTypesQuery.data.data.payment_type_list : []
   const isLoading = paymentsQuery.isPending || paymentTypesQuery.isPending
   const hasError = paymentsQuery.isError || paymentTypesQuery.isError
-  const typeName = (typeId: string) => paymentTypes.find((type) => type.payment_type_id === typeId)?.payment_type_name ?? '未分類'
   const isSaving = addMutation.isPending || editMutation.isPending
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
 
   const savePayment = async (values: PaymentSettingsFormValues) => {
     const paymentType = paymentTypes.find((type) => type.payment_type_id === values.paymentTypeId)
@@ -235,6 +302,27 @@ export function PaymentSettings({ showHeader = true }: { showHeader?: boolean })
     }
   }
 
+  const reorderPayments = async ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id || reorderMutation.isPending) return
+    const oldIndex = payments.findIndex((payment) => payment.payment_id === active.id)
+    const newIndex = payments.findIndex((payment) => payment.payment_id === over.id)
+    if (oldIndex < 0 || newIndex < 0) return
+    const nextPayments = arrayMove(payments, oldIndex, newIndex)
+    const queryKey = getGetPaymentResourcesQueryKey()
+    const previousData = queryClient.getQueryData(paymentsQuery.queryKey)
+    queryClient.setQueryData(queryKey, (current: typeof paymentsQuery.data) => current?.status === 200
+      ? { ...current, data: { ...current.data, payment_list: nextPayments } }
+      : current)
+    try {
+      const response = await reorderMutation.mutateAsync({ data: { payment_ids: nextPayments.map((payment) => payment.payment_id) } })
+      if (response.status !== 200) throw new Error('支払い方法の並べ替えを保存できませんでした。')
+      await queryClient.invalidateQueries({ queryKey })
+    } catch (error) {
+      queryClient.setQueryData(queryKey, previousData)
+      toast.error(errorMessage(error, '支払い方法の並べ替えを保存できませんでした。'))
+    }
+  }
+
   return (
     <SettingsSection
       action={<Button disabled={isLoading || hasError} onClick={() => setEditor({ mode: 'add', payment: null })} size="lg" type="button" variant="outline"><Plus aria-hidden="true" />支払い方法を追加</Button>}
@@ -247,9 +335,9 @@ export function PaymentSettings({ showHeader = true }: { showHeader?: boolean })
       {isLoading ? <div aria-label="支払い方法を読み込んでいます" className="space-y-3" role="status"><Skeleton className="h-16 w-full" /><Skeleton className="h-16 w-full" /></div> : null}
       {hasError ? <div className="space-y-4"><Alert variant="destructive"><AlertCircle aria-hidden="true" /><AlertTitle>支払い方法を読み込めません</AlertTitle><AlertDescription>{errorMessage(paymentsQuery.error ?? paymentTypesQuery.error, '支払い方法を取得できませんでした。')}</AlertDescription></Alert><Button onClick={() => { void paymentsQuery.refetch(); void paymentTypesQuery.refetch() }} size="lg" type="button" variant="outline">もう一度試す</Button></div> : null}
       {!isLoading && !hasError ? <div className="space-y-5">
-        {payments.length === 0 ? <div className="rounded-xl border border-dashed px-4 py-8 text-center"><CreditCard aria-hidden="true" className="mx-auto mb-3 size-6 text-muted-foreground" /><p className="font-medium">支払い方法がありません</p><p className="mt-1 text-sm text-muted-foreground">追加すると、取引の登録時に選択できます。</p></div> : <ul className="divide-y rounded-xl border">
-          {payments.map((payment) => { const type = paymentTypes.find((item) => item.payment_type_id === payment.payment_type_id); const iconSource = getPaymentIconSource({ paymentName: payment.payment_name, paymentTypeName: type?.payment_type_name }); return <li className="flex items-center gap-3 px-4 py-3" key={payment.payment_id}>{iconSource ? <img alt="" className="size-9 shrink-0 rounded-lg" height="36" src={iconSource} width="36" /> : <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground"><CreditCard aria-hidden="true" className="size-4" /></span>}<div className="min-w-0 flex-1"><p className="truncate font-medium">{payment.payment_name}</p><p className="text-sm text-muted-foreground">{typeName(payment.payment_type_id)}{type?.is_payment_due_later && payment.payment_date !== null ? ` ・ 締め日 ${payment.closing_date}日 / 支払日 ${payment.payment_date}日` : ''}</p></div><div className="flex shrink-0 gap-1"><Button aria-label={`${payment.payment_name}を編集`} onClick={() => setEditor({ mode: 'edit', payment })} size="icon-sm" type="button" variant="ghost"><Pencil aria-hidden="true" /></Button><Button aria-label={`${payment.payment_name}を削除`} disabled={deleteMutation.isPending} onClick={() => setPaymentToDelete(payment)} size="icon-sm" type="button" variant="destructive"><Trash2 aria-hidden="true" /></Button></div></li> })}
-        </ul>}
+        {payments.length === 0 ? <div className="rounded-xl border border-dashed px-4 py-8 text-center"><CreditCard aria-hidden="true" className="mx-auto mb-3 size-6 text-muted-foreground" /><p className="font-medium">支払い方法がありません</p><p className="mt-1 text-sm text-muted-foreground">追加すると、取引の登録時に選択できます。</p></div> : <DndContext collisionDetection={closestCenter} onDragEnd={(event) => void reorderPayments(event)} sensors={sensors}><SortableContext items={payments.map((payment) => payment.payment_id)} strategy={verticalListSortingStrategy}><ul className="divide-y overflow-hidden rounded-xl border">
+          {payments.map((payment) => <SortablePaymentRow isDeleting={deleteMutation.isPending} isReordering={reorderMutation.isPending} key={payment.payment_id} onDelete={setPaymentToDelete} onEdit={(item) => setEditor({ mode: 'edit', payment: item })} payment={payment} paymentTypes={paymentTypes} />)}
+        </ul></SortableContext></DndContext>}
       </div> : null}
       <Dialog onOpenChange={(open) => !open && !isSaving && setEditor(null)} open={editor !== null}>
         {editor ? (
