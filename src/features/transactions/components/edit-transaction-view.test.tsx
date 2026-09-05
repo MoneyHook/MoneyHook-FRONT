@@ -126,6 +126,7 @@ function renderEdit() {
 
 describe('EditTransactionView', () => {
   beforeEach(() => {
+    localStorage.clear()
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date(2026, 7, 30, 12))
   })

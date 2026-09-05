@@ -6,6 +6,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { server } from '@/test/msw/server'
 
+import { TRANSACTION_FORM_REFERENCE_CACHE_KEYS } from '../api/use-transaction-form-references'
+
 vi.mock('@/shared/config/environment', () => ({
   getEnvironment: () => ({ apiBaseUrl: 'http://api.test' }),
 }))
@@ -107,14 +109,75 @@ function renderNewTransaction() {
   )
 }
 
+function seedReferenceCache(key: string, value: unknown) {
+  localStorage.setItem(key, JSON.stringify({ version: 1, value }))
+}
+
 describe('NewTransactionView', () => {
   beforeEach(() => {
+    localStorage.clear()
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date(2026, 7, 30, 12))
   })
 
   afterEach(() => {
     vi.useRealTimers()
+  })
+
+  it('renders persisted reference data before refreshing it from the API', async () => {
+    let releaseRefresh: (() => void) | undefined
+    const refresh = new Promise<void>((resolve) => {
+      releaseRefresh = resolve
+    })
+    const cachedCandidate = { ...frequentTransaction, transaction_name: '保存済みランチ' }
+
+    seedReferenceCache(TRANSACTION_FORM_REFERENCE_CACHE_KEYS.categories, {
+      category_list: [{ ...categories[0], category_name: '保存済み食費' }],
+    })
+    seedReferenceCache(TRANSACTION_FORM_REFERENCE_CACHE_KEYS.payments, {
+      payment_list: [{ payment_id: '30', payment_name: '保存済みカード', payment_type_id: '2' }],
+    })
+    seedReferenceCache(TRANSACTION_FORM_REFERENCE_CACHE_KEYS.paymentTypes, {
+      payment_type_list: [{ payment_type_id: '2', payment_type_name: '保存済み種別', is_payment_due_later: true }],
+    })
+    seedReferenceCache(TRANSACTION_FORM_REFERENCE_CACHE_KEYS.frequentTransactions, {
+      transaction_list: [cachedCandidate],
+    })
+
+    registerHandlers()
+    server.use(
+      http.get('http://api.test/api/category/getCategoryWithSubCategoryList', async () => {
+        await refresh
+        return HttpResponse.json({ category_list: categories })
+      }),
+      http.get('http://api.test/api/payment/getPayment', async () => {
+        await refresh
+        return HttpResponse.json({ payment_list: [{ payment_id: '30', payment_name: '楽天カード', payment_type_id: '2' }] })
+      }),
+      http.get('http://api.test/api/payment/getPaymentType', async () => {
+        await refresh
+        return HttpResponse.json({ payment_type_list: [{ payment_type_id: '2', payment_type_name: 'カード', is_payment_due_later: true }] })
+      }),
+      http.get('http://api.test/api/transaction/getFrequentTransactionName', async () => {
+        await refresh
+        return HttpResponse.json({ transaction_list: [frequentTransaction] })
+      }),
+    )
+
+    renderNewTransaction()
+
+    expect(await screen.findByRole('button', { name: '保存済みランチを候補から適用' })).toBeVisible()
+    expect(screen.queryByRole('status', { name: '取引追加画面を読み込んでいます' })).not.toBeInTheDocument()
+
+    releaseRefresh?.()
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'ランチを候補から適用' })).toBeVisible()
+      expect(localStorage.getItem(TRANSACTION_FORM_REFERENCE_CACHE_KEYS.categories)).toContain('食費')
+      expect(localStorage.getItem(TRANSACTION_FORM_REFERENCE_CACHE_KEYS.payments)).toContain('楽天カード')
+      expect(localStorage.getItem(TRANSACTION_FORM_REFERENCE_CACHE_KEYS.paymentTypes)).toContain('カード')
+      expect(localStorage.getItem(TRANSACTION_FORM_REFERENCE_CACHE_KEYS.frequentTransactions)).toContain('ランチ')
+    })
   })
 
   it('shows validation errors for an incomplete form', async () => {
