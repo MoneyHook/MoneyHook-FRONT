@@ -17,15 +17,13 @@ import { toast } from 'sonner'
 
 import {
   getGetTimelineDataQueryKey,
+  getGetFrequentTransactionNamesQueryKey,
   getGetV1TransactionQueryKey,
   useCreateV1Transaction,
   useDeleteV1Transaction,
-  useGetFrequentTransactionNames,
   useGetV1Transaction,
   useUpdateV1Transaction,
 } from '@/shared/api/generated/transaction/transaction'
-import { useGetCategoryWithSubCategoryList } from '@/shared/api/generated/category/category'
-import { useGetPaymentResources, useGetPaymentTypes } from '@/shared/api/generated/payment/payment'
 import { ErrorState } from '@/shared/components/app-state'
 import { Button } from '@/shared/components/ui/button'
 import { Calendar } from '@/shared/components/ui/calendar'
@@ -54,6 +52,7 @@ import { getPaymentIconSource } from '@/shared/lib/payment-icon'
 import { cn } from '@/shared/lib/utils'
 
 import { TransactionCandidateChip, TransactionCandidates } from './transaction-candidates'
+import { useTransactionFormReferences } from '../api/use-transaction-form-references'
 import {
   createNewTransactionValues,
   validateNewTransaction,
@@ -216,12 +215,8 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
   const navigate = useNavigate()
   const location = useLocation()
   const queryClient = useQueryClient()
-  const categoriesQuery = useGetCategoryWithSubCategoryList()
-  const paymentsQuery = useGetPaymentResources()
-  const paymentTypesQuery = useGetPaymentTypes()
-  const frequentTransactionsQuery = useGetFrequentTransactionNames({
-    query: { enabled: !isEdit },
-  })
+  const { categoriesQuery, paymentsQuery, paymentTypesQuery, frequentTransactionsQuery } =
+    useTransactionFormReferences({ isEdit })
   const transactionQuery = useGetV1Transaction(transactionId ?? '', {
     query: { enabled: isEdit },
   })
@@ -393,6 +388,7 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
       await queryClient.invalidateQueries({
         queryKey: getGetTimelineDataQueryKey({ month }),
       })
+      await queryClient.invalidateQueries({ queryKey: getGetFrequentTransactionNamesQueryKey() })
       toast.success('取引を保存しました。')
       navigate(`/app/transactions?month=${month}&view=list`, { replace: true })
     } catch (error) {
@@ -440,7 +436,10 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
     )
   }
 
-  if (categoriesQuery.isError || (isEdit && (transactionQuery.isError || !transaction))) {
+  if (
+    (categoriesQuery.isError && !categoriesQuery.data) ||
+    (isEdit && (transactionQuery.isError || !transaction))
+  ) {
     const error = transactionQuery.isError ? transactionQuery.error : categoriesQuery.error
     return (
       <section className="mx-auto w-full max-w-2xl px-4 py-5 sm:px-6">
