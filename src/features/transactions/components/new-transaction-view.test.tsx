@@ -51,6 +51,7 @@ function registerHandlers({
   frequentPending = false,
   frequentStatus = 200,
   frequentTransactions = [frequentTransaction],
+  payments = [{ payment_id: '30', payment_name: '楽天カード', payment_type_id: '2', payment_date: 27, closing_date: 31 }],
 } = {}) {
   server.use(
     http.get('http://api.test/api/category/getCategoryWithSubCategoryList', () =>
@@ -58,9 +59,7 @@ function registerHandlers({
     ),
     http.get('http://api.test/api/payment/getPayment', () =>
       HttpResponse.json({
-        payment_list: [
-          { payment_id: '30', payment_name: '楽天カード', payment_type_id: '2', payment_date: 27, closing_date: 31 },
-        ],
+        payment_list: payments,
       }),
     ),
     http.get('http://api.test/api/payment/getPaymentType', () =>
@@ -344,6 +343,16 @@ describe('NewTransactionView', () => {
     expect(todayCell).not.toBeNull()
     expect(todayCell).not.toHaveClass('bg-accent')
     expect(screen.getByRole('button', { name: /2026年8月30日/ })).toBeVisible()
+  })
+
+  it('does not show the payment method section when no payment methods exist', async () => {
+    registerHandlers({ payments: [] })
+    renderNewTransaction()
+
+    await screen.findByLabelText('金額')
+
+    expect(screen.queryByText('支払い方法')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /支払い方法/ })).not.toBeInTheDocument()
   })
 
   it('selects a category and subcategory in the same sheet', async () => {

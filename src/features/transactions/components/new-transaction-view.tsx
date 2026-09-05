@@ -616,22 +616,24 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
           </FormRow>
         </FormSection>
 
-        <FormSection>
-          <button
-            className="flex min-h-20 w-full items-center gap-3 px-4 text-left outline-none transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-28 sm:px-5"
-            onClick={() => setSelectionSheet('payment')}
-            type="button"
-          >
-            <span className="text-sm font-medium sm:text-base">支払い方法</span>
-            <span className="ml-auto flex min-w-0 items-center gap-3">
-              {selectedPayment ? <PaymentIcon paymentName={selectedPayment.payment_name} paymentTypeName={paymentTypeNames.get(selectedPayment.payment_type_id)} sizeClassName="size-11" /> : null}
-              <span className={cn('truncate text-base font-medium sm:text-lg', !selectedPayment && 'text-muted-foreground')}>
-                {paymentsQuery.isError ? '取得できませんでした' : selectedPayment?.payment_name ?? '選択しない'}
+        {payments.length ? (
+          <FormSection>
+            <button
+              className="flex min-h-20 w-full items-center gap-3 px-4 text-left outline-none transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-28 sm:px-5"
+              onClick={() => setSelectionSheet('payment')}
+              type="button"
+            >
+              <span className="text-sm font-medium sm:text-base">支払い方法</span>
+              <span className="ml-auto flex min-w-0 items-center gap-3">
+                {selectedPayment ? <PaymentIcon paymentName={selectedPayment.payment_name} paymentTypeName={paymentTypeNames.get(selectedPayment.payment_type_id)} sizeClassName="size-11" /> : null}
+                <span className={cn('truncate text-base font-medium sm:text-lg', !selectedPayment && 'text-muted-foreground')}>
+                  {paymentsQuery.isError ? '取得できませんでした' : selectedPayment?.payment_name ?? '選択しない'}
+                </span>
               </span>
-            </span>
-            <ChevronRight aria-hidden="true" className="size-5 shrink-0 text-muted-foreground" />
-          </button>
-        </FormSection>
+              <ChevronRight aria-hidden="true" className="size-5 shrink-0 text-muted-foreground" />
+            </button>
+          </FormSection>
+        ) : null}
 
         {frequentTransactions.length ? <TransactionCandidates onOpenMore={() => setSelectionSheet('candidate')} onSelect={selectFrequentTransaction} transactions={frequentTransactions} /> : null}
         </div>
