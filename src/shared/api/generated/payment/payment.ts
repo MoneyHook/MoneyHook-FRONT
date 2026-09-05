@@ -40,6 +40,7 @@ import type {
   Identifier,
   PaymentEditRequest,
   PaymentResourceListResponse,
+  PaymentResourceOrderRequest,
   PaymentTypeListResponse,
   PaymentWriteRequest,
   StringMutationFailureResponse,
@@ -421,6 +422,117 @@ export const useEditPaymentResource = <TError = V1UnauthorizedResponse | AuthIde
         TContext
       > => {
       return useMutation(getEditPaymentResourceMutationOptions(options), queryClient);
+    }
+    export type reorderPaymentResourcesResponse200 = {
+  data: SuccessResponse
+  status: 200
+}
+
+export type reorderPaymentResourcesResponse401 = {
+  data: V1UnauthorizedResponse
+  status: 401
+}
+
+export type reorderPaymentResourcesResponse409 = {
+  data: AuthIdentityConflictResponse
+  status: 409
+}
+
+export type reorderPaymentResourcesResponse422 = {
+  data: StringMutationFailureResponse
+  status: 422
+}
+
+export type reorderPaymentResourcesResponse500 = {
+  data: V1InternalErrorResponse
+  status: 500
+}
+
+export type reorderPaymentResourcesResponseSuccess = (reorderPaymentResourcesResponse200) & {
+  headers: Headers;
+};
+export type reorderPaymentResourcesResponseError = (reorderPaymentResourcesResponse401 | reorderPaymentResourcesResponse409 | reorderPaymentResourcesResponse422 | reorderPaymentResourcesResponse500) & {
+  headers: Headers;
+};
+
+export type reorderPaymentResourcesResponse = (reorderPaymentResourcesResponseSuccess | reorderPaymentResourcesResponseError)
+
+export const getReorderPaymentResourcesUrl = () => {
+
+
+
+
+  return `/api/payment/reorder`
+}
+
+/**
+ * @summary Replace the authenticated user's payment resource order
+ */
+export const reorderPaymentResources = async (paymentResourceOrderRequest: PaymentResourceOrderRequest, options?: RequestInit): Promise<reorderPaymentResourcesResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Array.isArray(h)) return Object.fromEntries(h);
+    return h;
+  };
+return apiFetch<reorderPaymentResourcesResponse>(getReorderPaymentResourcesUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(paymentResourceOrderRequest)
+  }
+);}
+
+
+
+
+
+export const getReorderPaymentResourcesMutationOptions = <TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | StringMutationFailureResponse | V1InternalErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reorderPaymentResources>>, TError,ReorderPaymentResourcesMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof reorderPaymentResources>>, TError,ReorderPaymentResourcesMutationVariables, TContext> => {
+
+const mutationKey = ['reorderPaymentResources'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reorderPaymentResources>>, ReorderPaymentResourcesMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  reorderPaymentResources(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReorderPaymentResourcesMutationResult = NonNullable<Awaited<ReturnType<typeof reorderPaymentResources>>>
+    export type ReorderPaymentResourcesMutationBody = PaymentResourceOrderRequest
+    export type ReorderPaymentResourcesMutationError = V1UnauthorizedResponse | AuthIdentityConflictResponse | StringMutationFailureResponse | V1InternalErrorResponse
+    export type ReorderPaymentResourcesMutationVariables = {data: PaymentResourceOrderRequest}
+
+    /**
+ * @summary Replace the authenticated user's payment resource order
+ */
+export const useReorderPaymentResources = <TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | StringMutationFailureResponse | V1InternalErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reorderPaymentResources>>, TError,ReorderPaymentResourcesMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reorderPaymentResources>>,
+        TError,
+        ReorderPaymentResourcesMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReorderPaymentResourcesMutationOptions(options), queryClient);
     }
     export type deletePaymentResourceResponse200 = {
   data: SuccessResponse
