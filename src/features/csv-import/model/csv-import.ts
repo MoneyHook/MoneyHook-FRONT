@@ -20,6 +20,7 @@ export type ImportRow = {
   amount: string
   categoryId: string
   subcategoryId: string
+  paymentId: string
   selected: boolean
   errors: ImportRowError[]
 }
@@ -119,6 +120,7 @@ export function createImportRows({ rows, headerRowIndex, mapping, defaults, date
         amount: normalizeAmount(source[mapping.amount!] ?? '') ?? (source[mapping.amount!] ?? ''),
         categoryId: frequentTransaction?.category_id ?? defaults.categoryId ?? '',
         subcategoryId: frequentTransaction?.sub_category_id ?? defaults.subcategoryId ?? '',
+        paymentId: frequentTransaction?.payment_id ?? defaults.paymentId ?? '',
         selected: true,
       }
       const errors = validateImportRow(draft, categories)
@@ -126,22 +128,27 @@ export function createImportRows({ rows, headerRowIndex, mapping, defaults, date
     })
 }
 
-export function applyCategoryToImportRows({ rows, rowIds, categoryId, subcategoryId, categories }: {
+export function applyBulkEditToImportRows({ rows, rowIds, categoryId, subcategoryId, paymentId, categories }: {
   rows: ImportRow[]
   rowIds: Set<number>
   categoryId: string
   subcategoryId: string
+  paymentId: string
   categories: Array<{ category_id: string; category_name: string; sub_category_list?: Array<{ sub_category_id: string; sub_category_name: string; enable: boolean }> }>
 }) {
   return rows.map((row) => {
     if (!rowIds.has(row.id)) return row
-    const next = { ...row, categoryId, subcategoryId }
+    const next = {
+      ...row,
+      ...(categoryId ? { categoryId, subcategoryId } : {}),
+      ...(paymentId ? { paymentId } : {}),
+    }
     const errors = validateImportRow(next, categories)
     return { ...next, errors, selected: errors.length === 0 }
   })
 }
 
-export function toTransactionList(rows: ImportRow[], defaults: Pick<ImportDefaults, 'sign'> & Partial<Pick<ImportDefaults, 'paymentId'>>): TransactionListWriteRequest {
+export function toTransactionList(rows: ImportRow[], defaults: Pick<ImportDefaults, 'sign'>): TransactionListWriteRequest {
   return {
     transaction_list: rows.filter((row) => row.selected && row.errors.length === 0).map((row) => ({
       transaction_date: row.date,
@@ -151,7 +158,7 @@ export function toTransactionList(rows: ImportRow[], defaults: Pick<ImportDefaul
       category_id: row.categoryId,
       sub_category_id: row.subcategoryId,
       fixed_flg: false,
-      ...(defaults.paymentId ? { payment_id: defaults.paymentId } : {}),
+      ...(row.paymentId ? { payment_id: row.paymentId } : {}),
     })),
   }
 }

@@ -50,7 +50,7 @@ import {
   MAX_COLUMNS,
   MAX_FILE_SIZE,
   MAX_ROWS,
-  applyCategoryToImportRows,
+  applyBulkEditToImportRows,
   createImportRows,
   displayColumnName,
   inferHeaderRow,
@@ -58,7 +58,6 @@ import {
   type Encoding,
   type ImportDefaults,
   type ImportRow,
-  type ImportSign,
   type Mapping,
   toTransactionList,
   validateImportRow,
@@ -82,29 +81,30 @@ type State = {
   importedCount: number
 }
 
-const initialState: State = { step: 'setup', file: null, rows: [], encoding: 'auto', headerRowIndex: null, mapping: { date: null, name: null, amount: null }, dateFormat: 'auto', defaults: {}, previewRows: [], parsedEncoding: null, error: null, importing: false, importedCount: 0 }
+const initialState: State = { step: 'setup', file: null, rows: [], encoding: 'auto', headerRowIndex: null, mapping: { date: null, name: null, amount: null }, dateFormat: 'auto', defaults: { sign: 'expense' }, previewRows: [], parsedEncoding: null, error: null, importing: false, importedCount: 0 }
 
 type Action =
   | { type: 'patch'; patch: Partial<State> }
   | { type: 'set-row'; id: number; patch: Partial<ImportRow>; categories: Categories }
-  | { type: 'apply-category'; rowIds: Set<number>; categoryId: string; subcategoryId: string; categories: Categories }
+  | { type: 'apply-bulk-edit'; rowIds: Set<number>; categoryId: string; subcategoryId: string; paymentId: string; categories: Categories }
   | { type: 'set-all'; selected: boolean }
 
 type Categories = Array<{ category_id: string; category_name: string; sub_category_list?: Array<{ sub_category_id: string; sub_category_name: string; enable: boolean }> }>
 
 const previewTableFeatures = tableFeatures({})
-const previewGridColumns = 'grid-cols-[40px_110px_minmax(160px,1fr)_110px_150px_150px_42px]'
+const previewGridColumns = 'grid-cols-[40px_110px_minmax(160px,1fr)_110px_150px_150px_150px_42px]'
 
 function reducer(state: State, action: Action): State {
   if (action.type === 'patch') return { ...state, ...action.patch }
   if (action.type === 'set-all') return { ...state, previewRows: state.previewRows.map((row) => row.errors.length ? row : { ...row, selected: action.selected }) }
-  if (action.type === 'apply-category') return {
+  if (action.type === 'apply-bulk-edit') return {
     ...state,
-    previewRows: applyCategoryToImportRows({
+    previewRows: applyBulkEditToImportRows({
       rows: state.previewRows,
       rowIds: action.rowIds,
       categoryId: action.categoryId,
       subcategoryId: action.subcategoryId,
+      paymentId: action.paymentId,
       categories: action.categories,
     }),
   }
@@ -179,7 +179,7 @@ function RawCsvPreview({ headers, headerRowIndex, mapping, rows }: { headers: st
   </div></div></div>
 }
 
-function PreviewTable({ rows, categories, dispatch }: { rows: ImportRow[]; categories: Categories; dispatch: React.Dispatch<Action> }) {
+function PreviewTable({ rows, categories, payments, dispatch }: { rows: ImportRow[]; categories: Categories; payments: Array<{ payment_id: string; payment_name: string }>; dispatch: React.Dispatch<Action> }) {
   const parentRef = useRef<HTMLDivElement>(null)
   const [editingId, setEditingId] = useState<number | null>(null)
   const setRow = useCallback((id: number, patch: Partial<ImportRow>) => dispatch({ type: 'set-row', id, patch, categories }), [categories, dispatch])
@@ -190,27 +190,30 @@ function PreviewTable({ rows, categories, dispatch }: { rows: ImportRow[]; categ
     { accessorKey: 'amount', header: '金額', cell: ({ row }) => editingId === row.original.id ? <Input aria-label="金額" value={row.original.amount} onChange={(event) => setRow(row.original.id, { amount: event.target.value })} /> : <span className="tabular-nums">{row.original.amount ? `¥${Number(row.original.amount).toLocaleString('ja-JP')}` : '不正'}</span> },
     { id: 'category', header: 'カテゴリ', cell: ({ row }) => editingId === row.original.id ? <SelectField aria-label="カテゴリ" value={row.original.categoryId} onValueChange={(value) => setRow(row.original.id, { categoryId: value, subcategoryId: '' })}><option value="">選択してください</option>{categories.map((category) => <option key={category.category_id} value={category.category_id}>{category.category_name}</option>)}</SelectField> : categories.find((category) => category.category_id === row.original.categoryId)?.category_name ?? '未選択' },
     { id: 'subcategory', header: 'サブカテゴリ', cell: ({ row }) => { const subcategories = categorySubcategories(categories, row.original.categoryId); return editingId === row.original.id ? <SelectField aria-label="サブカテゴリ" value={row.original.subcategoryId} onValueChange={(value) => setRow(row.original.id, { subcategoryId: value })}><option value="">選択してください</option>{subcategories.map((subcategory) => <option key={subcategory.sub_category_id} value={subcategory.sub_category_id}>{subcategory.sub_category_name}</option>)}</SelectField> : subcategories.find((subcategory) => subcategory.sub_category_id === row.original.subcategoryId)?.sub_category_name ?? '未選択' } },
+    { id: 'payment', header: '支払い方法', cell: ({ row }) => payments.find((payment) => payment.payment_id === row.original.paymentId)?.payment_name ?? '未選択' },
     { id: 'actions', header: '', cell: ({ row }) => <Button aria-label={`${row.original.sourceRowNumber}行目を編集`} onClick={() => setEditingId(editingId === row.original.id ? null : row.original.id)} size="icon" type="button" variant="ghost">{editingId === row.original.id ? <CheckCircle2 /> : <Pencil />}</Button> },
-  ], [categories, editingId, setRow])
+  ], [categories, editingId, payments, setRow])
   const table = useTable({ columns, data: rows, features: previewTableFeatures, getRowId: (row) => String(row.id) })
   const tableRows = table.getRowModel().rows
   const virtualizer = useVirtualizer({ count: tableRows.length, getScrollElement: () => parentRef.current, getItemKey: (index) => tableRows[index].id, estimateSize: () => 56, overscan: 10 })
 
-  return <div className="overflow-hidden rounded-xl border bg-card"><div ref={parentRef} className="max-h-[32rem] overflow-auto"><div className="min-w-[780px]">
+  return <div className="overflow-hidden rounded-xl border bg-card"><div ref={parentRef} className="max-h-[32rem] overflow-auto"><div className="min-w-[1000px]">
     <div className={cn('sticky top-0 z-10 grid gap-2 border-b bg-muted/95 px-3 py-2 text-xs font-semibold text-muted-foreground backdrop-blur', previewGridColumns)}>{table.getHeaderGroups().map((group) => group.headers.map((header) => <span key={header.id}>{header.isPlaceholder ? null : <table.FlexRender header={header} />}</span>))}</div>
-    <div className="relative" style={{ height: virtualizer.getTotalSize() }}>{virtualizer.getVirtualItems().map((virtualRow) => { const row = tableRows[virtualRow.index]; return <div key={row.id} className={cn('absolute left-0 top-0 grid w-full items-center gap-2 border-b px-3 py-2 text-sm', previewGridColumns, row.original.errors.length && 'bg-destructive/5')} data-index={virtualRow.index} ref={virtualizer.measureElement} style={{ transform: `translateY(${virtualRow.start}px)`, minHeight: virtualRow.size }}>{row.getAllCells().map((cell) => <div key={cell.id}>{<table.FlexRender cell={cell} />}</div>)}{row.original.errors.length ? <p className="col-span-7 -mt-1 text-xs text-destructive">{row.original.sourceRowNumber}行目: {row.original.errors.map((error) => error.message).join(' ')}</p> : null}</div> })}</div>
+    <div className="relative" style={{ height: virtualizer.getTotalSize() }}>{virtualizer.getVirtualItems().map((virtualRow) => { const row = tableRows[virtualRow.index]; return <div key={row.id} className={cn('absolute left-0 top-0 grid w-full items-center gap-2 border-b px-3 py-2 text-sm', previewGridColumns, row.original.errors.length && 'bg-destructive/5')} data-index={virtualRow.index} ref={virtualizer.measureElement} style={{ transform: `translateY(${virtualRow.start}px)`, minHeight: virtualRow.size }}>{row.getAllCells().map((cell) => <div key={cell.id}>{<table.FlexRender cell={cell} />}</div>)}{row.original.errors.length ? <p className="col-span-8 -mt-1 text-xs text-destructive">{row.original.sourceRowNumber}行目: {row.original.errors.map((error) => error.message).join(' ')}</p> : null}</div> })}</div>
   </div></div></div>
 }
 
-function BulkCategoryDialog({ categories, onApply, rows }: {
+function BulkTransactionEditDialog({ categories, onApply, payments, rows }: {
   categories: Categories
-  onApply: (rowIds: Set<number>, categoryId: string, subcategoryId: string) => void
+  onApply: (rowIds: Set<number>, categoryId: string, subcategoryId: string, paymentId: string) => void
+  payments: Array<{ payment_id: string; payment_name: string }>
   rows: ImportRow[]
 }) {
   const [open, setOpen] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
   const [categoryId, setCategoryId] = useState('')
   const [subcategoryId, setSubcategoryId] = useState('')
+  const [paymentId, setPaymentId] = useState('')
   const parentRef = useRef<HTMLDivElement>(null)
   const subcategories = categorySubcategories(categories, categoryId)
 
@@ -219,6 +222,7 @@ function BulkCategoryDialog({ categories, onApply, rows }: {
     setSelectedIds(new Set(rows.map((row) => row.id)))
     setCategoryId('')
     setSubcategoryId('')
+    setPaymentId('')
   }, [open, rows])
 
   const toggleRow = useCallback((id: number, selected: boolean) => {
@@ -235,28 +239,31 @@ function BulkCategoryDialog({ categories, onApply, rows }: {
     { accessorKey: 'name', header: '取引名', cell: ({ row }) => <span className="block truncate">{row.original.name || '（空欄）'}</span> },
     { id: 'category', header: 'カテゴリ', cell: ({ row }) => categories.find((category) => category.category_id === row.original.categoryId)?.category_name ?? '未選択' },
     { id: 'subcategory', header: 'サブカテゴリ', cell: ({ row }) => categorySubcategories(categories, row.original.categoryId).find((subcategory) => subcategory.sub_category_id === row.original.subcategoryId)?.sub_category_name ?? '未選択' },
-  ], [categories, rows, selectedIds, toggleRow])
+    { id: 'payment', header: '支払い方法', cell: ({ row }) => payments.find((payment) => payment.payment_id === row.original.paymentId)?.payment_name ?? '未選択' },
+  ], [categories, payments, rows, selectedIds, toggleRow])
   const table = useTable({ columns, data: rows, features: previewTableFeatures, getRowId: (row) => String(row.id) })
   const tableRows = table.getRowModel().rows
   const virtualizer = useVirtualizer({ count: tableRows.length, getScrollElement: () => parentRef.current, getItemKey: (index) => tableRows[index].id, estimateSize: () => 44, overscan: 10 })
-  const gridColumns = 'grid-cols-[40px_64px_minmax(160px,1fr)_140px_140px]'
+  const gridColumns = 'grid-cols-[40px_64px_minmax(160px,1fr)_140px_140px_140px]'
+  const canApply = selectedIds.size > 0 && (Boolean(paymentId) || Boolean(categoryId) && Boolean(subcategoryId))
 
   return <Dialog onOpenChange={setOpen} open={open}>
-    <Button onClick={() => setOpen(true)} type="button" variant="outline">カテゴリを一括変更</Button>
+    <Button onClick={() => setOpen(true)} type="button" variant="outline">取引情報を一括変更</Button>
     <DialogContent className="max-w-4xl">
       <DialogHeader>
-        <DialogTitle>カテゴリを一括変更</DialogTitle>
-        <DialogDescription>変更する取引を選び、カテゴリとサブカテゴリを指定してください。</DialogDescription>
+        <DialogTitle>取引情報を一括変更</DialogTitle>
+        <DialogDescription>変更する取引を選び、カテゴリまたは支払い方法を指定してください。</DialogDescription>
       </DialogHeader>
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="カテゴリ"><SelectField aria-label="一括変更するカテゴリ" value={categoryId} onValueChange={(value) => { setCategoryId(value); setSubcategoryId('') }}><option value="">選択してください</option>{categories.map((category) => <option key={category.category_id} value={category.category_id}>{category.category_name}</option>)}</SelectField></Field>
-        <Field label="サブカテゴリ"><SelectField aria-label="一括変更するサブカテゴリ" disabled={!categoryId} value={subcategoryId} onValueChange={setSubcategoryId}><option value="">選択してください</option>{subcategories.map((subcategory) => <option key={subcategory.sub_category_id} value={subcategory.sub_category_id}>{subcategory.sub_category_name}</option>)}</SelectField></Field>
+        <Field label="カテゴリ"><SelectField aria-label="一括変更するカテゴリ" value={categoryId} onValueChange={(value) => { setCategoryId(value); setSubcategoryId('') }}><option value="">変更しない</option>{categories.map((category) => <option key={category.category_id} value={category.category_id}>{category.category_name}</option>)}</SelectField></Field>
+        <Field label="サブカテゴリ"><SelectField aria-label="一括変更するサブカテゴリ" disabled={!categoryId} value={subcategoryId} onValueChange={setSubcategoryId}><option value="">変更しない</option>{subcategories.map((subcategory) => <option key={subcategory.sub_category_id} value={subcategory.sub_category_id}>{subcategory.sub_category_name}</option>)}</SelectField></Field>
+        {payments.length > 0 ? <Field label="支払い方法"><SelectField aria-label="一括変更する支払い方法" value={paymentId} onValueChange={setPaymentId}><option value="">変更しない</option>{payments.map((payment) => <option key={payment.payment_id} value={payment.payment_id}>{payment.payment_name}</option>)}</SelectField></Field> : null}
       </div>
-      <div className="overflow-hidden rounded-xl border bg-card"><div ref={parentRef} className="max-h-80 overflow-auto"><div className="min-w-[620px]">
+      <div className="overflow-hidden rounded-xl border bg-card"><div ref={parentRef} className="max-h-80 overflow-auto"><div className="min-w-[760px]">
         <div className={cn('sticky top-0 z-10 grid items-center gap-2 border-b bg-muted/95 px-3 py-2 text-xs font-semibold text-muted-foreground backdrop-blur', gridColumns)}>{table.getHeaderGroups().map((group) => group.headers.map((header) => <span key={header.id}>{header.isPlaceholder ? null : <table.FlexRender header={header} />}</span>))}</div>
         <div className="relative" style={{ height: virtualizer.getTotalSize() }}>{virtualizer.getVirtualItems().map((virtualRow) => { const row = tableRows[virtualRow.index]; return <div className={cn('absolute left-0 top-0 grid w-full items-center gap-2 border-b px-3 py-2 text-sm', gridColumns)} data-index={virtualRow.index} key={row.id} ref={virtualizer.measureElement} style={{ transform: `translateY(${virtualRow.start}px)`, minHeight: virtualRow.size }}>{row.getAllCells().map((cell) => <div key={cell.id}><table.FlexRender cell={cell} /></div>)}</div> })}</div>
       </div></div></div>
-      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"><DialogClose asChild><Button type="button" variant="outline">キャンセル</Button></DialogClose><Button disabled={!selectedIds.size || !categoryId || !subcategoryId} onClick={() => { onApply(selectedIds, categoryId, subcategoryId); setOpen(false) }} type="button">{selectedIds.size}件に適用</Button></div>
+      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"><DialogClose asChild><Button type="button" variant="outline">キャンセル</Button></DialogClose><Button disabled={!canApply} onClick={() => { onApply(selectedIds, categoryId, subcategoryId, paymentId); setOpen(false) }} type="button">{selectedIds.size}件に適用</Button></div>
     </DialogContent>
   </Dialog>
 }
@@ -285,6 +292,7 @@ export function CsvImportView() {
   const filteredRows = useMemo(() => state.previewRows.filter((row) => filter === 'all' || filter === 'selected' && row.selected || filter === 'excluded' && !row.selected && !row.errors.length || filter === 'error' && row.errors.length), [filter, state.previewRows])
   const selected = state.previewRows.filter((row) => row.selected).length
   const errors = state.previewRows.filter((row) => row.errors.length).length
+  const selectedErrors = state.previewRows.filter((row) => row.selected && row.errors.length).length
   const defaults = state.defaults
 
   const parseFile = (file: File, encoding: Encoding = state.encoding) => {
@@ -295,6 +303,8 @@ export function CsvImportView() {
     const worker = new Worker(new URL('../csv-parser.worker.ts', import.meta.url), { type: 'module' })
     workerRef.current = worker
     worker.onmessage = (event: MessageEvent<{ rows?: string[][]; encoding?: string; error?: string }>) => {
+      worker.terminate()
+      if (workerRef.current === worker) workerRef.current = null
       if (event.data.error || !event.data.rows) return dispatch({ type: 'patch', patch: { importing: false, error: event.data.error ?? 'CSVを解析できませんでした。' } })
       const rows = event.data.rows
       if (Math.max(0, ...rows.map((row) => row.length)) > MAX_COLUMNS) return dispatch({ type: 'patch', patch: { importing: false, error: 'CSVの列数は100列以下にしてください。' } })
@@ -302,12 +312,23 @@ export function CsvImportView() {
       const dataRowCount = rows.filter((_, index) => headerRowIndex === null || index > headerRowIndex).length
       dispatch({ type: 'patch', patch: { importing: false, rows, parsedEncoding: event.data.encoding ?? null, headerRowIndex, mapping: { date: null, name: null, amount: null }, error: dataRowCount > MAX_ROWS ? 'データ行数は10,000行以下にしてください。' : null } })
     }
+    worker.onerror = (event) => {
+      event.preventDefault()
+      worker.terminate()
+      if (workerRef.current === worker) workerRef.current = null
+      dispatch({ type: 'patch', patch: { importing: false, error: 'CSV解析用の処理を読み込めませんでした。画面を再読み込みして、もう一度お試しください。' } })
+    }
+    worker.onmessageerror = () => {
+      worker.terminate()
+      if (workerRef.current === worker) workerRef.current = null
+      dispatch({ type: 'patch', patch: { importing: false, error: 'CSVデータを読み込めませんでした。もう一度ファイルを選択してください。' } })
+    }
     worker.postMessage({ file, encoding })
   }
   const submit = () => {
-    if (!selected || errors || state.importing || !state.defaults.sign) return
+    if (!selected || selectedErrors || state.importing || !state.defaults.sign) return
     dispatch({ type: 'patch', patch: { importing: true, error: null } })
-    mutation.mutate(toTransactionList(state.previewRows, { sign: state.defaults.sign, paymentId: state.defaults.paymentId }))
+    mutation.mutate(toTransactionList(state.previewRows, { sign: state.defaults.sign }))
   }
   const canPreview = Boolean(dataRows.length <= MAX_ROWS && state.defaults.sign && state.mapping.date !== null && state.mapping.name !== null && state.mapping.amount !== null)
 
@@ -327,12 +348,31 @@ export function CsvImportView() {
     </header>
     {state.error ? <Alert className="mt-6" variant="destructive"><AlertCircle aria-hidden="true" /><AlertTitle>CSVを処理できませんでした</AlertTitle><AlertDescription>{state.error}</AlertDescription></Alert> : null}
     <section className="grid gap-5 py-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
-      <div className="grid gap-5">
-        <div className="grid gap-4 rounded-2xl border bg-card p-5 sm:grid-cols-2">
-          <Field label="支払い方法（任意）"><SelectField value={state.defaults.paymentId ?? ''} onValueChange={(value) => dispatch({ type: 'patch', patch: { defaults: { ...state.defaults, paymentId: value } } })}><option value="">選択してください</option>{payments.map((payment) => <option key={payment.payment_id} value={payment.payment_id}>{payment.payment_name}</option>)}</SelectField></Field>
-          <Field label="取引種別"><SelectField value={state.defaults.sign ?? ''} onValueChange={(value) => dispatch({ type: 'patch', patch: { defaults: { ...state.defaults, sign: value as ImportSign } } })}><option value="">選択してください</option><option value="expense">支出</option><option value="income">収入</option></SelectField></Field>
-          <Field label="カテゴリ（任意）"><SelectField value={state.defaults.categoryId ?? ''} onValueChange={(value) => dispatch({ type: 'patch', patch: { defaults: { ...state.defaults, categoryId: value, subcategoryId: '' } } })}><option value="">選択してください</option>{categories.map((category) => <option key={category.category_id} value={category.category_id}>{category.category_name}</option>)}</SelectField></Field>
-          <Field label="サブカテゴリ（任意）"><SelectField disabled={!state.defaults.categoryId} value={state.defaults.subcategoryId ?? ''} onValueChange={(value) => dispatch({ type: 'patch', patch: { defaults: { ...state.defaults, subcategoryId: value } } })}><option value="">選択してください</option>{categorySubcategories(categories, state.defaults.categoryId ?? '').map((subcategory) => <option key={subcategory.sub_category_id} value={subcategory.sub_category_id}>{subcategory.sub_category_name}</option>)}</SelectField></Field>
+      <div className="grid self-start gap-5">
+        <div className="grid gap-4 rounded-2xl border bg-card p-5">
+          <div aria-label="取引種別" className="grid grid-cols-2 rounded-2xl bg-muted p-0.5 sm:p-1.5" role="tablist">
+            {([
+              { sign: 'expense' as const, label: '支出' },
+              { sign: 'income' as const, label: '収入' },
+            ]).map((item) => {
+              const isSelected = state.defaults.sign === item.sign
+              return <button
+                aria-selected={isSelected}
+                className={cn(
+                  'min-h-10 rounded-xl px-3 text-sm font-semibold outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-12 sm:px-4 sm:text-base',
+                  isSelected
+                    ? item.sign === 'expense'
+                      ? 'bg-card text-expense shadow-sm'
+                      : 'bg-card text-income shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground',
+                )}
+                key={item.sign}
+                onClick={() => dispatch({ type: 'patch', patch: { defaults: { ...state.defaults, sign: item.sign } } })}
+                role="tab"
+                type="button"
+              >{item.label}</button>
+            })}
+          </div>
         </div>
         <label className="grid min-h-36 cursor-pointer place-items-center rounded-2xl border-2 border-dashed bg-muted/20 p-5 text-center transition-colors hover:bg-muted/45" onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); const file = event.dataTransfer.files[0]; if (file && !state.importing) parseFile(file) }}><input accept=".csv,text/csv" className="sr-only" disabled={state.importing} onChange={(event) => { const file = event.target.files?.[0]; if (file) parseFile(file) }} type="file" /><span><FileUp className="mx-auto size-7 text-muted-foreground" /><span className="mt-2 block font-medium">{state.file ? '別のCSVを選択' : 'CSVをドラッグ&ドロップ'}</span><span className="mt-1 block text-sm text-muted-foreground">またはファイルを選択（5MBまで）</span></span></label>
         {state.importing ? <p className="flex items-center justify-center gap-2 text-sm text-muted-foreground"><LoaderCircle className="size-4 animate-spin" />CSVを解析しています...</p> : null}
@@ -344,7 +384,7 @@ export function CsvImportView() {
       </aside> : null}
     </section>
     {state.rows.length ? <section className="grid gap-3 border-t py-8"><div><h2 className="text-lg font-semibold">CSVプレビュー</h2><p className="text-sm text-muted-foreground">選択した列を強調表示しています。</p></div><RawCsvPreview headerRowIndex={state.headerRowIndex} headers={headers} mapping={state.mapping} rows={state.rows} /></section> : null}
-    {state.rows.length && canPreview ? <section className="grid gap-5 border-t py-8"><div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="text-lg font-semibold">インポート内容を確認</h2><p className="text-sm text-muted-foreground">{selected} / {state.previewRows.length}件をインポート予定 ・ エラー {errors}件</p></div><div className="flex flex-wrap gap-2">{([['all', 'すべて'], ['selected', '対象'], ['excluded', '対象外'], ['error', 'エラー']] as const).map(([value, label]) => <Button key={value} onClick={() => setFilter(value)} size="sm" variant={filter === value ? 'default' : 'outline'}>{label}</Button>)}</div></div><div className="flex flex-wrap gap-2"><Button onClick={() => dispatch({ type: 'set-all', selected: true })} size="sm" variant="outline">全選択</Button><Button onClick={() => dispatch({ type: 'set-all', selected: false })} size="sm" variant="outline">全解除</Button><BulkCategoryDialog categories={categories} onApply={(rowIds, categoryId, subcategoryId) => dispatch({ type: 'apply-category', rowIds, categoryId, subcategoryId, categories })} rows={state.previewRows} /></div><PreviewTable categories={categories} dispatch={dispatch} rows={filteredRows} /><div className="flex justify-end"><Button disabled={!selected || errors > 0 || state.importing} onClick={submit}>{state.importing ? <><LoaderCircle className="animate-spin" />登録しています...</> : <><Upload />{selected}件をインポート</>}</Button></div></section> : null}
+    {state.rows.length && canPreview ? <section className="grid gap-5 border-t py-8"><div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="text-lg font-semibold">インポート内容を確認</h2><p className="text-sm text-muted-foreground">{selected} / {state.previewRows.length}件をインポート予定 ・ エラー {errors}件</p></div><div className="flex flex-wrap gap-2">{([['all', 'すべて'], ['selected', '対象'], ['excluded', '対象外'], ['error', 'エラー']] as const).map(([value, label]) => <Button key={value} onClick={() => setFilter(value)} size="sm" variant={filter === value ? 'default' : 'outline'}>{label}</Button>)}</div></div><div className="flex flex-wrap gap-2"><Button onClick={() => dispatch({ type: 'set-all', selected: true })} size="sm" variant="outline">全選択</Button><Button onClick={() => dispatch({ type: 'set-all', selected: false })} size="sm" variant="outline">全解除</Button><BulkTransactionEditDialog categories={categories} onApply={(rowIds, categoryId, subcategoryId, paymentId) => dispatch({ type: 'apply-bulk-edit', rowIds, categoryId, subcategoryId, paymentId, categories })} payments={payments} rows={state.previewRows} /></div><PreviewTable categories={categories} dispatch={dispatch} payments={payments} rows={filteredRows} /><div className="flex justify-end"><Button disabled={!selected || selectedErrors > 0 || state.importing} onClick={submit}>{state.importing ? <><LoaderCircle className="animate-spin" />登録しています...</> : <><Upload />{selected}件をインポート</>}</Button></div></section> : null}
     {state.rows.length && !canPreview ? <p className="border-t py-6 text-sm text-muted-foreground">取引種別と日付・取引名・金額の列をすべて指定すると、インポート内容を表示します。</p> : null}
     <AlertDialog onOpenChange={(open) => !open && blocker.reset?.()} open={blocker.state === 'blocked'}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>インポート作業を破棄しますか？</AlertDialogTitle><AlertDialogDescription>読み込んだCSVと編集内容は保存されません。</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>編集を続ける</AlertDialogCancel><AlertDialogAction onClick={() => blocker.proceed?.()}>破棄して離れる</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
   </main>

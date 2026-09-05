@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-  applyCategoryToImportRows,
+  applyBulkEditToImportRows,
   createImportRows,
   displayColumnName,
   inferHeaderRow,
@@ -97,11 +97,12 @@ describe('CSV import model', () => {
       dateFormat: 'auto',
       categories,
     })
-    const updated = applyCategoryToImportRows({
+    const updated = applyBulkEditToImportRows({
       rows,
       rowIds: new Set([rows[0].id]),
       categoryId: 'food',
       subcategoryId: 'groceries',
+      paymentId: '',
       categories,
     })
 
@@ -113,6 +114,30 @@ describe('CSV import model', () => {
         category_id: 'food', fixed_flg: false, sub_category_id: 'groceries', transaction_amount: 3980,
         transaction_date: '2026-09-01', transaction_name: 'Amazon', transaction_sign: -1,
       }],
+    })
+  })
+
+  it('applies a payment method in bulk without changing the category', () => {
+    const rows = createImportRows({
+      rows: [['日付', '名称', '金額'], ['2026/09/01', 'Amazon', '3,980']],
+      headerRowIndex: 0,
+      mapping: { amount: 2, date: 0, name: 1 },
+      defaults,
+      dateFormat: 'auto',
+      categories,
+    })
+    const updated = applyBulkEditToImportRows({
+      rows,
+      rowIds: new Set([rows[0].id]),
+      categoryId: '',
+      subcategoryId: '',
+      paymentId: 'cash',
+      categories,
+    })
+
+    expect(updated[0]).toMatchObject({ categoryId: 'food', subcategoryId: 'groceries', paymentId: 'cash' })
+    expect(toTransactionList(updated, { sign: 'expense' })).toMatchObject({
+      transaction_list: [expect.objectContaining({ payment_id: 'cash' })],
     })
   })
 })
