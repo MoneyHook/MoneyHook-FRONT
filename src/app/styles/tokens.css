@@ -84,7 +84,10 @@
   --login-orbit-strong: oklch(0.58 0.18 250 / 32%);
   --login-illustration-surface: oklch(0.95 0.04 250 / 70%);
   --login-illustration-line: oklch(0.58 0.18 250 / 42%);
-  --google-mark: oklch(0.58 0.18 250);
+  --google-blue: #4285f4;
+  --google-green: #34a853;
+  --google-yellow: #fbbc05;
+  --google-red: #ea4335;
 }
 
 .dark {
@@ -148,7 +151,6 @@
   --login-orbit-strong: oklch(0.72 0.12 250 / 38%);
   --login-illustration-surface: oklch(0.31 0.055 250 / 70%);
   --login-illustration-line: oklch(0.72 0.12 250 / 48%);
-  --google-mark: oklch(0.72 0.12 250);
 }
 
 :root[data-chart-palette='colorful'] {

@@ -1,5 +1,5 @@
 import { Navigate, useSearchParams } from 'react-router-dom'
-import { BarChart3, CheckCircle2, PieChart, ShieldCheck, TrendingUp } from 'lucide-react'
+import { BarChart3, CheckCircle2, PieChart, Sparkles, TrendingUp } from 'lucide-react'
 
 import { LoginPanel, useAuth } from '@/features/auth'
 import { Brand } from '@/shared/components/brand'
@@ -8,9 +8,9 @@ import { getSafeAppRedirect } from '@/shared/lib/safe-redirect'
 
 const benefits = [
   {
-    icon: ShieldCheck,
-    title: '安全に同期',
-    description: 'Googleアカウントで\nデータをしっかり保護',
+    icon: Sparkles,
+    title: 'すぐに始められる',
+    description: 'Googleアカウントで\nかんたんに利用開始',
   },
   {
     icon: PieChart,
@@ -82,7 +82,7 @@ function LoginVisual() {
           </div>
         ))}
       </div>
-      <p className="login-data-note"><ShieldCheck aria-hidden="true" />あなたのデータは安全に保護されます</p>
+      <p className="login-data-note"><Sparkles aria-hidden="true" />毎日の家計管理を、もっと身近に</p>
     </section>
   )
 }
