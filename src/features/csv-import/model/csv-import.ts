@@ -1,4 +1,5 @@
 import type { TransactionListWriteRequest } from '@/shared/api/generated/model/transactionListWriteRequest'
+import type { FrequentTransactionResponseTransactionListItem } from '@/shared/api/generated/model/frequentTransactionResponseTransactionListItem'
 
 export const MAX_FILE_SIZE = 5 * 1024 * 1024
 export const MAX_COLUMNS = 100
@@ -90,28 +91,34 @@ export function validateImportRow(row: Omit<ImportRow, 'errors'>, categories: Ar
   return errors
 }
 
-export function createImportRows({ rows, headerRowIndex, mapping, defaults, dateFormat, categories }: {
+export function createImportRows({ rows, headerRowIndex, mapping, defaults, dateFormat, categories, frequentTransactions = [] }: {
   rows: string[][]
   headerRowIndex: number | null
   mapping: Mapping
-  defaults: ImportDefaults
+  defaults: Partial<ImportDefaults>
   dateFormat: DateFormat
   categories: Array<{ category_id: string; category_name: string; sub_category_list?: Array<{ sub_category_id: string; sub_category_name: string; enable: boolean }> }>
+  frequentTransactions?: FrequentTransactionResponseTransactionListItem[]
 }) {
   if (mapping.date === null || mapping.name === null || mapping.amount === null) return []
+  const frequentTransactionsByName = new Map(
+    frequentTransactions.map((transaction) => [transaction.transaction_name.trim(), transaction]),
+  )
   return rows
     .map((source, index) => ({ source, index }))
     .filter(({ source, index }) => (headerRowIndex === null || index > headerRowIndex) && !isBlankCsvRow(source))
     .map(({ source, index }, id) => {
+      const name = source[mapping.name!] ?? ''
+      const frequentTransaction = frequentTransactionsByName.get(name.trim())
       const draft = {
         id,
         sourceRowNumber: index + 1,
         source,
         date: normalizeDate(source[mapping.date!] ?? '', dateFormat) ?? '',
-        name: source[mapping.name!] ?? '',
+        name,
         amount: normalizeAmount(source[mapping.amount!] ?? '') ?? (source[mapping.amount!] ?? ''),
-        categoryId: defaults.categoryId,
-        subcategoryId: defaults.subcategoryId,
+        categoryId: frequentTransaction?.category_id ?? defaults.categoryId ?? '',
+        subcategoryId: frequentTransaction?.sub_category_id ?? defaults.subcategoryId ?? '',
         selected: true,
       }
       const errors = validateImportRow(draft, categories)
@@ -119,7 +126,22 @@ export function createImportRows({ rows, headerRowIndex, mapping, defaults, date
     })
 }
 
-export function toTransactionList(rows: ImportRow[], defaults: ImportDefaults): TransactionListWriteRequest {
+export function applyCategoryToImportRows({ rows, rowIds, categoryId, subcategoryId, categories }: {
+  rows: ImportRow[]
+  rowIds: Set<number>
+  categoryId: string
+  subcategoryId: string
+  categories: Array<{ category_id: string; category_name: string; sub_category_list?: Array<{ sub_category_id: string; sub_category_name: string; enable: boolean }> }>
+}) {
+  return rows.map((row) => {
+    if (!rowIds.has(row.id)) return row
+    const next = { ...row, categoryId, subcategoryId }
+    const errors = validateImportRow(next, categories)
+    return { ...next, errors, selected: errors.length === 0 }
+  })
+}
+
+export function toTransactionList(rows: ImportRow[], defaults: Pick<ImportDefaults, 'sign'> & Partial<Pick<ImportDefaults, 'paymentId'>>): TransactionListWriteRequest {
   return {
     transaction_list: rows.filter((row) => row.selected && row.errors.length === 0).map((row) => ({
       transaction_date: row.date,
@@ -129,7 +151,7 @@ export function toTransactionList(rows: ImportRow[], defaults: ImportDefaults): 
       category_id: row.categoryId,
       sub_category_id: row.subcategoryId,
       fixed_flg: false,
-      payment_id: defaults.paymentId,
+      ...(defaults.paymentId ? { payment_id: defaults.paymentId } : {}),
     })),
   }
 }

@@ -5,7 +5,7 @@ import { AlertCircle, ArrowLeft, CheckCircle2, Ellipsis, FileUp, LoaderCircle, P
 import { Children, isValidElement, useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { Link, useBeforeUnload, useBlocker } from 'react-router-dom'
 
-import { addTransactionList } from '@/shared/api/generated/transaction/transaction'
+import { addTransactionList, useGetFrequentTransactionNames } from '@/shared/api/generated/transaction/transaction'
 import { useGetCategoryWithSubCategoryList } from '@/shared/api/generated/category/category'
 import { useGetPaymentResources } from '@/shared/api/generated/payment/payment'
 import { Button } from '@/shared/components/ui/button'
@@ -36,12 +36,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select'
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/shared/components/ui/dialog'
 import { cn } from '@/shared/lib/utils'
 
 import {
   MAX_COLUMNS,
   MAX_FILE_SIZE,
   MAX_ROWS,
+  applyCategoryToImportRows,
   createImportRows,
   displayColumnName,
   inferHeaderRow,
@@ -78,6 +87,7 @@ const initialState: State = { step: 'setup', file: null, rows: [], encoding: 'au
 type Action =
   | { type: 'patch'; patch: Partial<State> }
   | { type: 'set-row'; id: number; patch: Partial<ImportRow>; categories: Categories }
+  | { type: 'apply-category'; rowIds: Set<number>; categoryId: string; subcategoryId: string; categories: Categories }
   | { type: 'set-all'; selected: boolean }
 
 type Categories = Array<{ category_id: string; category_name: string; sub_category_list?: Array<{ sub_category_id: string; sub_category_name: string; enable: boolean }> }>
@@ -88,6 +98,16 @@ const previewGridColumns = 'grid-cols-[40px_110px_minmax(160px,1fr)_110px_150px_
 function reducer(state: State, action: Action): State {
   if (action.type === 'patch') return { ...state, ...action.patch }
   if (action.type === 'set-all') return { ...state, previewRows: state.previewRows.map((row) => row.errors.length ? row : { ...row, selected: action.selected }) }
+  if (action.type === 'apply-category') return {
+    ...state,
+    previewRows: applyCategoryToImportRows({
+      rows: state.previewRows,
+      rowIds: action.rowIds,
+      categoryId: action.categoryId,
+      subcategoryId: action.subcategoryId,
+      categories: action.categories,
+    }),
+  }
   return {
     ...state,
     previewRows: state.previewRows.map((row) => {
@@ -182,12 +202,76 @@ function PreviewTable({ rows, categories, dispatch }: { rows: ImportRow[]; categ
   </div></div></div>
 }
 
+function BulkCategoryDialog({ categories, onApply, rows }: {
+  categories: Categories
+  onApply: (rowIds: Set<number>, categoryId: string, subcategoryId: string) => void
+  rows: ImportRow[]
+}) {
+  const [open, setOpen] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
+  const [categoryId, setCategoryId] = useState('')
+  const [subcategoryId, setSubcategoryId] = useState('')
+  const parentRef = useRef<HTMLDivElement>(null)
+  const subcategories = categorySubcategories(categories, categoryId)
+
+  useEffect(() => {
+    if (!open) return
+    setSelectedIds(new Set(rows.map((row) => row.id)))
+    setCategoryId('')
+    setSubcategoryId('')
+  }, [open, rows])
+
+  const toggleRow = useCallback((id: number, selected: boolean) => {
+    setSelectedIds((current) => {
+      const next = new Set(current)
+      if (selected) next.add(id)
+      else next.delete(id)
+      return next
+    })
+  }, [])
+  const columns = useMemo<ColumnDef<typeof previewTableFeatures, ImportRow, unknown>[]>(() => [
+    { id: 'selected', header: () => <Checkbox aria-label="一括変更の対象を全選択" checked={rows.length > 0 && selectedIds.size === rows.length} onCheckedChange={(checked) => setSelectedIds(checked === true ? new Set(rows.map((row) => row.id)) : new Set())} />, cell: ({ row }) => <Checkbox aria-label={`${row.original.sourceRowNumber}行目を一括変更`} checked={selectedIds.has(row.original.id)} onCheckedChange={(checked) => toggleRow(row.original.id, checked === true)} /> },
+    { id: 'sourceRowNumber', header: '行', cell: ({ row }) => row.original.sourceRowNumber },
+    { accessorKey: 'name', header: '取引名', cell: ({ row }) => <span className="block truncate">{row.original.name || '（空欄）'}</span> },
+    { id: 'category', header: 'カテゴリ', cell: ({ row }) => categories.find((category) => category.category_id === row.original.categoryId)?.category_name ?? '未選択' },
+    { id: 'subcategory', header: 'サブカテゴリ', cell: ({ row }) => categorySubcategories(categories, row.original.categoryId).find((subcategory) => subcategory.sub_category_id === row.original.subcategoryId)?.sub_category_name ?? '未選択' },
+  ], [categories, rows, selectedIds, toggleRow])
+  const table = useTable({ columns, data: rows, features: previewTableFeatures, getRowId: (row) => String(row.id) })
+  const tableRows = table.getRowModel().rows
+  const virtualizer = useVirtualizer({ count: tableRows.length, getScrollElement: () => parentRef.current, getItemKey: (index) => tableRows[index].id, estimateSize: () => 44, overscan: 10 })
+  const gridColumns = 'grid-cols-[40px_64px_minmax(160px,1fr)_140px_140px]'
+
+  return <Dialog onOpenChange={setOpen} open={open}>
+    <Button onClick={() => setOpen(true)} type="button" variant="outline">カテゴリを一括変更</Button>
+    <DialogContent className="max-w-4xl">
+      <DialogHeader>
+        <DialogTitle>カテゴリを一括変更</DialogTitle>
+        <DialogDescription>変更する取引を選び、カテゴリとサブカテゴリを指定してください。</DialogDescription>
+      </DialogHeader>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="カテゴリ"><SelectField aria-label="一括変更するカテゴリ" value={categoryId} onValueChange={(value) => { setCategoryId(value); setSubcategoryId('') }}><option value="">選択してください</option>{categories.map((category) => <option key={category.category_id} value={category.category_id}>{category.category_name}</option>)}</SelectField></Field>
+        <Field label="サブカテゴリ"><SelectField aria-label="一括変更するサブカテゴリ" disabled={!categoryId} value={subcategoryId} onValueChange={setSubcategoryId}><option value="">選択してください</option>{subcategories.map((subcategory) => <option key={subcategory.sub_category_id} value={subcategory.sub_category_id}>{subcategory.sub_category_name}</option>)}</SelectField></Field>
+      </div>
+      <div className="overflow-hidden rounded-xl border bg-card"><div ref={parentRef} className="max-h-80 overflow-auto"><div className="min-w-[620px]">
+        <div className={cn('sticky top-0 z-10 grid items-center gap-2 border-b bg-muted/95 px-3 py-2 text-xs font-semibold text-muted-foreground backdrop-blur', gridColumns)}>{table.getHeaderGroups().map((group) => group.headers.map((header) => <span key={header.id}>{header.isPlaceholder ? null : <table.FlexRender header={header} />}</span>))}</div>
+        <div className="relative" style={{ height: virtualizer.getTotalSize() }}>{virtualizer.getVirtualItems().map((virtualRow) => { const row = tableRows[virtualRow.index]; return <div className={cn('absolute left-0 top-0 grid w-full items-center gap-2 border-b px-3 py-2 text-sm', gridColumns)} data-index={virtualRow.index} key={row.id} ref={virtualizer.measureElement} style={{ transform: `translateY(${virtualRow.start}px)`, minHeight: virtualRow.size }}>{row.getAllCells().map((cell) => <div key={cell.id}><table.FlexRender cell={cell} /></div>)}</div> })}</div>
+      </div></div></div>
+      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"><DialogClose asChild><Button type="button" variant="outline">キャンセル</Button></DialogClose><Button disabled={!selectedIds.size || !categoryId || !subcategoryId} onClick={() => { onApply(selectedIds, categoryId, subcategoryId); setOpen(false) }} type="button">{selectedIds.size}件に適用</Button></div>
+    </DialogContent>
+  </Dialog>
+}
+
 export function CsvImportView() {
   const queryClient = useQueryClient()
   const categoriesQuery = useGetCategoryWithSubCategoryList()
   const paymentsQuery = useGetPaymentResources()
+  const frequentTransactionsQuery = useGetFrequentTransactionNames()
   const categories = useMemo<Categories>(() => categoriesQuery.data?.status === 200 ? categoriesQuery.data.data.category_list ?? [] : [], [categoriesQuery.data])
   const payments = paymentsQuery.data?.status === 200 ? paymentsQuery.data.data.payment_list ?? [] : []
+  const frequentTransactions = useMemo(
+    () => frequentTransactionsQuery.data?.status === 200 ? frequentTransactionsQuery.data.data.transaction_list : [],
+    [frequentTransactionsQuery.data],
+  )
   const [state, dispatch] = useReducer(reducer, initialState)
   const [filter, setFilter] = useState<Filter>('all')
   const workerRef = useRef<Worker | null>(null)
@@ -201,7 +285,7 @@ export function CsvImportView() {
   const filteredRows = useMemo(() => state.previewRows.filter((row) => filter === 'all' || filter === 'selected' && row.selected || filter === 'excluded' && !row.selected && !row.errors.length || filter === 'error' && row.errors.length), [filter, state.previewRows])
   const selected = state.previewRows.filter((row) => row.selected).length
   const errors = state.previewRows.filter((row) => row.errors.length).length
-  const defaults = state.defaults as ImportDefaults
+  const defaults = state.defaults
 
   const parseFile = (file: File, encoding: Encoding = state.encoding) => {
     if (!file.name.toLowerCase().endsWith('.csv')) return dispatch({ type: 'patch', patch: { error: 'CSVファイルを選択してください。' } })
@@ -220,14 +304,18 @@ export function CsvImportView() {
     }
     worker.postMessage({ file, encoding })
   }
-  const submit = () => { if (!selected || errors || state.importing) return; dispatch({ type: 'patch', patch: { importing: true, error: null } }); mutation.mutate(toTransactionList(state.previewRows, defaults)) }
-  const canPreview = Boolean(dataRows.length <= MAX_ROWS && state.defaults.paymentId && state.defaults.sign && state.defaults.categoryId && state.defaults.subcategoryId && state.mapping.date !== null && state.mapping.name !== null && state.mapping.amount !== null)
+  const submit = () => {
+    if (!selected || errors || state.importing || !state.defaults.sign) return
+    dispatch({ type: 'patch', patch: { importing: true, error: null } })
+    mutation.mutate(toTransactionList(state.previewRows, { sign: state.defaults.sign, paymentId: state.defaults.paymentId }))
+  }
+  const canPreview = Boolean(dataRows.length <= MAX_ROWS && state.defaults.sign && state.mapping.date !== null && state.mapping.name !== null && state.mapping.amount !== null)
 
   useEffect(() => {
     if (!state.rows.length || !canPreview || dataRows.length > MAX_ROWS) return
-    const rows = createImportRows({ rows: state.rows, headerRowIndex: state.headerRowIndex, mapping: state.mapping, defaults, dateFormat: state.dateFormat, categories })
+    const rows = createImportRows({ rows: state.rows, headerRowIndex: state.headerRowIndex, mapping: state.mapping, defaults, dateFormat: state.dateFormat, categories, frequentTransactions })
     dispatch({ type: 'patch', patch: { previewRows: rows, error: null } })
-  }, [canPreview, categories, dataRows.length, defaults, state.dateFormat, state.headerRowIndex, state.mapping, state.rows])
+  }, [canPreview, categories, dataRows.length, defaults, frequentTransactions, state.dateFormat, state.headerRowIndex, state.mapping, state.rows])
 
   if (state.step === 'complete') return <main className="motion-route-enter mx-auto w-full max-w-3xl px-5 pb-24 pt-8 md:px-10 md:pt-12"><div className="mx-auto max-w-md py-16 text-center"><CheckCircle2 className="mx-auto size-12 text-primary" /><h1 className="mt-5 text-2xl font-semibold">インポートが完了しました</h1><p className="mt-2 text-muted-foreground">{state.importedCount}件の取引を追加しました。</p><div className="mt-8 flex justify-center gap-3"><Button asChild variant="outline"><Link to="/app/transactions">取引一覧を見る</Link></Button><Button onClick={() => dispatch({ type: 'patch', patch: initialState })}>別のCSVをインポート</Button></div></div></main>
 
@@ -241,10 +329,10 @@ export function CsvImportView() {
     <section className="grid gap-5 py-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
       <div className="grid gap-5">
         <div className="grid gap-4 rounded-2xl border bg-card p-5 sm:grid-cols-2">
-          <Field label="支払い方法"><SelectField value={state.defaults.paymentId ?? ''} onValueChange={(value) => dispatch({ type: 'patch', patch: { defaults: { ...state.defaults, paymentId: value } } })}><option value="">選択してください</option>{payments.map((payment) => <option key={payment.payment_id} value={payment.payment_id}>{payment.payment_name}</option>)}</SelectField></Field>
+          <Field label="支払い方法（任意）"><SelectField value={state.defaults.paymentId ?? ''} onValueChange={(value) => dispatch({ type: 'patch', patch: { defaults: { ...state.defaults, paymentId: value } } })}><option value="">選択してください</option>{payments.map((payment) => <option key={payment.payment_id} value={payment.payment_id}>{payment.payment_name}</option>)}</SelectField></Field>
           <Field label="取引種別"><SelectField value={state.defaults.sign ?? ''} onValueChange={(value) => dispatch({ type: 'patch', patch: { defaults: { ...state.defaults, sign: value as ImportSign } } })}><option value="">選択してください</option><option value="expense">支出</option><option value="income">収入</option></SelectField></Field>
-          <Field label="カテゴリ"><SelectField value={state.defaults.categoryId ?? ''} onValueChange={(value) => dispatch({ type: 'patch', patch: { defaults: { ...state.defaults, categoryId: value, subcategoryId: '' } } })}><option value="">選択してください</option>{categories.map((category) => <option key={category.category_id} value={category.category_id}>{category.category_name}</option>)}</SelectField></Field>
-          <Field label="サブカテゴリ"><SelectField disabled={!state.defaults.categoryId} value={state.defaults.subcategoryId ?? ''} onValueChange={(value) => dispatch({ type: 'patch', patch: { defaults: { ...state.defaults, subcategoryId: value } } })}><option value="">選択してください</option>{categorySubcategories(categories, state.defaults.categoryId ?? '').map((subcategory) => <option key={subcategory.sub_category_id} value={subcategory.sub_category_id}>{subcategory.sub_category_name}</option>)}</SelectField></Field>
+          <Field label="カテゴリ（任意）"><SelectField value={state.defaults.categoryId ?? ''} onValueChange={(value) => dispatch({ type: 'patch', patch: { defaults: { ...state.defaults, categoryId: value, subcategoryId: '' } } })}><option value="">選択してください</option>{categories.map((category) => <option key={category.category_id} value={category.category_id}>{category.category_name}</option>)}</SelectField></Field>
+          <Field label="サブカテゴリ（任意）"><SelectField disabled={!state.defaults.categoryId} value={state.defaults.subcategoryId ?? ''} onValueChange={(value) => dispatch({ type: 'patch', patch: { defaults: { ...state.defaults, subcategoryId: value } } })}><option value="">選択してください</option>{categorySubcategories(categories, state.defaults.categoryId ?? '').map((subcategory) => <option key={subcategory.sub_category_id} value={subcategory.sub_category_id}>{subcategory.sub_category_name}</option>)}</SelectField></Field>
         </div>
         <label className="grid min-h-36 cursor-pointer place-items-center rounded-2xl border-2 border-dashed bg-muted/20 p-5 text-center transition-colors hover:bg-muted/45" onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); const file = event.dataTransfer.files[0]; if (file && !state.importing) parseFile(file) }}><input accept=".csv,text/csv" className="sr-only" disabled={state.importing} onChange={(event) => { const file = event.target.files?.[0]; if (file) parseFile(file) }} type="file" /><span><FileUp className="mx-auto size-7 text-muted-foreground" /><span className="mt-2 block font-medium">{state.file ? '別のCSVを選択' : 'CSVをドラッグ&ドロップ'}</span><span className="mt-1 block text-sm text-muted-foreground">またはファイルを選択（5MBまで）</span></span></label>
         {state.importing ? <p className="flex items-center justify-center gap-2 text-sm text-muted-foreground"><LoaderCircle className="size-4 animate-spin" />CSVを解析しています...</p> : null}
@@ -256,8 +344,8 @@ export function CsvImportView() {
       </aside> : null}
     </section>
     {state.rows.length ? <section className="grid gap-3 border-t py-8"><div><h2 className="text-lg font-semibold">CSVプレビュー</h2><p className="text-sm text-muted-foreground">選択した列を強調表示しています。</p></div><RawCsvPreview headerRowIndex={state.headerRowIndex} headers={headers} mapping={state.mapping} rows={state.rows} /></section> : null}
-    {state.rows.length && canPreview ? <section className="grid gap-5 border-t py-8"><div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="text-lg font-semibold">インポート内容を確認</h2><p className="text-sm text-muted-foreground">{selected} / {state.previewRows.length}件をインポート予定 ・ エラー {errors}件</p></div><div className="flex flex-wrap gap-2">{([['all', 'すべて'], ['selected', '対象'], ['excluded', '対象外'], ['error', 'エラー']] as const).map(([value, label]) => <Button key={value} onClick={() => setFilter(value)} size="sm" variant={filter === value ? 'default' : 'outline'}>{label}</Button>)}</div></div><div className="flex gap-2"><Button onClick={() => dispatch({ type: 'set-all', selected: true })} size="sm" variant="outline">全選択</Button><Button onClick={() => dispatch({ type: 'set-all', selected: false })} size="sm" variant="outline">全解除</Button></div><PreviewTable categories={categories} dispatch={dispatch} rows={filteredRows} /><div className="flex justify-end"><Button disabled={!selected || errors > 0 || state.importing} onClick={submit}>{state.importing ? <><LoaderCircle className="animate-spin" />登録しています...</> : <><Upload />{selected}件をインポート</>}</Button></div></section> : null}
-    {state.rows.length && !canPreview ? <p className="border-t py-6 text-sm text-muted-foreground">共通設定と日付・取引名・金額の列をすべて指定すると、インポート内容を表示します。</p> : null}
+    {state.rows.length && canPreview ? <section className="grid gap-5 border-t py-8"><div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="text-lg font-semibold">インポート内容を確認</h2><p className="text-sm text-muted-foreground">{selected} / {state.previewRows.length}件をインポート予定 ・ エラー {errors}件</p></div><div className="flex flex-wrap gap-2">{([['all', 'すべて'], ['selected', '対象'], ['excluded', '対象外'], ['error', 'エラー']] as const).map(([value, label]) => <Button key={value} onClick={() => setFilter(value)} size="sm" variant={filter === value ? 'default' : 'outline'}>{label}</Button>)}</div></div><div className="flex flex-wrap gap-2"><Button onClick={() => dispatch({ type: 'set-all', selected: true })} size="sm" variant="outline">全選択</Button><Button onClick={() => dispatch({ type: 'set-all', selected: false })} size="sm" variant="outline">全解除</Button><BulkCategoryDialog categories={categories} onApply={(rowIds, categoryId, subcategoryId) => dispatch({ type: 'apply-category', rowIds, categoryId, subcategoryId, categories })} rows={state.previewRows} /></div><PreviewTable categories={categories} dispatch={dispatch} rows={filteredRows} /><div className="flex justify-end"><Button disabled={!selected || errors > 0 || state.importing} onClick={submit}>{state.importing ? <><LoaderCircle className="animate-spin" />登録しています...</> : <><Upload />{selected}件をインポート</>}</Button></div></section> : null}
+    {state.rows.length && !canPreview ? <p className="border-t py-6 text-sm text-muted-foreground">取引種別と日付・取引名・金額の列をすべて指定すると、インポート内容を表示します。</p> : null}
     <AlertDialog onOpenChange={(open) => !open && blocker.reset?.()} open={blocker.state === 'blocked'}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>インポート作業を破棄しますか？</AlertDialogTitle><AlertDialogDescription>読み込んだCSVと編集内容は保存されません。</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>編集を続ける</AlertDialogCancel><AlertDialogAction onClick={() => blocker.proceed?.()}>破棄して離れる</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
   </main>
 
