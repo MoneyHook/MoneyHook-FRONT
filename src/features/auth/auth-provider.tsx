@@ -18,6 +18,7 @@ import {
 
 import { EnvironmentConfigurationError } from '@/shared/config/environment'
 import { getFirebaseAuth } from '@/shared/lib/firebase'
+import { clearPersistedUserData } from '@/shared/lib/persisted-user-data'
 
 import { AuthContext } from './auth-context'
 import type { AuthContextValue, AuthUser } from './model/auth'
@@ -71,6 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const previousUid = activeUidRef.current
           if (previousUid && previousUid !== user.uid) {
             queryClient.clear()
+            clearPersistedUserData()
           }
           activeUidRef.current = user.uid
           setState({
@@ -84,6 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const previousUid = activeUidRef.current
         if (previousUid) {
           queryClient.clear()
+          clearPersistedUserData()
           activeUidRef.current = null
         }
 
@@ -133,6 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(async () => {
     const auth = getFirebaseAuth()
     queryClient.clear()
+    clearPersistedUserData()
     activeUidRef.current = null
     await firebaseSignOut(auth)
     setState({ status: 'unauthenticated', user: null, error: null })

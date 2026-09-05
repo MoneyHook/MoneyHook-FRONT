@@ -80,6 +80,10 @@ type PaymentRequest = {
   closing_date?: number
 }
 
+type PaymentOrderRequest = {
+  payment_ids: string[]
+}
+
 type RecurringRule = {
   category_id: string
   category_name: string
@@ -187,6 +191,7 @@ function registerPaymentHandlers({
   let payments = [...initialPayments]
   const addRequests: PaymentRequest[] = []
   const editRequests: Array<PaymentRequest & { payment_id: string }> = []
+  const reorderRequests: PaymentOrderRequest[] = []
 
   server.use(
     http.get('http://api.test/api/payment/getPayment', () => {
@@ -228,6 +233,12 @@ function registerPaymentHandlers({
       } : payment)
       return HttpResponse.json({ success: true })
     }),
+    http.put('http://api.test/api/payment/reorder', async ({ request }) => {
+      const body = (await request.json()) as PaymentOrderRequest
+      reorderRequests.push(body)
+      payments = body.payment_ids.map((paymentId) => payments.find((payment) => payment.payment_id === paymentId)!).filter(Boolean)
+      return HttpResponse.json({ success: true })
+    }),
     http.delete('http://api.test/api/payment/deletePayment/:paymentId', ({ params }) => {
       if (deleteError) {
         return HttpResponse.json('関連する取引があるため削除できません', { status: 422 })
@@ -237,7 +248,7 @@ function registerPaymentHandlers({
     }),
   )
 
-  return { addRequests, editRequests }
+  return { addRequests, editRequests, reorderRequests }
 }
 
 function registerRecurringTransactionHandlers({

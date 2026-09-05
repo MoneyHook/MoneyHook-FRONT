@@ -7,6 +7,7 @@ import {
   useEditPaymentResource,
   useGetPaymentResources,
   useGetPaymentTypes,
+  useReorderPaymentResources,
 } from '@/shared/api/generated/payment/payment'
 
 export function usePaymentSettings() {
@@ -22,5 +23,7 @@ export function usePaymentSettings() {
     editMutation: useEditPaymentResource(mutationOptions),
     paymentsQuery: useGetPaymentResources(),
     paymentTypesQuery: useGetPaymentTypes(),
+    queryClient,
+    reorderMutation: useReorderPaymentResources(),
   }
 }
