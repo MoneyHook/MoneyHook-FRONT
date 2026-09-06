@@ -2,7 +2,6 @@ import {
   ArrowDownRight,
   ArrowRight,
   ArrowUpRight,
-  CalendarDays,
   ChevronDown,
   ChevronRight,
   WalletCards,
@@ -47,10 +46,10 @@ import {
   type FixedTransactionItem,
 } from '../model/analysis-fixed'
 import {
-  createAnalysisRange,
   formatCurrency,
   formatPercent,
   formatSignedCurrency,
+  type AnalysisRange,
 } from '../model/analysis-overview'
 
 function AnalysisPanel({
@@ -68,20 +67,6 @@ function AnalysisPanel({
     >
       {children}
     </section>
-  )
-}
-
-function PeriodPanel({ label }: { label: string }) {
-  return (
-    <div className="flex min-h-14 items-center gap-3 rounded-2xl border bg-card px-4 py-2.5 shadow-sm sm:min-h-20 sm:px-6 sm:py-3">
-      <CalendarDays
-        aria-hidden="true"
-        className="size-5 shrink-0 text-muted-foreground sm:size-6"
-      />
-      <p className="min-w-0 text-sm font-medium tabular-nums sm:text-lg">
-        {label}
-      </p>
-    </div>
   )
 }
 
@@ -634,10 +619,9 @@ function FixedSkeleton() {
   )
 }
 
-function EmptyFixed({ rangeLabel }: { rangeLabel: string }) {
+function EmptyFixed() {
   return (
     <div className="space-y-3 sm:space-y-4">
-      <PeriodPanel label={rangeLabel} />
       <AnalysisPanel className="flex min-h-64 flex-col items-center justify-center text-center">
         <WalletCards aria-hidden="true" className="size-8 text-muted-foreground" />
         <h2 className="mt-4 font-semibold">この期間の固定費はありません</h2>
@@ -649,12 +633,11 @@ function EmptyFixed({ rangeLabel }: { rangeLabel: string }) {
   )
 }
 
-export function AnalysisFixedContent() {
+export function AnalysisFixedContent({ range }: { range: AnalysisRange }) {
   const navigate = useNavigate()
   const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
   const rawCategoryKey = searchParams.getAll('fixedCategory').join(',')
-  const range = useMemo(() => createAnalysisRange(), [])
   const fixed = useAnalysisFixed(range)
   const selectedCategoryIds = useMemo(
     () => {
@@ -733,7 +716,6 @@ export function AnalysisFixedContent() {
   if (fixed.isError) {
     return (
       <div className="space-y-3 sm:space-y-4">
-        <PeriodPanel label={range.label} />
         <ErrorState
           message={
             fixed.error instanceof Error
@@ -748,7 +730,7 @@ export function AnalysisFixedContent() {
   }
 
   if (!fixed.data || fixed.data.categories.length === 0) {
-    return <EmptyFixed rangeLabel={range.label} />
+    return <EmptyFixed />
   }
 
   const selected = new Set(selectedCategoryIds)
@@ -761,7 +743,6 @@ export function AnalysisFixedContent() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-3 sm:space-y-4">
-      <PeriodPanel label={fixed.data.range.label} />
       <FixedSummaryPanel data={fixed.data} />
       <FixedBreakdownPanel
         data={fixed.data}

@@ -7,6 +7,7 @@ import { MemoryRouter, useLocation } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { server } from '@/test/msw/server'
+import { createAnalysisRange } from '../model/analysis-overview'
 
 vi.mock('@/shared/config/environment', () => ({
   getEnvironment: () => ({ apiBaseUrl: 'http://api.test' }),
@@ -138,7 +139,7 @@ function renderCategories(initialEntry = '/app/analysis?view=categories') {
   return render(
     <QueryClientProvider client={client}>
       <MemoryRouter initialEntries={[initialEntry]}>
-        <AnalysisCategoriesContent />
+        <AnalysisCategoriesContent range={createAnalysisRange()} />
         <LocationProbe />
       </MemoryRouter>
     </QueryClientProvider>,
@@ -147,6 +148,7 @@ function renderCategories(initialEntry = '/app/analysis?view=categories') {
 
 describe('AnalysisCategoriesContent', () => {
   beforeEach(() => {
+    localStorage.clear()
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date(2026, 7, 30, 12))
   })

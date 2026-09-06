@@ -10,6 +10,13 @@ export type AnalysisRange = {
   label: string
 }
 
+export type AnalysisRangeSelection = {
+  range: AnalysisRange
+  startMonth: string
+  endMonth: string
+  isDefault: boolean
+}
+
 export type AnalysisBreakdownItem = {
   name: string
   amount: number
@@ -67,22 +74,73 @@ function formatJapaneseDate(value: string) {
   return `${year}年${month}月${day}日`
 }
 
+export function formatJapaneseMonth(value: string) {
+  const [year, month] = value.split('-').map(Number)
+  return `${year}年${month}月`
+}
+
+function isMonth(value: string | null): value is string {
+  return value !== null && /^\d{4}-(0[1-9]|1[0-2])$/.test(value)
+}
+
 function ratio(amount: number, total: number) {
   return total === 0 ? 0 : (amount / total) * 100
 }
 
-export function createAnalysisRange(now = new Date()): AnalysisRange {
-  const year = now.getFullYear()
-  const monthIndex = now.getMonth()
-  const start = new Date(year, monthIndex - 5, 1)
-  const endDay = new Date(year, monthIndex + 1, 0).getDate()
-  const startDate = formatDate(start.getFullYear(), start.getMonth(), 1)
-  const endDate = formatDate(year, monthIndex, endDay)
+export function createAnalysisRangeFromMonths(startMonth: string, endMonth: string): AnalysisRange {
+  const [startYear, startMonthIndex] = startMonth.split('-').map(Number)
+  const [endYear, endMonthIndex] = endMonth.split('-').map(Number)
+  const startDate = formatDate(startYear, startMonthIndex - 1, 1)
+  const endDay = new Date(endYear, endMonthIndex, 0).getDate()
+  const endDate = formatDate(endYear, endMonthIndex - 1, endDay)
 
   return {
     startDate,
     endDate,
     label: `${formatJapaneseDate(startDate)} 〜 ${formatJapaneseDate(endDate)}`,
+  }
+}
+
+export function createAnalysisRange(now = new Date()): AnalysisRange {
+  return resolveAnalysisRange({ now }).range
+}
+
+export function getCurrentAnalysisMonth(now = new Date()) {
+  return formatDate(now.getFullYear(), now.getMonth(), 1).slice(0, 7)
+}
+
+export function resolveAnalysisRange({
+  startMonth,
+  endMonth,
+  now = new Date(),
+}: {
+  startMonth?: string | null
+  endMonth?: string | null
+  now?: Date
+}): AnalysisRangeSelection {
+  const currentMonth = getCurrentAnalysisMonth(now)
+  const defaultEndMonth = currentMonth
+  const defaultStartDate = new Date(now.getFullYear(), now.getMonth() - 5, 1)
+  const defaultStartMonth = formatDate(
+    defaultStartDate.getFullYear(),
+    defaultStartDate.getMonth(),
+    1,
+  ).slice(0, 7)
+  const requestedStartMonth = startMonth ?? null
+  const requestedEndMonth = endMonth ?? null
+  const hasValidSelection =
+    isMonth(requestedStartMonth) &&
+    isMonth(requestedEndMonth) &&
+    requestedStartMonth <= requestedEndMonth &&
+    requestedEndMonth <= currentMonth
+  const resolvedStartMonth = hasValidSelection ? requestedStartMonth : defaultStartMonth
+  const resolvedEndMonth = hasValidSelection ? requestedEndMonth : defaultEndMonth
+
+  return {
+    range: createAnalysisRangeFromMonths(resolvedStartMonth, resolvedEndMonth),
+    startMonth: resolvedStartMonth,
+    endMonth: resolvedEndMonth,
+    isDefault: !hasValidSelection,
   }
 }
 

@@ -7,6 +7,7 @@ import { MemoryRouter, useLocation } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { server } from '@/test/msw/server'
+import { TooltipProvider } from '@/shared/components/ui/tooltip'
 
 vi.mock('@/shared/config/environment', () => ({
   getEnvironment: () => ({ apiBaseUrl: 'http://api.test' }),
@@ -153,10 +154,12 @@ function renderDashboard(initialEntry = '/app/analysis') {
   })
   return render(
     <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={[initialEntry]}>
-        <AnalysisDashboard />
-        <LocationProbe />
-      </MemoryRouter>
+      <TooltipProvider>
+        <MemoryRouter initialEntries={[initialEntry]}>
+          <AnalysisDashboard />
+          <LocationProbe />
+        </MemoryRouter>
+      </TooltipProvider>
     </QueryClientProvider>,
   )
 }
@@ -195,6 +198,7 @@ function registerHandlers({ empty = false, failOnce = false } = {}) {
 
 describe('AnalysisDashboard', () => {
   beforeEach(() => {
+    localStorage.clear()
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date(2026, 7, 30, 12))
   })
@@ -208,13 +212,12 @@ describe('AnalysisDashboard', () => {
     renderDashboard()
 
     expect(await screen.findByText('¥600,000')).toBeVisible()
-    expect(screen.getByText('2026年3月1日 〜 2026年8月31日')).toBeVisible()
     expect(screen.getByText('カテゴリ別支出（上位5件）')).toBeVisible()
     expect(screen.getByText('固定費の内訳')).toBeVisible()
     expect(screen.getByText('支出の増減（前期間比）')).toBeVisible()
     expect(screen.getByRole('link', { name: '概要' })).toHaveAttribute('aria-current', 'page')
     expect(screen.getByRole('link', { name: '概要' })).toHaveClass('text-primary')
-    expect(screen.getByText('直近6か月')).toHaveClass('text-primary')
+    expect(screen.getByRole('button', { name: '表示期間を変更' })).toHaveTextContent('直近6か月')
 
     expect(requests).toHaveLength(3)
     for (const request of requests) {
@@ -253,6 +256,25 @@ describe('AnalysisDashboard', () => {
     expect(screen.getByTestId('location')).toHaveTextContent('view=payments')
     expect(requests).toHaveLength(3)
     expect(requests[2]).toContain('/api/v1/analytics/payments')
+  })
+
+  it('uses the URL month range across tabs', async () => {
+    const requests = registerHandlers()
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    renderDashboard('/app/analysis?view=overview&startMonth=2026-01&endMonth=2026-04')
+
+    expect(await screen.findByText('¥600,000')).toBeVisible()
+    const control = screen.getByRole('button', { name: '表示期間を変更' })
+    expect(control).toHaveTextContent('2026年1月〜4月')
+    for (const request of requests) {
+      const params = new URL(request).searchParams
+      expect(params.get('start_date')).toBe('2026-01-01')
+      expect(params.get('end_date')).toBe('2026-04-30')
+    }
+
+    await user.click(screen.getByRole('link', { name: 'カテゴリ' }))
+    expect(screen.getByTestId('location')).toHaveTextContent('startMonth=2026-01')
+    expect(screen.getByTestId('location')).toHaveTextContent('endMonth=2026-04')
   })
 
   it('normalizes an unknown view and shows the overview', async () => {

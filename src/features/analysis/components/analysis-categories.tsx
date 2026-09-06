@@ -1,11 +1,10 @@
 import {
-  CalendarDays,
   ChevronDown,
   ChevronRight,
   Funnel,
   Tags,
 } from 'lucide-react'
-import { useEffect, useMemo } from 'react'
+import { useEffect } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   CartesianGrid,
@@ -39,11 +38,7 @@ import {
   type CategoryTransactionItem,
   type SubcategoryAnalysisItem,
 } from '../model/analysis-categories'
-import {
-  createAnalysisRange,
-  formatCurrency,
-  formatPercent,
-} from '../model/analysis-overview'
+import { formatCurrency, formatPercent, type AnalysisRange } from '../model/analysis-overview'
 
 const groupOptions: Array<{ value: CategoryGroup; label: string }> = [
   { value: 'month', label: '月別' },
@@ -66,20 +61,6 @@ function AnalysisPanel({
     >
       {children}
     </section>
-  )
-}
-
-function PeriodPanel({ label }: { label: string }) {
-  return (
-    <div className="flex min-h-14 items-center gap-3 rounded-2xl border bg-card px-4 py-2.5 shadow-sm sm:min-h-20 sm:px-6 sm:py-3">
-      <CalendarDays
-        aria-hidden="true"
-        className="size-5 shrink-0 text-muted-foreground sm:size-6"
-      />
-      <p className="min-w-0 text-sm font-medium tabular-nums sm:text-lg">
-        {label}
-      </p>
-    </div>
   )
 }
 
@@ -634,10 +615,9 @@ function CategoriesSkeleton() {
   )
 }
 
-function EmptyCategories({ rangeLabel }: { rangeLabel: string }) {
+function EmptyCategories() {
   return (
     <div className="space-y-3 sm:space-y-4">
-      <PeriodPanel label={rangeLabel} />
       <AnalysisPanel className="flex min-h-64 flex-col items-center justify-center text-center">
         <Tags aria-hidden="true" className="size-8 text-muted-foreground" />
         <h2 className="mt-4 font-semibold">この期間の支出はありません</h2>
@@ -649,7 +629,7 @@ function EmptyCategories({ rangeLabel }: { rangeLabel: string }) {
   )
 }
 
-export function AnalysisCategoriesContent() {
+export function AnalysisCategoriesContent({ range }: { range: AnalysisRange }) {
   const navigate = useNavigate()
   const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -660,7 +640,6 @@ export function AnalysisCategoriesContent() {
     group: rawGroup,
     listMode: rawListMode,
   })
-  const range = useMemo(() => createAnalysisRange(), [])
   const categories = useAnalysisCategories(range, group)
   const selectedCategory = categories.data
     ? getSelectedCategory(categories.data, rawCategoryId)
@@ -726,7 +705,6 @@ export function AnalysisCategoriesContent() {
   if (categories.isError) {
     return (
       <div className="space-y-3 sm:space-y-4">
-        <PeriodPanel label={range.label} />
         <ErrorState
           message={
             categories.error instanceof Error
@@ -741,12 +719,11 @@ export function AnalysisCategoriesContent() {
   }
 
   if (!categories.data || !selectedCategory) {
-    return <EmptyCategories rangeLabel={range.label} />
+    return <EmptyCategories />
   }
 
   return (
     <div className="mx-auto max-w-5xl space-y-3 sm:space-y-4">
-      <PeriodPanel label={categories.data.range.label} />
       <CategorySummaryPanel
         data={categories.data}
         listMode={listMode}

@@ -9,6 +9,7 @@ import type {
 import {
   buildAnalysisOverviewViewModel,
   createAnalysisRange,
+  resolveAnalysisRange,
 } from './analysis-overview'
 
 const range = createAnalysisRange(new Date(2026, 7, 30, 12))
@@ -165,6 +166,25 @@ describe('analysis overview model', () => {
     expect(createAnalysisRange(new Date(2026, 0, 10))).toMatchObject({
       startDate: '2025-08-01',
       endDate: '2026-01-31',
+    })
+  })
+
+  it('resolves a valid month selection and falls back from invalid or future ranges', () => {
+    const now = new Date(2026, 7, 30, 12)
+    expect(
+      resolveAnalysisRange({ startMonth: '2026-01', endMonth: '2026-04', now }),
+    ).toMatchObject({
+      startMonth: '2026-01',
+      endMonth: '2026-04',
+      isDefault: false,
+      range: { startDate: '2026-01-01', endDate: '2026-04-30' },
+    })
+    expect(
+      resolveAnalysisRange({ startMonth: '2026-09', endMonth: '2026-10', now }),
+    ).toMatchObject({
+      startMonth: '2026-03',
+      endMonth: '2026-08',
+      isDefault: true,
     })
   })
 
