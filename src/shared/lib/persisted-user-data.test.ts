@@ -3,8 +3,11 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import {
   PERSISTED_USER_DATA_PREFIX,
   clearPersistedUserData,
+  createPersistedQueryKey,
+  ensurePersistedUserDataOwner,
   readPersistedUserData,
   writePersistedUserData,
+  writePersistedQueryData,
 } from './persisted-user-data'
 
 describe('persisted user data', () => {
@@ -40,5 +43,27 @@ describe('persisted user data', () => {
 
     expect(localStorage.getItem(userKey)).toBeNull()
     expect(localStorage.getItem('moneyhooks:appearance:theme')).toBe('dark')
+  })
+
+  it('separates query parameters and limits persisted query entries', () => {
+    const firstKey = createPersistedQueryKey('timeline', { month: '2026-08-01', filter: 'all' })
+    const reorderedKey = createPersistedQueryKey('timeline', { filter: 'all', month: '2026-08-01' })
+    expect(firstKey).toBe(reorderedKey)
+
+    for (let index = 0; index < 25; index += 1) {
+      writePersistedQueryData(createPersistedQueryKey('timeline', { index }), 1, { index })
+    }
+
+    expect(Array.from({ length: localStorage.length }, (_, index) => localStorage.key(index)).filter((key) => key?.includes(':query:'))).toHaveLength(24)
+  })
+
+  it('clears another user cache before assigning the authenticated owner', () => {
+    writePersistedUserData(`${PERSISTED_USER_DATA_PREFIX}transaction-form:categories`, 1, { values: [] })
+    ensurePersistedUserDataOwner('user-a')
+    writePersistedUserData(`${PERSISTED_USER_DATA_PREFIX}transaction-form:categories`, 1, { values: ['a'] })
+
+    ensurePersistedUserDataOwner('user-b')
+
+    expect(localStorage.getItem(`${PERSISTED_USER_DATA_PREFIX}transaction-form:categories`)).toBeNull()
   })
 })

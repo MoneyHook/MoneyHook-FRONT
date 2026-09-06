@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { V1PaymentsResponse } from '@/shared/api/generated/model'
 import { server } from '@/test/msw/server'
+import { createAnalysisRange } from '../model/analysis-overview'
 
 vi.mock('@/shared/config/environment', () => ({
   getEnvironment: () => ({ apiBaseUrl: 'http://api.test' }),
@@ -133,7 +134,7 @@ function renderPayments(initialEntry = '/app/analysis?view=payments') {
   return render(
     <QueryClientProvider client={client}>
       <MemoryRouter initialEntries={[initialEntry]}>
-        <AnalysisPaymentsContent />
+        <AnalysisPaymentsContent range={createAnalysisRange()} />
         <LocationProbe />
       </MemoryRouter>
     </QueryClientProvider>,
@@ -167,6 +168,7 @@ function registerHandler({
 
 describe('AnalysisPaymentsContent', () => {
   beforeEach(() => {
+    localStorage.clear()
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date(2026, 7, 30, 12))
   })
@@ -182,7 +184,6 @@ describe('AnalysisPaymentsContent', () => {
     expect(
       await screen.findByRole('heading', { name: '支払い方法サマリー' }),
     ).toBeVisible()
-    expect(screen.getByText('2026年3月1日 〜 2026年8月31日')).toBeVisible()
     expect(screen.getAllByText('¥180,000')[0]).toBeVisible()
     expect(
       screen.getByRole('heading', { name: '支払い方法別の支出推移' }),

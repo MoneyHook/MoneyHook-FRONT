@@ -6,6 +6,7 @@ import { Children, isValidElement, useCallback, useEffect, useMemo, useReducer, 
 import { Link, useBeforeUnload, useBlocker } from 'react-router-dom'
 
 import { addTransactionList, useGetFrequentTransactionNames } from '@/shared/api/generated/transaction/transaction'
+import { clearPersistedQueryData } from '@/shared/lib/persisted-user-data'
 import { useGetCategoryWithSubCategoryList } from '@/shared/api/generated/category/category'
 import { useGetPaymentResources } from '@/shared/api/generated/payment/payment'
 import { Button } from '@/shared/components/ui/button'
@@ -286,7 +287,7 @@ export function CsvImportView() {
   useBeforeUnload((event) => { if (state.step !== 'complete' && state.file) event.preventDefault() })
   useEffect(() => () => workerRef.current?.terminate(), [])
 
-  const mutation = useMutation({ mutationFn: (request: ReturnType<typeof toTransactionList>) => addTransactionList(request), onSuccess: async () => { await queryClient.invalidateQueries(); dispatch({ type: 'patch', patch: { importing: false, step: 'complete', importedCount: state.previewRows.filter((row) => row.selected && !row.errors.length).length } }) }, onError: () => dispatch({ type: 'patch', patch: { importing: false, error: '取引を登録できませんでした。内容を確認して、もう一度お試しください。' } }) })
+  const mutation = useMutation({ mutationFn: (request: ReturnType<typeof toTransactionList>) => addTransactionList(request), onSuccess: async () => { await queryClient.invalidateQueries(); clearPersistedQueryData(); dispatch({ type: 'patch', patch: { importing: false, step: 'complete', importedCount: state.previewRows.filter((row) => row.selected && !row.errors.length).length } }) }, onError: () => dispatch({ type: 'patch', patch: { importing: false, error: '取引を登録できませんでした。内容を確認して、もう一度お試しください。' } }) })
   const headers = useMemo(() => headersFor(state), [state])
   const dataRows = state.rows.filter((_, index) => state.headerRowIndex === null || index > state.headerRowIndex)
   const filteredRows = useMemo(() => state.previewRows.filter((row) => filter === 'all' || filter === 'selected' && row.selected || filter === 'excluded' && !row.selected && !row.errors.length || filter === 'error' && row.errors.length), [filter, state.previewRows])
@@ -342,7 +343,7 @@ export function CsvImportView() {
 
   return <main className="motion-route-enter mx-auto w-full max-w-6xl px-5 pb-24 pt-8 md:px-10 md:pt-12">
     <header className="border-b pb-6">
-      <Button asChild className="-ml-2 mb-4" variant="ghost"><Link to="/app/settings"><ArrowLeft />設定へ戻る</Link></Button>
+      <Button asChild className="-ml-2 mb-4" variant="ghost"><Link to="/app/transactions"><ArrowLeft />取引一覧へ戻る</Link></Button>
       <h1 className="text-2xl font-semibold tracking-[-0.035em] md:text-3xl">CSV取引インポート</h1>
       <p className="mt-1.5 text-sm leading-6 text-muted-foreground md:text-base">CSVの列を指定し、読み込む取引をその場で確認・編集します。</p>
     </header>

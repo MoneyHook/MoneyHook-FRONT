@@ -6,7 +6,7 @@ import {
   ChartPie,
   Lightbulb,
 } from 'lucide-react'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import {
   CartesianGrid,
@@ -22,7 +22,11 @@ import {
 } from 'recharts'
 
 import { ErrorState } from '@/shared/components/app-state'
+import { MonthPicker } from '@/shared/components/month-picker'
+import { Button } from '@/shared/components/ui/button'
+import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover'
 import { Skeleton } from '@/shared/components/ui/skeleton'
+import { Tooltip as AppTooltip, TooltipContent, TooltipTrigger } from '@/shared/components/ui/tooltip'
 import { cn } from '@/shared/lib/utils'
 
 import { useAnalysisOverview } from '../api/use-analysis-overview'
@@ -31,12 +35,16 @@ import { AnalysisCategoriesContent } from './analysis-categories'
 import { AnalysisFixedContent } from './analysis-fixed'
 import { AnalysisPaymentsContent } from './analysis-payments'
 import {
-  createAnalysisRange,
   formatCurrency,
+  formatJapaneseMonth,
   formatPercent,
   formatSignedCurrency,
+  getCurrentAnalysisMonth,
+  resolveAnalysisRange,
   type AnalysisBreakdownItem,
   type AnalysisChangeItem,
+  type AnalysisRange,
+  type AnalysisRangeSelection,
   type AnalysisOverviewViewModel,
 } from '../model/analysis-overview'
 
@@ -55,8 +63,20 @@ function normalizeView(value: string | null): AnalysisView {
     : 'overview'
 }
 
-function AnalysisHeader({ view }: { view: AnalysisView }) {
+function AnalysisHeader({
+  view,
+  selection,
+  onRangeChange,
+}: {
+  view: AnalysisView
+  selection: AnalysisRangeSelection
+  onRangeChange: (startMonth: string, endMonth: string) => void
+}) {
   const [searchParams] = useSearchParams()
+  const [periodOpen, setPeriodOpen] = useState(false)
+  const label = selection.isDefault
+    ? '直近6か月'
+    : `${formatJapaneseMonth(selection.startMonth)}〜${Number(selection.endMonth.slice(5))}月`
 
   return (
     <>
@@ -67,10 +87,51 @@ function AnalysisHeader({ view }: { view: AnalysisView }) {
         >
           分析
         </h1>
-        <span className="flex min-h-10 items-center gap-2 text-sm font-semibold text-primary sm:text-base">
-          <CalendarDays aria-hidden="true" className="size-5" />
-          直近6か月
-        </span>
+        <Popover onOpenChange={setPeriodOpen} open={periodOpen}>
+          <AppTooltip>
+            <TooltipTrigger asChild>
+              <PopoverTrigger asChild>
+                <Button
+                  aria-label="表示期間を変更"
+                  aria-expanded={periodOpen}
+                  className="min-h-10 gap-2 px-2 text-sm font-semibold text-primary sm:text-base"
+                  type="button"
+                  variant="ghost"
+                >
+                  <CalendarDays aria-hidden="true" className="size-5" />
+                  {label}
+                </Button>
+              </PopoverTrigger>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" sideOffset={6}>
+              {selection.range.label}
+            </TooltipContent>
+          </AppTooltip>
+          <PopoverContent align="end" className="w-[calc(100vw-2rem)] max-w-80 p-3 sm:p-4" sideOffset={8}>
+            <p className="text-sm font-semibold">表示期間</p>
+            <div className="mt-3 grid gap-3 border-t pt-3">
+              <MonthPicker
+                align="start"
+                ariaLabel="開始月"
+                maxMonth={selection.endMonth}
+                monthInput={selection.startMonth}
+                monthLabel={`開始: ${formatJapaneseMonth(selection.startMonth)}`}
+                onChange={(month) => onRangeChange(month.slice(0, 7), selection.endMonth)}
+                showCalendarIcon
+              />
+              <MonthPicker
+                align="start"
+                ariaLabel="終了月"
+                maxMonth={getCurrentAnalysisMonth()}
+                minMonth={selection.startMonth}
+                monthInput={selection.endMonth}
+                monthLabel={`終了: ${formatJapaneseMonth(selection.endMonth)}`}
+                onChange={(month) => onRangeChange(selection.startMonth, month.slice(0, 7))}
+                showCalendarIcon
+              />
+            </div>
+          </PopoverContent>
+        </Popover>
       </header>
 
       <nav aria-label="分析表示" className="mt-5 border-b sm:mt-7">
@@ -115,15 +176,6 @@ function AnalysisPanel({
     >
       {children}
     </section>
-  )
-}
-
-function PeriodPanel({ label }: { label: string }) {
-  return (
-    <div className="flex min-h-14 items-center gap-3 rounded-2xl border bg-card px-4 py-2.5 shadow-sm sm:min-h-20 sm:px-6 sm:py-3">
-      <CalendarDays aria-hidden="true" className="size-5 shrink-0 text-muted-foreground sm:size-6" />
-      <p className="min-w-0 text-sm font-medium tabular-nums sm:text-lg">{label}</p>
-    </div>
   )
 }
 
@@ -319,6 +371,10 @@ function BreakdownPanel({
   linkLabel: string
   linkView: AnalysisView
 }) {
+  const [searchParams] = useSearchParams()
+  const next = new URLSearchParams(searchParams)
+  next.set('view', linkView)
+
   return (
     <AnalysisPanel className="flex min-w-0 flex-col p-3 sm:p-6">
       <h2 className="text-sm font-semibold sm:text-lg">{title}</h2>
@@ -327,7 +383,7 @@ function BreakdownPanel({
       </div>
       <Link
         className="mt-3 flex min-h-11 items-center justify-between border-t pt-3 text-xs font-medium transition-colors hover:text-primary sm:text-sm"
-        to={`/app/analysis?view=${linkView}`}
+        to={{ search: `?${next.toString()}` }}
       >
         {linkLabel}
         <ArrowRight aria-hidden="true" className="size-4 text-muted-foreground" />
@@ -486,8 +542,7 @@ function OverviewSkeleton() {
   )
 }
 
-function OverviewContent() {
-  const range = useMemo(() => createAnalysisRange(), [])
+function OverviewContent({ range }: { range: AnalysisRange }) {
   const overview = useAnalysisOverview(range)
 
   if (overview.isPending) {
@@ -497,7 +552,6 @@ function OverviewContent() {
   if (overview.isError) {
     return (
       <>
-        <PeriodPanel label={range.label} />
         <ErrorState
           message={
             overview.error instanceof Error
@@ -517,7 +571,6 @@ function OverviewContent() {
 
   return (
     <div className="space-y-3 sm:space-y-4">
-      <PeriodPanel label={overview.data.range.label} />
       <SummaryPanel data={overview.data} />
       <SpendingTrendPanel data={overview.data} />
       <div className="grid gap-3 min-[400px]:grid-cols-2 sm:gap-4">
@@ -548,6 +601,10 @@ export function AnalysisDashboard() {
   const [searchParams, setSearchParams] = useSearchParams()
   const rawView = searchParams.get('view')
   const view = normalizeView(rawView)
+  const selection = resolveAnalysisRange({
+    startMonth: searchParams.get('startMonth'),
+    endMonth: searchParams.get('endMonth'),
+  })
 
   useEffect(() => {
     if (rawView === null || rawView === view) {
@@ -558,17 +615,24 @@ export function AnalysisDashboard() {
     setSearchParams(next, { replace: true })
   }, [rawView, searchParams, setSearchParams, view])
 
+  const setRange = (startMonth: string, endMonth: string) => {
+    const next = new URLSearchParams(searchParams)
+    next.set('startMonth', startMonth)
+    next.set('endMonth', endMonth)
+    setSearchParams(next)
+  }
+
   return (
     <section
       aria-labelledby="analysis-page-title"
       className="motion-route-enter mx-auto w-full max-w-7xl px-4 pb-24 pt-5 sm:px-6 sm:pt-8 md:px-8 md:pb-10"
     >
-      <AnalysisHeader view={view} />
+      <AnalysisHeader onRangeChange={setRange} selection={selection} view={view} />
       <div className="mt-5 sm:mt-6">
-        {view === 'overview' ? <OverviewContent /> : null}
-        {view === 'categories' ? <AnalysisCategoriesContent /> : null}
-        {view === 'fixed' ? <AnalysisFixedContent /> : null}
-        {view === 'payments' ? <AnalysisPaymentsContent /> : null}
+        {view === 'overview' ? <OverviewContent range={selection.range} /> : null}
+        {view === 'categories' ? <AnalysisCategoriesContent range={selection.range} /> : null}
+        {view === 'fixed' ? <AnalysisFixedContent range={selection.range} /> : null}
+        {view === 'payments' ? <AnalysisPaymentsContent range={selection.range} /> : null}
       </div>
     </section>
   )

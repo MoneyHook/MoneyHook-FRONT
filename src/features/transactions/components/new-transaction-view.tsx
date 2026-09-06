@@ -8,6 +8,7 @@ import {
   Info,
   LoaderCircle,
   Trash2,
+  Upload,
   X,
 } from 'lucide-react'
 import { ja } from 'react-day-picker/locale'
@@ -21,7 +22,6 @@ import {
   getGetV1TransactionQueryKey,
   useCreateV1Transaction,
   useDeleteV1Transaction,
-  useGetV1Transaction,
   useUpdateV1Transaction,
 } from '@/shared/api/generated/transaction/transaction'
 import { ErrorState } from '@/shared/components/app-state'
@@ -47,12 +47,15 @@ import {
   SheetTitle,
 } from '@/shared/components/ui/sheet'
 import { Skeleton } from '@/shared/components/ui/skeleton'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/components/ui/tooltip'
 import { getCategoryPresentation } from '@/shared/lib/category-presentation'
 import { getPaymentIconSource } from '@/shared/lib/payment-icon'
+import { clearPersistedQueryData } from '@/shared/lib/persisted-user-data'
 import { cn } from '@/shared/lib/utils'
 
 import { TransactionCandidateChip, TransactionCandidates } from './transaction-candidates'
 import { useTransactionFormReferences } from '../api/use-transaction-form-references'
+import { useTransactionDetail } from '../api/use-transaction-detail'
 import {
   createNewTransactionValues,
   validateNewTransaction,
@@ -217,9 +220,7 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
   const queryClient = useQueryClient()
   const { categoriesQuery, paymentsQuery, paymentTypesQuery, frequentTransactionsQuery } =
     useTransactionFormReferences({ isEdit })
-  const transactionQuery = useGetV1Transaction(transactionId ?? '', {
-    query: { enabled: isEdit },
-  })
+  const transactionQuery = useTransactionDetail(transactionId)
   const createMutation = useCreateV1Transaction()
   const updateMutation = useUpdateV1Transaction()
   const deleteMutation = useDeleteV1Transaction()
@@ -361,6 +362,7 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
         await queryClient.invalidateQueries({
           queryKey: getGetV1TransactionQueryKey(transactionId),
         })
+        clearPersistedQueryData()
         toast.success('取引を更新しました。')
         navigate(returnTo, { replace: true })
         return
@@ -389,6 +391,7 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
         queryKey: getGetTimelineDataQueryKey({ month }),
       })
       await queryClient.invalidateQueries({ queryKey: getGetFrequentTransactionNamesQueryKey() })
+      clearPersistedQueryData()
       toast.success('取引を保存しました。')
       navigate(`/app/transactions?month=${month}&view=list`, { replace: true })
     } catch (error) {
@@ -409,6 +412,7 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
 
       await invalidateTransactionQueries(queryClient, transaction.transaction_date)
       queryClient.removeQueries({ queryKey: getGetV1TransactionQueryKey(transactionId) })
+      clearPersistedQueryData()
       setDeleteDialogOpen(false)
       toast.success('取引を削除しました。')
       navigate(returnTo, { replace: true })
@@ -438,7 +442,7 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
 
   if (
     (categoriesQuery.isError && !categoriesQuery.data) ||
-    (isEdit && (transactionQuery.isError || !transaction))
+    (isEdit && !transaction)
   ) {
     const error = transactionQuery.isError ? transactionQuery.error : categoriesQuery.error
     return (
@@ -474,7 +478,16 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
               <Button aria-label="取引を削除" className="size-8 sm:size-9" disabled={isSaving || isDeleting} onClick={() => setDeleteDialogOpen(true)} size="icon" type="button" variant="destructive">
                 <Trash2 aria-hidden="true" className="size-5" />
               </Button>
-            ) : null}
+            ) : (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button aria-label="CSV取引をインポート" className="size-8 sm:size-9" onClick={() => navigate('/app/transactions/import')} size="icon" type="button" variant="ghost">
+                    <Upload aria-hidden="true" className="size-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">CSV取引をインポート</TooltipContent>
+              </Tooltip>
+            )}
           </div>
         </header>
 
@@ -616,22 +629,24 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
           </FormRow>
         </FormSection>
 
-        <FormSection>
-          <button
-            className="flex min-h-20 w-full items-center gap-3 px-4 text-left outline-none transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-28 sm:px-5"
-            onClick={() => setSelectionSheet('payment')}
-            type="button"
-          >
-            <span className="text-sm font-medium sm:text-base">支払い方法</span>
-            <span className="ml-auto flex min-w-0 items-center gap-3">
-              {selectedPayment ? <PaymentIcon paymentName={selectedPayment.payment_name} paymentTypeName={paymentTypeNames.get(selectedPayment.payment_type_id)} sizeClassName="size-11" /> : null}
-              <span className={cn('truncate text-base font-medium sm:text-lg', !selectedPayment && 'text-muted-foreground')}>
-                {paymentsQuery.isError ? '取得できませんでした' : selectedPayment?.payment_name ?? '選択しない'}
+        {payments.length ? (
+          <FormSection>
+            <button
+              className="flex min-h-20 w-full items-center gap-3 px-4 text-left outline-none transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-28 sm:px-5"
+              onClick={() => setSelectionSheet('payment')}
+              type="button"
+            >
+              <span className="text-sm font-medium sm:text-base">支払い方法</span>
+              <span className="ml-auto flex min-w-0 items-center gap-3">
+                {selectedPayment ? <PaymentIcon paymentName={selectedPayment.payment_name} paymentTypeName={paymentTypeNames.get(selectedPayment.payment_type_id)} sizeClassName="size-11" /> : null}
+                <span className={cn('truncate text-base font-medium sm:text-lg', !selectedPayment && 'text-muted-foreground')}>
+                  {paymentsQuery.isError ? '取得できませんでした' : selectedPayment?.payment_name ?? '選択しない'}
+                </span>
               </span>
-            </span>
-            <ChevronRight aria-hidden="true" className="size-5 shrink-0 text-muted-foreground" />
-          </button>
-        </FormSection>
+              <ChevronRight aria-hidden="true" className="size-5 shrink-0 text-muted-foreground" />
+            </button>
+          </FormSection>
+        ) : null}
 
         {frequentTransactions.length ? <TransactionCandidates onOpenMore={() => setSelectionSheet('candidate')} onSelect={selectFrequentTransaction} transactions={frequentTransactions} /> : null}
         </div>
