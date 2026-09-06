@@ -147,7 +147,7 @@ function AnalysisHeader({
                   className={cn(
                     'relative flex min-h-12 items-center justify-center px-1 text-center text-xs font-medium transition-colors sm:text-base',
                     isActive
-                      ? 'text-primary after:absolute after:inset-x-0 after:bottom-[-1px] after:h-0.5 after:rounded-full after:bg-primary'
+                      ? 'text-primary after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:rounded-full after:bg-primary'
                       : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground',
                   )}
                   to={{ search: `?${next.toString()}` }}
@@ -308,7 +308,7 @@ function BreakdownChart({
 
   return (
     <div className="grid min-h-28 grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-1.5 sm:min-h-40 sm:grid-cols-[8rem_minmax(0,1fr)] sm:gap-4">
-      <div aria-label={label} className="h-24 w-[4.5rem] sm:h-36 sm:w-32">
+      <div aria-label={label} className="h-24 w-18 sm:h-36 sm:w-32">
         <ResponsiveContainer height="100%" width="100%">
           <PieChart>
             <Pie

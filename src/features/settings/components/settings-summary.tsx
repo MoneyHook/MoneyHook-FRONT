@@ -55,7 +55,7 @@ function SummaryCard({ description, icon: Icon, title, to, value }: SummaryCardP
       </span>
       <span className="min-w-0 flex-1">
         <span className="block text-sm font-medium">{title}</span>
-        <span className="mt-0.5 block truncate text-base font-semibold tracking-[-0.025em] sm:text-lg">
+        <span className="mt-0.5 block truncate text-base font-semibold tracking-tight sm:text-lg">
           {value}
         </span>
         <span className="mt-0.5 block truncate text-xs text-muted-foreground sm:text-sm">

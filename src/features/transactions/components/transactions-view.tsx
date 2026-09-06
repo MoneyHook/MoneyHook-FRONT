@@ -91,7 +91,7 @@ function ViewTabs({
             className={cn(
               'relative min-h-12 px-4 text-sm font-semibold text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50',
               isSelected &&
-                'text-primary after:absolute after:inset-x-0 after:bottom-[-1px] after:h-0.5 after:rounded-full after:bg-primary',
+                'text-primary after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:rounded-full after:bg-primary',
             )}
             id={`transactions-${tab.value}-tab`}
             key={tab.value}
@@ -520,7 +520,7 @@ function TransactionsSkeleton({ view }: { view: TransactionView }) {
       className="space-y-4 pt-4 sm:pt-6"
       role="status"
     >
-      <Skeleton className={cn('rounded-2xl', view === 'list' ? 'h-40' : 'h-[28rem]')} />
+      <Skeleton className={cn('rounded-2xl', view === 'list' ? 'h-40' : 'h-112')} />
       <Skeleton className="h-72 rounded-2xl" />
       {view === 'list' ? <Skeleton className="h-64 rounded-2xl" /> : null}
     </div>

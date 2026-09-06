@@ -19,7 +19,7 @@ export function Brand({ className }: { className?: string }) {
         src="/home-icon.svg"
         width="36"
       />
-      <span className="text-[0.95rem] font-semibold tracking-[-0.025em]">
+      <span className="text-[0.95rem] font-semibold tracking-tight">
         MoneyHooks
       </span>
     </Link>

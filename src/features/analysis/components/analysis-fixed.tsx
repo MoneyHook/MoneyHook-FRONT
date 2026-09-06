@@ -456,7 +456,7 @@ function CategoryTrendTable({
         />
       </div>
       <div className="overflow-x-auto border-t">
-        <table className="min-w-[52rem] w-full border-collapse text-xs tabular-nums sm:text-sm">
+        <table className="min-w-208 w-full border-collapse text-xs tabular-nums sm:text-sm">
           <caption className="sr-only">
             選択した固定費カテゴリの月平均、月別支出、年間換算
           </caption>
