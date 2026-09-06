@@ -103,6 +103,7 @@ function renderTransactions(initialEntry = '/app/transactions?month=2024-08-01&v
 
 describe('TransactionsView', () => {
   beforeEach(() => {
+    localStorage.clear()
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date(2026, 7, 30, 12))
   })

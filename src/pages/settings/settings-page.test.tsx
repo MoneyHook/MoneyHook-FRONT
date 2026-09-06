@@ -440,6 +440,7 @@ describe('SettingsPage', () => {
     expect(screen.getByRole('link', { name: '支払い方法の設定を開く' })).toHaveAttribute('href', '/app/settings/payments')
     expect(screen.getByRole('link', { name: '収支の自動入力の設定を開く' })).toHaveAttribute('href', '/app/settings/recurring-transactions')
     expect(screen.getByRole('link', { name: '表示の設定を開く' })).toHaveAttribute('href', '/app/settings/appearance')
+    expect(screen.queryByRole('link', { name: 'データインポートの設定を開く' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '管理する' })).not.toBeInTheDocument()
   })
 

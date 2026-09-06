@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { V1FixedResponse } from '@/shared/api/generated/model'
 import { server } from '@/test/msw/server'
+import { createAnalysisRange } from '../model/analysis-overview'
 
 vi.mock('@/shared/config/environment', () => ({
   getEnvironment: () => ({ apiBaseUrl: 'http://api.test' }),
@@ -108,7 +109,7 @@ function renderFixed(initialEntry = '/app/analysis?view=fixed') {
   return render(
     <QueryClientProvider client={client}>
       <MemoryRouter initialEntries={[initialEntry]}>
-        <AnalysisFixedContent />
+        <AnalysisFixedContent range={createAnalysisRange()} />
         <LocationProbe />
       </MemoryRouter>
     </QueryClientProvider>,
@@ -142,6 +143,7 @@ function registerHandler({
 
 describe('AnalysisFixedContent', () => {
   beforeEach(() => {
+    localStorage.clear()
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date(2026, 7, 30, 12))
   })
@@ -157,7 +159,6 @@ describe('AnalysisFixedContent', () => {
     expect(
       await screen.findByRole('heading', { name: '固定費サマリー' }),
     ).toBeVisible()
-    expect(screen.getByText('2026年3月1日 〜 2026年8月31日')).toBeVisible()
     expect(screen.getByText('¥720,000')).toBeVisible()
     expect(screen.getByRole('heading', { name: '固定費の内訳' })).toBeVisible()
     expect(screen.getByRole('heading', { name: '固定費の推移' })).toBeVisible()

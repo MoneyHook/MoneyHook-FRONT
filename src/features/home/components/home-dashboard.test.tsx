@@ -162,6 +162,7 @@ function renderDashboard(initialEntry = '/app/home?month=2026-08-01') {
 
 describe('HomeDashboard', () => {
   beforeEach(() => {
+    localStorage.clear()
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date(2026, 7, 22, 12))
   })

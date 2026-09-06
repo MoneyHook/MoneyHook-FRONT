@@ -68,7 +68,7 @@ type DashboardResponses = {
   currentHome: HomeResponse
   previousHome: HomeResponse
   fixed: V1FixedResponse
-  budget: V1BudgetResponse
+  budget: V1BudgetResponse | null
   month: MonthContext
 }
 
@@ -224,7 +224,7 @@ export function buildHomeDashboardViewModel({
   const fixedExpenseAmount = currentOverview.summary.fixed_expense_amount
   const variableExpenseAmount = currentOverview.summary.variable_expense_amount
   const budgetRatio =
-    budget.monthly_budget_amount === null
+    budget?.monthly_budget_amount === null || budget === null
       ? null
       : ratio(expenseAmount, budget.monthly_budget_amount)
 

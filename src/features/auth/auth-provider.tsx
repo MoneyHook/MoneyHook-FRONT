@@ -18,7 +18,7 @@ import {
 
 import { EnvironmentConfigurationError } from '@/shared/config/environment'
 import { getFirebaseAuth } from '@/shared/lib/firebase'
-import { clearPersistedUserData } from '@/shared/lib/persisted-user-data'
+import { clearPersistedUserData, ensurePersistedUserDataOwner } from '@/shared/lib/persisted-user-data'
 
 import { AuthContext } from './auth-context'
 import type { AuthContextValue, AuthUser } from './model/auth'
@@ -74,6 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             queryClient.clear()
             clearPersistedUserData()
           }
+          ensurePersistedUserDataOwner(user.uid)
           activeUidRef.current = user.uid
           setState({
             status: 'authenticated',

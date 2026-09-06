@@ -1,6 +1,5 @@
 import {
   Banknote,
-  CalendarDays,
   ChevronDown,
   ChevronRight,
   CreditCard,
@@ -8,7 +7,7 @@ import {
   QrCode,
   WalletCards,
 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   CartesianGrid,
@@ -37,9 +36,9 @@ import {
   type PaymentTransactionItem,
 } from '../model/analysis-payments'
 import {
-  createAnalysisRange,
   formatCurrency,
   formatPercent,
+  type AnalysisRange,
 } from '../model/analysis-overview'
 
 const paymentIconClasses = [
@@ -66,20 +65,6 @@ function AnalysisPanel({
     >
       {children}
     </section>
-  )
-}
-
-function PeriodPanel({ label }: { label: string }) {
-  return (
-    <div className="flex min-h-14 items-center gap-3 rounded-2xl border bg-card px-4 py-2.5 shadow-sm sm:min-h-20 sm:px-6 sm:py-3">
-      <CalendarDays
-        aria-hidden="true"
-        className="size-5 shrink-0 text-muted-foreground sm:size-6"
-      />
-      <p className="min-w-0 text-sm font-medium tabular-nums sm:text-lg">
-        {label}
-      </p>
-    </div>
   )
 }
 
@@ -549,10 +534,9 @@ function PaymentsSkeleton() {
   )
 }
 
-function EmptyPayments({ rangeLabel }: { rangeLabel: string }) {
+function EmptyPayments() {
   return (
     <div className="space-y-3 sm:space-y-4">
-      <PeriodPanel label={rangeLabel} />
       <AnalysisPanel className="flex min-h-64 flex-col items-center justify-center text-center">
         <WalletCards aria-hidden="true" className="size-8 text-muted-foreground" />
         <h2 className="mt-4 font-semibold">この期間の支出はありません</h2>
@@ -564,12 +548,11 @@ function EmptyPayments({ rangeLabel }: { rangeLabel: string }) {
   )
 }
 
-export function AnalysisPaymentsContent() {
+export function AnalysisPaymentsContent({ range }: { range: AnalysisRange }) {
   const navigate = useNavigate()
   const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
   const rawPaymentId = searchParams.get('payment')
-  const range = useMemo(() => createAnalysisRange(), [])
   const payments = useAnalysisPayments(range)
   const selectedPayment = payments.data
     ? getSelectedPayment(payments.data.payments, rawPaymentId)
@@ -609,7 +592,6 @@ export function AnalysisPaymentsContent() {
   if (payments.isError) {
     return (
       <div className="space-y-3 sm:space-y-4">
-        <PeriodPanel label={range.label} />
         <ErrorState
           message={
             payments.error instanceof Error
@@ -624,12 +606,11 @@ export function AnalysisPaymentsContent() {
   }
 
   if (!payments.data || payments.data.payments.length === 0) {
-    return <EmptyPayments rangeLabel={range.label} />
+    return <EmptyPayments />
   }
 
   return (
     <div className="mx-auto max-w-5xl space-y-3 sm:space-y-4">
-      <PeriodPanel label={payments.data.range.label} />
       <PaymentSummaryPanel data={payments.data} />
       <PaymentTrendPanel data={payments.data} />
       <PaymentDetailsPanel

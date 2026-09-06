@@ -5,6 +5,7 @@ import { MemoryRouter, useLocation } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { server } from '@/test/msw/server'
+import { TooltipProvider } from '@/shared/components/ui/tooltip'
 
 import { TRANSACTION_FORM_REFERENCE_CACHE_KEYS } from '../api/use-transaction-form-references'
 
@@ -99,12 +100,14 @@ function LocationProbe() {
 function renderNewTransaction() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(
-    <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={['/app/transactions/new']}>
-        <NewTransactionView />
-        <LocationProbe />
-      </MemoryRouter>
-    </QueryClientProvider>,
+    <TooltipProvider>
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={['/app/transactions/new']}>
+          <NewTransactionView />
+          <LocationProbe />
+        </MemoryRouter>
+      </QueryClientProvider>
+    </TooltipProvider>,
   )
 }
 
@@ -177,6 +180,16 @@ describe('NewTransactionView', () => {
       expect(localStorage.getItem(TRANSACTION_FORM_REFERENCE_CACHE_KEYS.paymentTypes)).toContain('カード')
       expect(localStorage.getItem(TRANSACTION_FORM_REFERENCE_CACHE_KEYS.frequentTransactions)).toContain('ランチ')
     })
+  })
+
+  it('opens CSV transaction import from the new transaction header', async () => {
+    registerHandlers()
+    renderNewTransaction()
+
+    const importButton = await screen.findByRole('button', { name: 'CSV取引をインポート' })
+    fireEvent.click(importButton)
+
+    expect(screen.getByTestId('location')).toHaveTextContent('/app/transactions/import')
   })
 
   it('shows validation errors for an incomplete form', async () => {

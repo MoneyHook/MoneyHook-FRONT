@@ -13,8 +13,10 @@ export type MonthPickerProps = {
   monthInput: string
   monthLabel: string
   maxMonth: string
+  minMonth?: string
   onChange: (month: string) => void
   align?: 'start' | 'center' | 'end'
+  ariaLabel?: string
   className?: string
   showCalendarIcon?: boolean
 }
@@ -33,8 +35,10 @@ export function MonthPicker({
   monthInput,
   monthLabel,
   maxMonth,
+  minMonth,
   onChange,
   align = 'center',
+  ariaLabel = '対象月',
   className,
   showCalendarIcon = false,
 }: MonthPickerProps) {
@@ -69,7 +73,7 @@ export function MonthPicker({
     <Popover onOpenChange={handleOpenChange} open={open}>
       <PopoverTrigger asChild>
         <Button
-          aria-label="対象月"
+          aria-label={ariaLabel}
           aria-haspopup="dialog"
           className={cn(
             'min-h-10 gap-1.5 px-2 text-sm font-medium sm:gap-2',
@@ -121,7 +125,7 @@ export function MonthPicker({
           {monthNames.map((month) => {
             const value = formatMonth(visibleYear, month)
             const isSelected = value === monthInput
-            const isDisabled = value > maxMonth
+            const isDisabled = value > maxMonth || (minMonth !== undefined && value < minMonth)
 
             return (
               <Button
