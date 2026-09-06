@@ -149,7 +149,7 @@ function PaymentDonut({ data }: { data: AnalysisPaymentsViewModel }) {
         <span className="text-[0.625rem] text-muted-foreground sm:text-xs">
           総支出
         </span>
-        <strong className="mt-0.5 text-sm font-semibold tracking-[-0.025em] tabular-nums sm:text-xl">
+        <strong className="mt-0.5 text-sm font-semibold tracking-tight tabular-nums sm:text-xl">
           {formatCurrency(data.totalExpenseAmount)}
         </strong>
       </div>

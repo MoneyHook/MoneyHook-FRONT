@@ -108,7 +108,7 @@ function CalendarDayButton({ className, day, modifiers, ...props }: DayButtonPro
         modifiers.selected && !modifiers.range_start && !modifiers.range_end && !modifiers.range_middle
       }
       className={cn(
-        'flex aspect-square h-auto w-full min-w-[var(--cell-size)] flex-col gap-1 font-normal leading-none data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-3 group-data-[focused=true]/day:ring-ring/50',
+        'flex aspect-square h-auto w-full min-w-(--cell-size) flex-col gap-1 font-normal leading-none data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-3 group-data-[focused=true]/day:ring-ring/50',
         className,
       )}
       {...props}
