@@ -29,7 +29,7 @@ vi.mock('recharts', async (importOriginal) => {
   }
 })
 
-import { AnalysisDashboard } from './analysis-dashboard'
+import { AnalysisDashboard } from '../analysis-dashboard'
 
 function overview(empty = false) {
   const expense = empty ? 0 : 600_000
@@ -211,6 +211,8 @@ describe('AnalysisDashboard', () => {
     const requests = registerHandlers()
     renderDashboard()
 
+    expect(screen.getByRole('status', { name: '分析概要を読み込んでいます' })).toBeVisible()
+
     expect(await screen.findByText('¥600,000')).toBeVisible()
     expect(screen.getByText('カテゴリ別支出（上位5件）')).toBeVisible()
     expect(screen.getByText('固定費の内訳')).toBeVisible()
@@ -226,6 +228,7 @@ describe('AnalysisDashboard', () => {
       expect(params.get('end_date')).toBe('2026-08-31')
       expect(params.get('group_by')).toBe('month')
     }
+    expect(screen.queryByRole('status', { name: '分析概要を読み込んでいます' })).not.toBeInTheDocument()
     expect(new URL(requests.find((request) => request.includes('/overview'))!).searchParams.get('compare')).toBe('previous_period')
   })
 
@@ -275,6 +278,24 @@ describe('AnalysisDashboard', () => {
     await user.click(screen.getByRole('link', { name: 'カテゴリ' }))
     expect(screen.getByTestId('location')).toHaveTextContent('startMonth=2026-01')
     expect(screen.getByTestId('location')).toHaveTextContent('endMonth=2026-04')
+  })
+
+  it.each([
+    ['すべてのカテゴリを見る', 'categories', 'カテゴリ別支出'],
+    ['固定費の詳細を見る', 'fixed', '固定費サマリー'],
+  ])('preserves the range and unrelated parameters through %s', async (link, view, heading) => {
+    registerHandlers()
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    renderDashboard('/app/analysis?view=overview&startMonth=2026-01&endMonth=2026-04&source=summary')
+
+    await user.click(await screen.findByRole('link', { name: link }))
+
+    expect(await screen.findByRole('heading', { name: heading })).toBeVisible()
+    const params = new URLSearchParams(screen.getByTestId('location').textContent ?? '')
+    expect(params.get('view')).toBe(view)
+    expect(params.get('startMonth')).toBe('2026-01')
+    expect(params.get('endMonth')).toBe('2026-04')
+    expect(params.get('source')).toBe('summary')
   })
 
   it('normalizes an unknown view and shows the overview', async () => {

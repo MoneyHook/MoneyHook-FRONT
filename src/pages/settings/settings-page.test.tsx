@@ -444,6 +444,42 @@ describe('SettingsPage', () => {
     expect(screen.queryByRole('button', { name: '管理する' })).not.toBeInTheDocument()
   })
 
+  it('shows only static menu content without fetching summary data', async () => {
+    const summaryRequest = vi.fn(() => HttpResponse.json({}))
+    server.use(
+      ...[
+        '/api/v1/budget',
+        '/api/payment/getPayment',
+        '/api/fixed/getFixed',
+        '/api/fixed/getDeletedFixed',
+      ].map((path) => http.get(`http://api.test${path}`, summaryRequest)),
+    )
+
+    renderSettingsPage()
+
+    const descriptions = [
+      'ログイン中のアカウント情報を確認できます。',
+      '毎月の支出上限を設定します。',
+      '取引で使う支払い方法を管理します。',
+      '指定日に毎月の収入・支出を自動登録します。',
+      'テーマやアクセントカラー、グラフの配色を設定します。',
+    ]
+    const titles = ['アカウント', '予算', '支払い方法', '収支の自動入力', '表示']
+    const expectStaticMenu = () => {
+      const links = within(screen.getByRole('list')).getAllByRole('link')
+      expect(links).toHaveLength(5)
+      links.forEach((link, index) => {
+        expect(link.textContent).toBe(`${titles[index]}${descriptions[index]}`)
+      })
+    }
+
+    expectStaticMenu()
+    // Wait for the shared appearance request to complete before checking requests.
+    await waitFor(() => expect(document.documentElement.dataset.accent).toBe('blue'))
+    expectStaticMenu()
+    expect(summaryRequest).not.toHaveBeenCalled()
+  })
+
   it('uses neutral styling for settings actions and selected options', async () => {
     renderSettingsPage('appearance')
 
