@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { analysisChartColors } from './analysis-chart-colors'
+import { analysisChartColors } from '../analysis-chart-colors'
 
 describe('analysis chart colors', () => {
   it('uses the shared chart palette in rank order with a muted fallback', () => {

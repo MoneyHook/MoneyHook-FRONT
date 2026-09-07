@@ -1,13 +1,13 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { http, HttpResponse } from 'msw'
+import { delay, http, HttpResponse } from 'msw'
 import React from 'react'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { server } from '@/test/msw/server'
-import { createAnalysisRange } from '../model/analysis-overview'
+import { createAnalysisRange } from '../../model/analysis-overview'
 
 vi.mock('@/shared/config/environment', () => ({
   getEnvironment: () => ({ apiBaseUrl: 'http://api.test' }),
@@ -29,7 +29,7 @@ vi.mock('recharts', async (importOriginal) => {
   }
 })
 
-import { AnalysisCategoriesContent } from './analysis-categories'
+import { AnalysisCategoriesContent } from '../analysis-categories'
 
 function categoryResponse(empty = false) {
   const items = empty
@@ -157,6 +157,26 @@ describe('AnalysisCategoriesContent', () => {
     vi.useRealTimers()
   })
 
+  it('shows the loading state until category analysis is available', async () => {
+    server.use(
+      http.get('http://api.test/api/v1/analytics/categories', async () => {
+        await delay(100)
+        return HttpResponse.json(categoryResponse())
+      }),
+    )
+    renderCategories()
+
+    expect(
+      screen.getByRole('status', { name: 'カテゴリ分析を読み込んでいます' }),
+    ).toBeVisible()
+    expect(
+      await screen.findByRole('heading', { name: 'カテゴリ別支出' }),
+    ).toBeVisible()
+    expect(
+      screen.queryByRole('status', { name: 'カテゴリ分析を読み込んでいます' }),
+    ).not.toBeInTheDocument()
+  })
+
   it('renders category analysis and sends the fixed six-month range', async () => {
     const requests: string[] = []
     server.use(
@@ -273,13 +293,14 @@ describe('AnalysisCategoriesContent', () => {
     expect(await screen.findByText('この期間の支出はありません')).toBeVisible()
   })
 
-  it('opens the editor from a category transaction', async () => {
+  it('opens the editor and preserves the search parameters and hash in returnTo', async () => {
     server.use(
       http.get('http://api.test/api/v1/analytics/categories', () =>
         HttpResponse.json(categoryResponse()),
       ),
     )
-    renderCategories('/app/analysis?view=categories&category=1')
+    const returnTo = '/app/analysis?view=categories&category=1&group=week&list=all&month=2026-08-01#category-summary'
+    renderCategories(returnTo)
 
     await screen.findByRole('button', { name: 'ランチを編集' })
     await userEvent.setup({ advanceTimers: vi.advanceTimersByTime }).click(
@@ -287,6 +308,6 @@ describe('AnalysisCategoriesContent', () => {
     )
 
     expect(screen.getByTestId('pathname')).toHaveTextContent('/app/transactions/1/edit')
-    expect(screen.getByTestId('return-to')).toHaveTextContent('/app/analysis?view=categories&category=1')
+    expect(screen.getByTestId('return-to').textContent).toBe(returnTo)
   })
 })
