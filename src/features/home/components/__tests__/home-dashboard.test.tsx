@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import React from 'react'
-import { MemoryRouter, useLocation } from 'react-router-dom'
+import { MemoryRouter, useLocation, useNavigate, useNavigationType } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { server } from '@/test/msw/server'
@@ -27,7 +27,7 @@ vi.mock('recharts', async (importOriginal) => {
   }
 })
 
-import { HomeDashboard } from './home-dashboard'
+import { HomeDashboard } from '../home-dashboard'
 
 function overview(month: 'current' | 'previous', empty = false) {
   const isCurrent = month === 'current'
@@ -143,7 +143,15 @@ function registerHandlers({
 
 function LocationProbe() {
   const location = useLocation()
-  return <output data-testid="location">{location.search}</output>
+  const navigate = useNavigate()
+  const navigationType = useNavigationType()
+  return (
+    <>
+      <output data-testid="location">{location.search}</output>
+      <output data-testid="navigation-type">{navigationType}</output>
+      <button onClick={() => navigate(-1)}>履歴を戻る</button>
+    </>
+  )
 }
 
 function renderDashboard(initialEntry = '/app/home?month=2026-08-01') {
@@ -175,7 +183,9 @@ describe('HomeDashboard', () => {
     registerHandlers()
     renderDashboard()
 
+    expect(screen.getByRole('status', { name: 'ホーム画面を読み込んでいます' })).toBeVisible()
     expect(await screen.findByText('¥184,320')).toBeVisible()
+    expect(screen.queryByRole('status', { name: 'ホーム画面を読み込んでいます' })).not.toBeInTheDocument()
     expect(screen.getByText('61.4%')).toBeVisible()
     expect(screen.getByLabelText('予算比 61.4%')).toBeVisible()
     expect(screen.getByText('+¥14,030')).toBeVisible()
@@ -184,21 +194,46 @@ describe('HomeDashboard', () => {
       'href',
       '/app/analysis?view=categories&month=2026-08-01',
     )
+    expect(screen.getByRole('link', { name: /固定費の詳細を見る/ })).toHaveAttribute(
+      'href',
+      '/app/analysis?view=fixed&month=2026-08-01',
+    )
     expect(screen.getByRole('button', { name: '通知（未対応）' })).toBeDisabled()
   })
 
-  it('updates the month URL through the month picker', async () => {
+  it('pushes month changes while preserving unrelated parameters and supports back navigation', async () => {
     registerHandlers()
-    renderDashboard()
+    renderDashboard('/app/home?month=2026-08-01&source=test')
     await screen.findByText('¥184,320')
 
     fireEvent.click(screen.getByRole('button', { name: '対象月' }))
     fireEvent.click(screen.getByRole('button', { name: '2026年7月' }))
 
     await waitFor(() => {
-      expect(screen.getByTestId('location')).toHaveTextContent('?month=2026-07-01')
+      expect(screen.getByTestId('location')).toHaveTextContent('?month=2026-07-01&source=test')
+    })
+    expect(screen.getByTestId('navigation-type')).toHaveTextContent('PUSH')
+    expect(await screen.findByText('2026年7月')).toBeVisible()
+    expect(screen.getByRole('link', { name: /すべて見る/ })).toHaveAttribute(
+      'href', '/app/analysis?view=categories&month=2026-07-01',
+    )
+    fireEvent.click(screen.getByRole('button', { name: '履歴を戻る' }))
+    await waitFor(() => {
+      expect(screen.getByTestId('location')).toHaveTextContent('?month=2026-08-01&source=test')
     })
   })
+
+  it.each(['', '&month=invalid', '&month=2026-09-01'])(
+    'replaces a missing, invalid, or future month while preserving other parameters: %s',
+    async (monthQuery) => {
+      registerHandlers()
+      renderDashboard(`/app/home?source=test${monthQuery}`)
+
+      expect(await screen.findByText('¥184,320')).toBeVisible()
+      expect(screen.getByTestId('location')).toHaveTextContent('?source=test&month=2026-08-01')
+      expect(screen.getByTestId('navigation-type')).toHaveTextContent('REPLACE')
+    },
+  )
 
   it('shows a stable empty state', async () => {
     registerHandlers({ empty: true })
