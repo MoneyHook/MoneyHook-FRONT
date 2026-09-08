@@ -9,7 +9,7 @@ import { Skeleton } from '@/shared/components/ui/skeleton'
 
 import { useBudgetSettings } from '../api/use-budget-settings'
 import { validateBudgetAmount } from '../model/budget-settings'
-import { SettingsSection } from './settings-section'
+import { SettingsSection } from '../../components/settings-section'
 
 const saveErrorMessage = '予算を保存できませんでした。もう一度お試しください。'
 
