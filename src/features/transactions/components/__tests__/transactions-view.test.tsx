@@ -16,7 +16,7 @@ vi.mock('@/shared/lib/firebase', () => ({
   }),
 }))
 
-import { TransactionsView } from './transactions-view'
+import { TransactionsView } from '../transactions-view'
 
 const transactionList = [
   {
