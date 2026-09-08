@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { V1FixedResponse } from '@/shared/api/generated/model'
 import { server } from '@/test/msw/server'
-import { createAnalysisRange } from '../model/analysis-overview'
+import { createAnalysisRange } from '../../model/analysis-overview'
 
 vi.mock('@/shared/config/environment', () => ({
   getEnvironment: () => ({ apiBaseUrl: 'http://api.test' }),
@@ -30,7 +30,7 @@ vi.mock('recharts', async (importOriginal) => {
   }
 })
 
-import { AnalysisFixedContent } from './analysis-fixed'
+import { AnalysisFixedContent } from '../analysis-fixed'
 
 function fixedResponse({ empty = false } = {}): V1FixedResponse {
   const categories = empty
@@ -156,6 +156,8 @@ describe('AnalysisFixedContent', () => {
     const requests = registerHandler()
     renderFixed()
 
+    expect(screen.getByRole('status', { name: '固定費分析を読み込んでいます' })).toBeVisible()
+
     expect(
       await screen.findByRole('heading', { name: '固定費サマリー' }),
     ).toBeVisible()
@@ -169,6 +171,7 @@ describe('AnalysisFixedContent', () => {
     expect(screen.getByText('家賃関連1')).toBeVisible()
     expect(screen.queryByText('家賃関連6')).not.toBeInTheDocument()
 
+    expect(screen.queryByRole('status', { name: '固定費分析を読み込んでいます' })).not.toBeInTheDocument()
     expect(requests).toHaveLength(1)
     const params = new URL(requests[0]).searchParams
     expect(params.get('start_date')).toBe('2026-03-01')
@@ -247,11 +250,12 @@ describe('AnalysisFixedContent', () => {
   it('opens the editor from a fixed-cost transaction', async () => {
     registerHandler()
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
-    renderFixed('/app/analysis?view=fixed&metric=amount')
+    const returnTo = '/app/analysis?view=fixed&fixedCategory=1&startMonth=2026-03&endMonth=2026-08#fixed-transactions'
+    renderFixed(returnTo)
 
     await user.click(await screen.findByRole('button', { name: '家賃関連1を編集' }))
 
     expect(screen.getByTestId('pathname')).toHaveTextContent('/app/transactions/11/edit')
-    expect(screen.getByTestId('return-to')).toHaveTextContent('/app/analysis?view=fixed')
+    expect(screen.getByTestId('return-to').textContent).toBe(returnTo)
   })
 })

@@ -138,8 +138,8 @@ function AccentColorPicker() {
                 }}
               />
               <span className="min-w-0">
-                <span className="block break-words text-xs font-semibold leading-4 sm:text-sm sm:leading-5">{option.label}</span>
-                <span className="mt-0.5 block break-words text-[0.6875rem] leading-4 text-muted-foreground sm:mt-1 sm:text-xs sm:leading-5">
+                <span className="block wrap-break-word text-xs font-semibold leading-4 sm:text-sm sm:leading-5">{option.label}</span>
+                <span className="mt-0.5 block wrap-break-word text-[0.6875rem] leading-4 text-muted-foreground sm:mt-1 sm:text-xs sm:leading-5">
                   {option.description}
                 </span>
               </span>
@@ -183,8 +183,8 @@ function ChartPalettePicker() {
                   />
                 ))}
               </span>
-              <span className="mt-2 block break-words text-xs font-semibold leading-4 sm:mt-3 sm:text-sm sm:leading-5">{option.label}</span>
-              <span className="mt-0.5 break-words text-[0.6875rem] leading-4 text-muted-foreground sm:mt-1 sm:text-xs sm:leading-5">
+              <span className="mt-2 block wrap-break-word text-xs font-semibold leading-4 sm:mt-3 sm:text-sm sm:leading-5">{option.label}</span>
+              <span className="mt-0.5 wrap-break-word text-[0.6875rem] leading-4 text-muted-foreground sm:mt-1 sm:text-xs sm:leading-5">
                 {option.description}
               </span>
               {chartPalette === option.value ? (

@@ -16,7 +16,7 @@ vi.mock('@/shared/lib/firebase', () => ({
   }),
 }))
 
-import { TransactionsView } from './transactions-view'
+import { TransactionsView } from '../transactions-view'
 
 const transactionList = [
   {
@@ -73,6 +73,23 @@ function registerHandler({ empty = false, failOnce = false } = {}) {
       }
       return HttpResponse.json({ transaction_list: empty ? [] : transactionList })
     }),
+    http.get('http://api.test/api/category/getCategoryWithSubCategoryList', () =>
+      HttpResponse.json({
+        category_list: [
+          { category_id: '10', category_name: '食費', sub_category_list: [] },
+          { category_id: '12', category_name: '日用品', sub_category_list: [] },
+          { category_id: '14', category_name: '収入', sub_category_list: [] },
+        ],
+      }),
+    ),
+    http.get('http://api.test/api/payment/getPayment', () =>
+      HttpResponse.json({
+        payment_list: [
+          { payment_id: '20', payment_name: '楽天カード', payment_type_id: '2', payment_date: null, closing_date: 31 },
+          { payment_id: '21', payment_name: 'PayPay', payment_type_id: '2', payment_date: null, closing_date: 31 },
+        ],
+      }),
+    ),
   )
 }
 
@@ -119,8 +136,7 @@ describe('TransactionsView', () => {
     expect(await screen.findByText('ランチ')).toBeVisible()
     expect(screen.getByText('+¥20,320')).toBeVisible()
     expect(screen.getByText('給与（8月分）')).toBeVisible()
-    expect(screen.getByRole('button', { name: '取引を検索（準備中）' })).toBeDisabled()
-    expect(screen.getByRole('button', { name: '取引を絞り込み（準備中）' })).toBeDisabled()
+    expect(screen.getAllByRole('button', { name: '取引を絞り込む' })[0]).toBeEnabled()
     const addTransactionButton = screen.getByRole('button', { name: '新しい取引を追加' })
     expect(addTransactionButton).toBeEnabled()
     expect(addTransactionButton).toHaveClass('fixed')
@@ -193,5 +209,38 @@ describe('TransactionsView', () => {
     fireEvent.click(screen.getByRole('button', { name: 'もう一度試す' }))
 
     expect(await screen.findByText('ランチ')).toBeVisible()
+  })
+
+  it('applies a category filter only after confirmation and preserves it in the URL', async () => {
+    registerHandler()
+    renderTransactions()
+    await screen.findByText('ランチ')
+
+    fireEvent.click(screen.getAllByRole('button', { name: '取引を絞り込む' })[0])
+    expect(await screen.findByText('カテゴリ')).toBeVisible()
+    fireEvent.click(await screen.findByRole('button', { name: '食費' }))
+    expect(screen.getByText('スーパー')).toBeVisible()
+
+    fireEvent.click(screen.getByRole('button', { name: '適用' }))
+    await waitFor(() => {
+      expect(screen.getByTestId('location')).toHaveTextContent('category=10')
+    })
+    expect(screen.getByText('ランチ')).toBeVisible()
+    expect(screen.queryByText('スーパー')).not.toBeInTheDocument()
+    expect(screen.getByText(/1件・支出/)).toBeVisible()
+    fireEvent.click(screen.getByRole('button', { name: '食費を解除' }))
+    await waitFor(() => {
+      expect(screen.getByTestId('location')).not.toHaveTextContent('category=10')
+    })
+    expect(screen.getByText('スーパー')).toBeVisible()
+  })
+
+  it('opens the desktop filter sheet from its trigger', async () => {
+    registerHandler()
+    renderTransactions()
+    await screen.findByText('ランチ')
+
+    fireEvent.click(screen.getAllByRole('button', { name: '取引を絞り込む' })[1])
+    expect(await screen.findByRole('heading', { name: '絞り込み' })).toBeVisible()
   })
 })

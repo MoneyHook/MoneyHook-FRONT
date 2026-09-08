@@ -12,6 +12,7 @@ export type TransactionItem = {
   categoryName: string
   subcategoryName: string
   fixed: boolean
+  paymentId: string | null
   paymentName: string | null
 }
 
@@ -122,6 +123,7 @@ export function buildTransactionsViewModel(
       categoryName: transaction.category_name,
       subcategoryName: transaction.sub_category_name,
       fixed: transaction.fixed_flg,
+      paymentId: transaction.payment_id,
       paymentName: transaction.payment_name,
     }))
     .sort((left, right) => {
@@ -129,6 +131,10 @@ export function buildTransactionsViewModel(
       return dateOrder === 0 ? right.id.localeCompare(left.id, 'ja', { numeric: true }) : dateOrder
     })
 
+  return buildTransactionsViewModelFromItems(items)
+}
+
+export function buildTransactionsViewModelFromItems(items: TransactionItem[]): TransactionsViewModel {
   const expenseAmount = items.reduce(
     (total, item) => total + (item.sign === -1 ? item.amount : 0),
     0,

@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { V1PaymentsResponse } from '@/shared/api/generated/model'
 import { server } from '@/test/msw/server'
-import { createAnalysisRange } from '../model/analysis-overview'
+import { createAnalysisRange } from '../../model/analysis-overview'
 
 vi.mock('@/shared/config/environment', () => ({
   getEnvironment: () => ({ apiBaseUrl: 'http://api.test' }),
@@ -30,7 +30,7 @@ vi.mock('recharts', async (importOriginal) => {
   }
 })
 
-import { AnalysisPaymentsContent } from './analysis-payments'
+import { AnalysisPaymentsContent } from '../analysis-payments'
 
 function paymentResponse({ empty = false } = {}): V1PaymentsResponse {
   if (empty) {
@@ -181,6 +181,8 @@ describe('AnalysisPaymentsContent', () => {
     const requests = registerHandler()
     renderPayments()
 
+    expect(screen.getByRole('status', { name: '支払い方法分析を読み込んでいます' })).toBeVisible()
+
     expect(
       await screen.findByRole('heading', { name: '支払い方法サマリー' }),
     ).toBeVisible()
@@ -197,6 +199,7 @@ describe('AnalysisPaymentsContent', () => {
       '#payment-details',
     )
 
+    expect(screen.queryByRole('status', { name: '支払い方法分析を読み込んでいます' })).not.toBeInTheDocument()
     expect(requests).toHaveLength(1)
     const params = new URL(requests[0]).searchParams
     expect(params.get('start_date')).toBe('2026-03-01')
@@ -248,11 +251,12 @@ describe('AnalysisPaymentsContent', () => {
   it('opens the editor from a payment transaction', async () => {
     registerHandler()
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
-    renderPayments('/app/analysis?view=payments&payment=2')
+    const returnTo = '/app/analysis?view=payments&payment=2&startMonth=2026-03&endMonth=2026-08#payment-details'
+    renderPayments(returnTo)
 
     await user.click(await screen.findByRole('button', { name: 'PayPay取引を編集' }))
 
     expect(screen.getByTestId('pathname')).toHaveTextContent('/app/transactions/20/edit')
-    expect(screen.getByTestId('return-to')).toHaveTextContent('/app/analysis?view=payments&payment=2')
+    expect(screen.getByTestId('return-to').textContent).toBe(returnTo)
   })
 })

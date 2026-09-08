@@ -466,7 +466,7 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
   }
 
   return (
-    <section aria-labelledby="transaction-page-title" className="motion-route-enter mx-auto flex h-[100dvh] w-full max-w-2xl flex-col overflow-hidden px-4 pt-3 sm:block sm:h-auto sm:overflow-visible sm:px-6 sm:pb-10 sm:pt-7">
+    <section aria-labelledby="transaction-page-title" className="motion-route-enter mx-auto flex h-dvh w-full max-w-2xl flex-col overflow-hidden px-4 pt-3 sm:block sm:h-auto sm:overflow-visible sm:px-6 sm:pb-10 sm:pt-7">
       <div className="shrink-0">
         <header className="flex items-center justify-between gap-2 sm:gap-3">
           <Button aria-label="前の画面へ戻る" className="size-8 sm:size-9" onClick={() => navigate(returnTo)} size="icon" variant="ghost">
