@@ -1,12 +1,14 @@
 import { createContext, useContext } from 'react'
 
+export {
+  ACCENT_STORAGE_KEY,
+  CHART_PALETTE_STORAGE_KEY,
+  THEME_STORAGE_KEY,
+} from '@/shared/lib/persisted-appearance-settings'
+
 export const THEME_MODES = ['light', 'dark', 'system'] as const
 export const ACCENT_COLORS = ['blue', 'green', 'violet', 'rose', 'black'] as const
 export const CHART_PALETTES = ['default', 'colorful', 'monochrome'] as const
-
-export const THEME_STORAGE_KEY = 'moneyhooks-theme'
-export const ACCENT_STORAGE_KEY = 'moneyhooks-accent'
-export const CHART_PALETTE_STORAGE_KEY = 'moneyhooks-chart-palette'
 
 export type ThemeMode = (typeof THEME_MODES)[number]
 export type AccentColor = (typeof ACCENT_COLORS)[number]
