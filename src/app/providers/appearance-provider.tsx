@@ -29,7 +29,7 @@ import {
   type AppearanceSettings,
   type ChartPalette,
   type ThemeMode,
-} from './appearance-context'
+} from '@/shared/hooks/appearance-context'
 
 function resolveTheme(theme: ThemeMode, systemPrefersDark: boolean): 'light' | 'dark' {
   return theme === 'system' ? (systemPrefersDark ? 'dark' : 'light') : theme

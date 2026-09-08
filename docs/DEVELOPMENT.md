@@ -66,7 +66,7 @@ pnpm contract:test
 pnpm api:check
 ```
 
-`pnpm api:generate`は`src/shared/api/generated/`を更新します。生成物を手作業で編集しないでください。
+`pnpm api:generate`はOrvalで`src/shared/api/generated/`を更新した後、`scripts/clean-generated-imports.mjs`で未使用のschema importを除去します。TypeScriptの参照解析を使い、使用中のimportと型定義を維持します。生成物を手作業で編集しないでください。
 
 ## よくある確認箇所
 

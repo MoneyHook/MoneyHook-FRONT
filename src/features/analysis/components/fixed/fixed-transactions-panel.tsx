@@ -4,7 +4,7 @@ import { cn } from '@/shared/lib/utils'
 import type { FixedTransactionItem } from '../../model/analysis-fixed'
 import { formatCurrency } from '../../model/analysis-overview'
 import { AnalysisPanel } from './fixed-analysis-panel'
-import { CategoryIcon } from './category-icon'
+import { CategoryIcon } from '../category-icon'
 
 function formatTransactionDate(value: string) {
   const [year, month, day] = value.split('-').map(Number)

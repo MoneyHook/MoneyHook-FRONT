@@ -4,7 +4,7 @@ import { http, HttpResponse } from 'msw'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { AppearanceProvider } from '@/shared/hooks/appearance-provider'
+import { AppearanceProvider } from '@/app/providers/appearance-provider'
 import { DEFAULT_PAYMENT_STORAGE_KEY, readDefaultPaymentId, writeDefaultPaymentId } from '@/shared/lib/default-payment'
 import { server } from '@/test/msw/server'
 

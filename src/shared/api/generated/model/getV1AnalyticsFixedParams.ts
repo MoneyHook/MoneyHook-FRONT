@@ -16,7 +16,6 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { DateString } from './dateString';
 import type { V1EndDateParameter } from './v1EndDateParameter';
 import type { V1GroupByParameter } from './v1GroupByParameter';
 import type { V1StartDateParameter } from './v1StartDateParameter';

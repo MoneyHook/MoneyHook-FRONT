@@ -2,14 +2,18 @@ import { CircleUserRound, LogOut } from 'lucide-react'
 import { useMemo } from 'react'
 import { toast } from 'sonner'
 
-import { useAuth } from '@/features/auth'
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar'
 import { Button } from '@/shared/components/ui/button'
 
 import { SettingsSection } from '../../components/settings-section'
 
-export function AccountSettings({ showHeader = true }: { showHeader?: boolean }) {
-  const { user, signOut } = useAuth()
+type AccountSettingsProps = {
+  showHeader?: boolean
+  user: { displayName: string | null; email: string | null; photoURL: string | null } | null
+  signOut: () => Promise<void>
+}
+
+export function AccountSettings({ showHeader = true, user, signOut }: AccountSettingsProps) {
   const initial = useMemo(() => {
     const source = user?.displayName?.trim() || user?.email?.trim() || 'M'
     return source.slice(0, 1).toUpperCase()
