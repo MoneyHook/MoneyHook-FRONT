@@ -69,7 +69,7 @@ import {
   type PaymentSettingsFormErrors,
   type PaymentSettingsFormValues,
 } from '../model/payment-settings'
-import { SettingsSection } from './settings-section'
+import { SettingsSection } from '../../components/settings-section'
 
 type EditorState =
   | { mode: 'add'; payment: null }
