@@ -18,6 +18,7 @@ import {
 
 import { EnvironmentConfigurationError } from '@/shared/config/environment'
 import { getFirebaseAuth } from '@/shared/lib/firebase'
+import { clearPersistedAppearanceSettings } from '@/shared/lib/persisted-appearance-settings'
 import { clearPersistedUserData, ensurePersistedUserDataOwner } from '@/shared/lib/persisted-user-data'
 
 import { AuthContext } from './auth-context'
@@ -61,6 +62,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     Pick<AuthContextValue, 'status' | 'user' | 'error'>
   >({ status: 'initializing', user: null, error: null })
   const activeUidRef = useRef<string | null>(null)
+  const clearAuthenticatedClientData = useCallback(() => {
+    queryClient.clear()
+    clearPersistedUserData()
+    clearPersistedAppearanceSettings()
+  }, [queryClient])
 
   useEffect(() => {
     let active = true
@@ -71,8 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (user) {
           const previousUid = activeUidRef.current
           if (previousUid && previousUid !== user.uid) {
-            queryClient.clear()
-            clearPersistedUserData()
+            clearAuthenticatedClientData()
           }
           ensurePersistedUserDataOwner(user.uid)
           activeUidRef.current = user.uid
@@ -86,8 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         const previousUid = activeUidRef.current
         if (previousUid) {
-          queryClient.clear()
-          clearPersistedUserData()
+          clearAuthenticatedClientData()
           activeUidRef.current = null
         }
 
@@ -109,7 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       active = false
       unsubscribe?.()
     }
-  }, [queryClient])
+  }, [clearAuthenticatedClientData])
 
   const signInWithGoogle = useCallback(async () => {
     setState({ status: 'initializing', user: null, error: null })
@@ -136,12 +140,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(async () => {
     const auth = getFirebaseAuth()
-    queryClient.clear()
-    clearPersistedUserData()
+    clearAuthenticatedClientData()
     activeUidRef.current = null
     await firebaseSignOut(auth)
     setState({ status: 'unauthenticated', user: null, error: null })
-  }, [queryClient])
+  }, [clearAuthenticatedClientData])
 
   const value = useMemo<AuthContextValue>(
     () => ({

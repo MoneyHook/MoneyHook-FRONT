@@ -28,7 +28,7 @@ import {
   WalletCards,
   X,
 } from 'lucide-react'
-import { useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { toast } from 'sonner'
 
 import type {
@@ -56,7 +56,9 @@ import {
   DialogTitle,
 } from '@/shared/components/ui/dialog'
 import { Input } from '@/shared/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
 import { Skeleton } from '@/shared/components/ui/skeleton'
+import { clearDefaultPaymentId, readDefaultPaymentId, writeDefaultPaymentId } from '@/shared/lib/default-payment'
 import { cn } from '@/shared/lib/utils'
 import { getPaymentIconSource } from '@/shared/lib/payment-icon'
 import { getGetPaymentResourcesQueryKey } from '@/shared/api/generated/payment/payment'
@@ -263,8 +265,15 @@ export function PaymentSettings({ showHeader = true }: { showHeader?: boolean })
   const { addMutation, deleteMutation, editMutation, paymentsQuery, paymentTypesQuery, queryClient, reorderMutation } = usePaymentSettings()
   const [editor, setEditor] = useState<EditorState>(null)
   const [paymentToDelete, setPaymentToDelete] = useState<PaymentResourceListResponsePaymentListItem | null>(null)
-  const payments = paymentsQuery.data?.status === 200 ? paymentsQuery.data.data.payment_list : []
-  const paymentTypes = paymentTypesQuery.data?.status === 200 ? paymentTypesQuery.data.data.payment_type_list : []
+  const [defaultPaymentId, setDefaultPaymentId] = useState(readDefaultPaymentId)
+  const payments = useMemo(
+    () => paymentsQuery.data?.status === 200 ? paymentsQuery.data.data.payment_list : [],
+    [paymentsQuery.data],
+  )
+  const paymentTypes = useMemo(
+    () => paymentTypesQuery.data?.status === 200 ? paymentTypesQuery.data.data.payment_type_list : [],
+    [paymentTypesQuery.data],
+  )
   const isLoading = paymentsQuery.isPending || paymentTypesQuery.isPending
   const hasError = paymentsQuery.isError || paymentTypesQuery.isError
   const isSaving = addMutation.isPending || editMutation.isPending
@@ -272,6 +281,21 @@ export function PaymentSettings({ showHeader = true }: { showHeader?: boolean })
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
+
+  useEffect(() => {
+    if (
+      !defaultPaymentId ||
+      paymentsQuery.data?.status !== 200 ||
+      payments.some((payment) => payment.payment_id === defaultPaymentId)
+    ) {
+      return
+    }
+
+    clearDefaultPaymentId()
+    // The fetched payment list invalidates the locally stored selection.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setDefaultPaymentId(null)
+  }, [defaultPaymentId, payments, paymentsQuery.data])
 
   const savePayment = async (values: PaymentSettingsFormValues) => {
     const paymentType = paymentTypes.find((type) => type.payment_type_id === values.paymentTypeId)
@@ -295,11 +319,26 @@ export function PaymentSettings({ showHeader = true }: { showHeader?: boolean })
     try {
       const response = await deleteMutation.mutateAsync({ paymentId: paymentToDelete.payment_id })
       if (response.status !== 200) throw new Error('支払い方法を削除できませんでした。')
+      if (paymentToDelete.payment_id === defaultPaymentId) {
+        clearDefaultPaymentId()
+        setDefaultPaymentId(null)
+      }
       setPaymentToDelete(null)
       toast.success('支払い方法を削除しました。')
     } catch (error) {
       toast.error(errorMessage(error, '支払い方法を削除できませんでした。'))
     }
+  }
+
+  const changeDefaultPayment = (value: string) => {
+    if (value === 'none') {
+      clearDefaultPaymentId()
+      setDefaultPaymentId(null)
+      return
+    }
+
+    writeDefaultPaymentId(value)
+    setDefaultPaymentId(value)
   }
 
   const reorderPayments = async ({ active, over }: DragEndEvent) => {
@@ -335,6 +374,21 @@ export function PaymentSettings({ showHeader = true }: { showHeader?: boolean })
       {isLoading ? <div aria-label="支払い方法を読み込んでいます" className="space-y-3" role="status"><Skeleton className="h-16 w-full" /><Skeleton className="h-16 w-full" /></div> : null}
       {hasError ? <div className="space-y-4"><Alert variant="destructive"><AlertCircle aria-hidden="true" /><AlertTitle>支払い方法を読み込めません</AlertTitle><AlertDescription>{errorMessage(paymentsQuery.error ?? paymentTypesQuery.error, '支払い方法を取得できませんでした。')}</AlertDescription></Alert><Button onClick={() => { void paymentsQuery.refetch(); void paymentTypesQuery.refetch() }} size="lg" type="button" variant="outline">もう一度試す</Button></div> : null}
       {!isLoading && !hasError ? <div className="space-y-5">
+        <div className="space-y-2 rounded-xl border bg-muted/20 p-4">
+          <label className="text-sm font-medium" htmlFor="default-payment">
+            デフォルトの支払い方法
+          </label>
+          <p className="text-sm text-muted-foreground">新しい取引を追加するときに、最初から選択する支払い方法です。</p>
+          <Select onValueChange={changeDefaultPayment} value={defaultPaymentId ?? 'none'}>
+            <SelectTrigger aria-label="デフォルトの支払い方法" className="w-full sm:max-w-sm" id="default-payment">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">設定しない</SelectItem>
+              {payments.map((payment) => <SelectItem key={payment.payment_id} value={payment.payment_id}>{payment.payment_name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
         {payments.length === 0 ? <div className="rounded-xl border border-dashed px-4 py-8 text-center"><CreditCard aria-hidden="true" className="mx-auto mb-3 size-6 text-muted-foreground" /><p className="font-medium">支払い方法がありません</p><p className="mt-1 text-sm text-muted-foreground">追加すると、取引の登録時に選択できます。</p></div> : <DndContext collisionDetection={closestCenter} onDragEnd={(event) => void reorderPayments(event)} sensors={sensors}><SortableContext items={payments.map((payment) => payment.payment_id)} strategy={verticalListSortingStrategy}><ul className="divide-y overflow-hidden rounded-xl border">
           {payments.map((payment) => <SortablePaymentRow isDeleting={deleteMutation.isPending} isReordering={reorderMutation.isPending} key={payment.payment_id} onDelete={setPaymentToDelete} onEdit={(item) => setEditor({ mode: 'edit', payment: item })} payment={payment} paymentTypes={paymentTypes} />)}
         </ul></SortableContext></DndContext>}

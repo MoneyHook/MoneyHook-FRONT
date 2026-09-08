@@ -68,6 +68,19 @@ export function writePersistedUserData<T>(key: string, version: number, value: T
   }
 }
 
+export function removePersistedUserData(key: string): void {
+  const storage = getStorage()
+  if (!storage) {
+    return
+  }
+
+  try {
+    storage.removeItem(key)
+  } catch {
+    // Keep the in-memory setting when storage is unavailable.
+  }
+}
+
 function stableSerialize(value: unknown): string {
   if (Array.isArray(value)) {
     return `[${value.map(stableSerialize).join(',')}]`

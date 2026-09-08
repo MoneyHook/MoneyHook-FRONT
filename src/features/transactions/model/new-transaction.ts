@@ -29,7 +29,10 @@ export function getTodayDate(now = new Date()) {
   ].join('-')
 }
 
-export function createNewTransactionValues(now = new Date()): NewTransactionFormValues {
+export function createNewTransactionValues(
+  now = new Date(),
+  defaultPaymentId: string | null = null,
+): NewTransactionFormValues {
   return {
     transactionDate: getTodayDate(now),
     transactionTime: null,
@@ -39,7 +42,7 @@ export function createNewTransactionValues(now = new Date()): NewTransactionForm
     categoryId: '',
     subcategoryId: '',
     fixed: false,
-    paymentId: null,
+    paymentId: defaultPaymentId,
   }
 }
 

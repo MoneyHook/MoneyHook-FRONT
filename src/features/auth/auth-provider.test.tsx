@@ -5,6 +5,11 @@ import type { User } from 'firebase/auth'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createAppQueryClient } from '@/app/providers/query-client'
+import {
+  ACCENT_STORAGE_KEY,
+  CHART_PALETTE_STORAGE_KEY,
+  THEME_STORAGE_KEY,
+} from '@/shared/hooks/appearance-context'
 
 const firebaseMocks = vi.hoisted(() => ({
   onIdTokenChanged: vi.fn(),
@@ -82,6 +87,7 @@ function emitIdToken(user: User | null) {
 
 describe('AuthProvider', () => {
   beforeEach(() => {
+    localStorage.clear()
     idTokenListener = null
     firebaseAuth.currentUser = null
     vi.clearAllMocks()
@@ -150,10 +156,16 @@ describe('AuthProvider', () => {
       expect(screen.getByLabelText('認証状態')).toHaveTextContent('authenticated')
     })
     queryClient.setQueryData(['private', 'user-1'], { amount: 100 })
+    localStorage.setItem(THEME_STORAGE_KEY, 'dark')
+    localStorage.setItem(ACCENT_STORAGE_KEY, 'violet')
+    localStorage.setItem(CHART_PALETTE_STORAGE_KEY, 'monochrome')
 
     emitIdToken(createUser('user-2'))
 
     expect(queryClient.getQueryCache().getAll()).toHaveLength(0)
+    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBeNull()
+    expect(localStorage.getItem(ACCENT_STORAGE_KEY)).toBeNull()
+    expect(localStorage.getItem(CHART_PALETTE_STORAGE_KEY)).toBeNull()
     await waitFor(() => {
       expect(screen.getByLabelText('ユーザーID')).toHaveTextContent('user-2')
     })
@@ -167,8 +179,14 @@ describe('AuthProvider', () => {
       expect(screen.getByLabelText('認証状態')).toHaveTextContent('authenticated')
     })
     queryClient.setQueryData(['private', 'user-1'], { amount: 100 })
+    localStorage.setItem(THEME_STORAGE_KEY, 'dark')
+    localStorage.setItem(ACCENT_STORAGE_KEY, 'violet')
+    localStorage.setItem(CHART_PALETTE_STORAGE_KEY, 'monochrome')
     firebaseMocks.signOut.mockImplementation(async () => {
       expect(queryClient.getQueryCache().getAll()).toHaveLength(0)
+      expect(localStorage.getItem(THEME_STORAGE_KEY)).toBeNull()
+      expect(localStorage.getItem(ACCENT_STORAGE_KEY)).toBeNull()
+      expect(localStorage.getItem(CHART_PALETTE_STORAGE_KEY)).toBeNull()
       firebaseAuth.currentUser = null
     })
 

@@ -12,7 +12,7 @@ import {
   X,
 } from 'lucide-react'
 import { ja } from 'react-day-picker/locale'
-import { useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
@@ -51,6 +51,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/components/ui/
 import { getCategoryPresentation } from '@/shared/lib/category-presentation'
 import { getPaymentIconSource } from '@/shared/lib/payment-icon'
 import { clearPersistedQueryData } from '@/shared/lib/persisted-user-data'
+import { clearDefaultPaymentId, readDefaultPaymentId } from '@/shared/lib/default-payment'
 import { cn } from '@/shared/lib/utils'
 
 import { TransactionCandidateChip, TransactionCandidates } from './transaction-candidates'
@@ -215,6 +216,7 @@ function SheetOption({
 
 export function TransactionFormView({ transactionId }: { transactionId?: string } = {}) {
   const isEdit = Boolean(transactionId)
+  const defaultPaymentId = isEdit ? null : readDefaultPaymentId()
   const navigate = useNavigate()
   const location = useLocation()
   const queryClient = useQueryClient()
@@ -242,8 +244,8 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
             fixed: transaction.fixed_flg,
             paymentId: transaction.payment_id,
           }
-        : createNewTransactionValues(),
-    [transaction],
+        : createNewTransactionValues(undefined, defaultPaymentId),
+    [defaultPaymentId, transaction],
   )
   const [formOverride, setFormOverride] = useState<NewTransactionFormValues | null>(null)
   const form = formOverride ?? initialForm
@@ -260,8 +262,10 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
 
   const categories =
     categoriesQuery.data?.status === 200 ? categoriesQuery.data.data.category_list ?? [] : []
-  const payments =
-    paymentsQuery.data?.status === 200 ? paymentsQuery.data.data.payment_list : []
+  const payments = useMemo(
+    () => paymentsQuery.data?.status === 200 ? paymentsQuery.data.data.payment_list : [],
+    [paymentsQuery.data],
+  )
   const paymentTypeNames = useMemo(
     () => new Map(
       paymentTypesQuery.data?.status === 200
@@ -283,6 +287,27 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
     frequentTransactionsQuery.data?.status === 200
       ? frequentTransactionsQuery.data.data.transaction_list
       : []
+
+  useEffect(() => {
+    if (
+      isEdit ||
+      !defaultPaymentId ||
+      paymentsQuery.data?.status !== 200 ||
+      payments.some((payment) => payment.payment_id === defaultPaymentId)
+    ) {
+      return
+    }
+
+    clearDefaultPaymentId()
+    // The fetched payment list invalidates the locally stored selection.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setFormOverride((current) => {
+      const currentForm = current ?? initialForm
+      return currentForm.paymentId === defaultPaymentId
+        ? { ...currentForm, paymentId: null }
+        : currentForm
+    })
+  }, [defaultPaymentId, initialForm, isEdit, payments, paymentsQuery.data])
 
   const setValue = <K extends keyof NewTransactionFormValues>(
     key: K,

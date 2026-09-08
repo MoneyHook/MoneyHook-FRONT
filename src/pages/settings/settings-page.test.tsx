@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AppearanceProvider } from '@/shared/hooks/appearance-provider'
+import { DEFAULT_PAYMENT_STORAGE_KEY, readDefaultPaymentId, writeDefaultPaymentId } from '@/shared/lib/default-payment'
 import { server } from '@/test/msw/server'
 
 const authState = vi.hoisted(() => ({
@@ -618,6 +619,19 @@ describe('SettingsPage', () => {
     expect(screen.getAllByText('現金')).toHaveLength(2)
   })
 
+  it('stores and clears the default payment method locally', async () => {
+    renderSettingsPage('payments')
+
+    const select = await screen.findByRole('combobox', { name: 'デフォルトの支払い方法' })
+    fireEvent.click(select)
+    fireEvent.click(await screen.findByRole('option', { name: '楽天カード' }))
+    expect(readDefaultPaymentId()).toBe('20')
+
+    fireEvent.click(select)
+    fireEvent.click(await screen.findByRole('option', { name: '設定しない' }))
+    expect(localStorage.getItem(DEFAULT_PAYMENT_STORAGE_KEY)).toBeNull()
+  })
+
   it('adds a cash payment method without billing days', async () => {
     const { addRequests } = registerPaymentHandlers({ initialPayments: [] })
     renderSettingsPage('payments')
@@ -687,6 +701,16 @@ describe('SettingsPage', () => {
     expect(screen.getByText('「メインカード」を削除します。この操作は取り消せません。')).toBeVisible()
     fireEvent.click(screen.getByRole('button', { name: '削除する' }))
     await waitFor(() => expect(screen.queryByText('メインカード')).not.toBeInTheDocument())
+  })
+
+  it('clears the default payment method after deleting it', async () => {
+    writeDefaultPaymentId('20')
+    renderSettingsPage('payments')
+
+    fireEvent.click(await screen.findByRole('button', { name: '楽天カードを削除' }))
+    fireEvent.click(screen.getByRole('button', { name: '削除する' }))
+
+    await waitFor(() => expect(readDefaultPaymentId()).toBeNull())
   })
 
   it('shows an inline error and retry action when payment methods cannot load', async () => {

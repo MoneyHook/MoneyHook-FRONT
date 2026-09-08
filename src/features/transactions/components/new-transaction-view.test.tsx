@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { server } from '@/test/msw/server'
 import { TooltipProvider } from '@/shared/components/ui/tooltip'
+import { writeDefaultPaymentId } from '@/shared/lib/default-payment'
 
 import { TRANSACTION_FORM_REFERENCE_CACHE_KEYS } from '../api/use-transaction-form-references'
 
@@ -366,6 +367,23 @@ describe('NewTransactionView', () => {
 
     expect(screen.queryByText('支払い方法')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /支払い方法/ })).not.toBeInTheDocument()
+  })
+
+  it('selects the locally configured default payment method for a new transaction', async () => {
+    writeDefaultPaymentId('30')
+    registerHandlers()
+    renderNewTransaction()
+
+    expect(await screen.findByRole('button', { name: '支払い方法楽天カード' })).toBeVisible()
+  })
+
+  it('clears a default payment method that no longer exists', async () => {
+    writeDefaultPaymentId('missing')
+    registerHandlers()
+    renderNewTransaction()
+
+    expect(await screen.findByRole('button', { name: '支払い方法選択しない' })).toBeVisible()
+    await waitFor(() => expect(localStorage.getItem('moneyhooks:user-cache:default-payment')).toBeNull())
   })
 
   it('selects a category and subcategory in the same sheet', async () => {
