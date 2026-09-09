@@ -2,7 +2,7 @@ import type { Dispatch } from 'react'
 
 import type { DateFormat, Encoding, ImportDefaults, ImportRow, Mapping } from './model/csv-import'
 
-export type Step = 'setup' | 'mapping' | 'preview' | 'complete'
+export type Step = 'setup' | 'complete'
 export type Filter = 'all' | 'selected' | 'excluded' | 'error'
 
 export type Categories = Array<{

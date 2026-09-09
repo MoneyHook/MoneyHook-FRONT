@@ -11,8 +11,8 @@ import { CsvImportSetup } from './csv-import-setup'
 import { ImportPreviewSection } from './import-preview/import-preview-section'
 import { RawCsvPreview } from './raw-csv-preview'
 
-export function CsvImportView() {
-  const controller = useCsvImportController()
+export function CsvImportView({ onImported }: { onImported: () => Promise<void> }) {
+  const controller = useCsvImportController(onImported)
   const { state } = controller
 
   if (state.step === 'complete') return <CsvImportComplete importedCount={state.importedCount} onRestart={controller.restart} />

@@ -10,6 +10,7 @@ import {
   RecurringTransactionSettings,
   SettingsSummary,
 } from '@/features/settings'
+import { useAuth } from '@/features/auth'
 import { Button } from '@/shared/components/ui/button'
 
 function SettingsDetailPage({ children, description, title }: {
@@ -54,7 +55,8 @@ export function SettingsPage() {
 }
 
 export function AccountSettingsPage() {
-  return <SettingsDetailPage description="ログイン中のアカウント情報を確認できます。" title="アカウント"><AccountSettings showHeader={false} /></SettingsDetailPage>
+  const { user, signOut } = useAuth()
+  return <SettingsDetailPage description="ログイン中のアカウント情報を確認できます。" title="アカウント"><AccountSettings showHeader={false} user={user} signOut={signOut} /></SettingsDetailPage>
 }
 
 export function BudgetSettingsPage() {

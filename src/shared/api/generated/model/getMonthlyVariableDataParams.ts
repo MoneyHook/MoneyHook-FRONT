@@ -16,7 +16,6 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { DateString } from './dateString';
 import type { MonthParameter } from './monthParameter';
 
 export type GetMonthlyVariableDataParams = {

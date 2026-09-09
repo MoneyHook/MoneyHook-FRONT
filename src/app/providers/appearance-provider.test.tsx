@@ -27,7 +27,7 @@ import {
   CHART_PALETTE_STORAGE_KEY,
   THEME_STORAGE_KEY,
   useAppearance,
-} from './appearance-context'
+} from '@/shared/hooks/appearance-context'
 import { AppearanceProvider } from './appearance-provider'
 
 function AppearanceProbe() {
