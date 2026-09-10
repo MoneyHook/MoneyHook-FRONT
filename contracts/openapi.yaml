@@ -5,9 +5,8 @@ info:
   description: |
     Go/Echo implementation as audited from `moneyHook_api` on 2026-08-26.
 
-    This is a code-first description, not an aspirational API. Request validation tags exist in
-    the source but Echo validation is commented out, so many database-required fields are not
-    rejected until persistence. See `api-reference.md` for evidence, caveats, and known gaps.
+    This is a code-first description. Legacy transaction writes validate required fields and
+    values before persistence. Other legacy write endpoints still have gaps in request validation.
 
     Amount convention: write requests send a non-negative magnitude and `*_sign`; the server
     stores their product. Several aggregate responses therefore expose expenses as negative values.
@@ -467,10 +466,13 @@ paths:
         '401': {$ref: '#/components/responses/V1Unauthorized'}
         '409': {$ref: '#/components/responses/AuthIdentityConflict'}
         '500':
-          description: Authenticated user resolution or `month` parsing failed
+          description: Database lookup, authenticated user resolution, or `month` parsing failed
           content:
             application/json:
-              schema: {$ref: '#/components/schemas/ErrorResponse'}
+              schema:
+                oneOf:
+                  - {$ref: '#/components/schemas/ErrorResponse'}
+                  - {$ref: '#/components/schemas/V1ErrorResponse'}
 
   /api/transaction/getMonthlyWithdrawalAmount:
     get:
@@ -492,10 +494,13 @@ paths:
         '401': {$ref: '#/components/responses/V1Unauthorized'}
         '409': {$ref: '#/components/responses/AuthIdentityConflict'}
         '500':
-          description: Authenticated user resolution or `month` parsing failed
+          description: Database lookup, authenticated user resolution, or `month` parsing failed
           content:
             application/json:
-              schema: {$ref: '#/components/schemas/ErrorResponse'}
+              schema:
+                oneOf:
+                  - {$ref: '#/components/schemas/ErrorResponse'}
+                  - {$ref: '#/components/schemas/V1ErrorResponse'}
 
   /api/transaction/getFrequentTransactionName:
     get:
@@ -503,12 +508,23 @@ paths:
       operationId: getFrequentTransactionNames
       summary: List previously used transaction-name configurations by frequency
       security: [BearerAuth: []]
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of de-duplicated transaction-name recommendations to return. Defaults to 20 and accepts up to 100.
+          schema: {type: integer, minimum: 1, maximum: 100, default: 20}
       responses:
         '200':
-          description: De-duplicated by transaction name after database ordering by usage count
+          description: De-duplicated by transaction name and limited after database ordering by usage count
           content:
             application/json:
               schema: {$ref: '#/components/schemas/FrequentTransactionResponse'}
+        '400':
+          description: The optional `limit` query parameter is not an integer from 1 through 100
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponse'}
         '401': {$ref: '#/components/responses/V1Unauthorized'}
         '409': {$ref: '#/components/responses/AuthIdentityConflict'}
         '500': {$ref: '#/components/responses/V1InternalError'}
@@ -537,7 +553,7 @@ paths:
       tags: [Transaction]
       operationId: addTransactionList
       summary: Add a list of transactions
-      description: Subcategories are resolved or created before the database batch insert; the whole workflow is not wrapped in one transaction.
+      description: Every row is validated before persistence. Subcategory resolution and the batch insert run in one database transaction; any failure rolls back the entire batch, including new subcategories.
       security: [BearerAuth: []]
       requestBody:
         required: true
@@ -556,6 +572,7 @@ paths:
       tags: [Transaction]
       operationId: editTransaction
       summary: Edit one transaction owned by the authenticated user
+      description: Subcategory resolution and the update are atomic. A missing transaction returns 422.
       security: [BearerAuth: []]
       requestBody:
         required: true
@@ -624,6 +641,7 @@ paths:
       tags: [Fixed]
       operationId: addFixed
       summary: Add a recurring transaction
+      description: Subcategory resolution and the insert are atomic. Existing same-name subcategories are reused.
       security: [BearerAuth: []]
       requestBody:
         required: true
@@ -642,6 +660,7 @@ paths:
       tags: [Fixed]
       operationId: editFixed
       summary: Edit or enable/disable a recurring transaction
+      description: Subcategory resolution and the update are atomic. Existing same-name subcategories are reused; a missing recurring transaction returns 422.
       security: [BearerAuth: []]
       requestBody:
         required: true
@@ -1285,7 +1304,7 @@ components:
         message: {type: string}
     TransactionWrite:
       type: object
-      description: Fields marked required are the intended/database-viable contract; runtime request-tag validation is disabled.
+      description: Required fields, calendar dates, non-negative amounts, signs, names, and positive signed 64-bit IDs are validated before persistence. Invalid requests return 422. When sub_category_id is omitted or empty, sub_category_name must contain 1 to 16 non-blank characters.
       required: [transaction_date, transaction_amount, transaction_sign, transaction_name, category_id, fixed_flg]
       properties:
         transaction_date: {$ref: '#/components/schemas/DateString'}
@@ -1293,9 +1312,9 @@ components:
           type: integer
           format: int64
           minimum: 0
-          description: Magnitude; stored as `transaction_amount * transaction_sign`.
+          description: Non-negative signed 64-bit magnitude; stored as `transaction_amount * transaction_sign`.
         transaction_sign: {type: integer, enum: [-1, 1]}
-        transaction_name: {type: string, maxLength: 32}
+        transaction_name: {type: string, minLength: 1, maxLength: 32}
         category_id: {$ref: '#/components/schemas/Identifier'}
         sub_category_id:
           type: string

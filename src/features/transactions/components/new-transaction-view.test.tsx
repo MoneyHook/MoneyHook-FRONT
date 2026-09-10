@@ -8,7 +8,10 @@ import { server } from '@/test/msw/server'
 import { TooltipProvider } from '@/shared/components/ui/tooltip'
 import { writeDefaultPaymentId } from '@/shared/lib/default-payment'
 
-import { TRANSACTION_FORM_REFERENCE_CACHE_KEYS } from '../api/use-transaction-form-references'
+import {
+  FREQUENT_TRANSACTIONS_CACHE_VERSION,
+  TRANSACTION_FORM_REFERENCE_CACHE_KEYS,
+} from '../api/use-transaction-form-references'
 
 vi.mock('@/shared/config/environment', () => ({
   getEnvironment: () => ({ apiBaseUrl: 'http://api.test' }),
@@ -71,7 +74,10 @@ function registerHandlers({
         ],
       }),
     ),
-    http.get('http://api.test/api/transaction/getFrequentTransactionName', async () => {
+    http.get('http://api.test/api/transaction/getFrequentTransactionName', async ({ request }) => {
+      if (new URL(request.url).searchParams.get('limit') !== '20') {
+        return HttpResponse.json({ message: '候補件数が不正です' }, { status: 400 })
+      }
       if (frequentPending) {
         await new Promise<void>(() => undefined)
       }
@@ -112,8 +118,8 @@ function renderNewTransaction() {
   )
 }
 
-function seedReferenceCache(key: string, value: unknown) {
-  localStorage.setItem(key, JSON.stringify({ version: 1, value }))
+function seedReferenceCache(key: string, value: unknown, version = 1) {
+  localStorage.setItem(key, JSON.stringify({ version, value }))
 }
 
 describe('NewTransactionView', () => {
@@ -145,7 +151,7 @@ describe('NewTransactionView', () => {
     })
     seedReferenceCache(TRANSACTION_FORM_REFERENCE_CACHE_KEYS.frequentTransactions, {
       transaction_list: [cachedCandidate],
-    })
+    }, FREQUENT_TRANSACTIONS_CACHE_VERSION)
 
     registerHandlers()
     server.use(
@@ -181,6 +187,18 @@ describe('NewTransactionView', () => {
       expect(localStorage.getItem(TRANSACTION_FORM_REFERENCE_CACHE_KEYS.paymentTypes)).toContain('カード')
       expect(localStorage.getItem(TRANSACTION_FORM_REFERENCE_CACHE_KEYS.frequentTransactions)).toContain('ランチ')
     })
+  })
+
+  it('ignores the previous unlimited recommendation cache version', async () => {
+    seedReferenceCache(TRANSACTION_FORM_REFERENCE_CACHE_KEYS.frequentTransactions, {
+      transaction_list: [{ ...frequentTransaction, transaction_name: '旧キャッシュ候補' }],
+    })
+    registerHandlers({ frequentPending: true })
+
+    renderNewTransaction()
+
+    expect(await screen.findByRole('status', { name: '取引追加画面を読み込んでいます' })).toBeVisible()
+    expect(screen.queryByRole('button', { name: '旧キャッシュ候補を候補から適用' })).not.toBeInTheDocument()
   })
 
   it('opens CSV transaction import from the new transaction header', async () => {

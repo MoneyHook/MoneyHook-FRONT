@@ -4,9 +4,8 @@
  * MoneyHooks API
  * Go/Echo implementation as audited from `moneyHook_api` on 2026-08-26.
  *
- * This is a code-first description, not an aspirational API. Request validation tags exist in
- * the source but Echo validation is commented out, so many database-required fields are not
- * rejected until persistence. See `api-reference.md` for evidence, caveats, and known gaps.
+ * This is a code-first description. Legacy transaction writes validate required fields and
+ * values before persistence. Other legacy write endpoints still have gaps in request validation.
  *
  * Amount convention: write requests send a non-negative magnitude and `*_sign`; the server
  * stores their product. Several aggregate responses therefore expose expenses as negative values.
@@ -21,17 +20,20 @@ import type { Identifier } from './identifier';
 import type { TransactionWriteTransactionSign } from './transactionWriteTransactionSign';
 
 /**
- * Fields marked required are the intended/database-viable contract; runtime request-tag validation is disabled.
+ * Required fields, calendar dates, non-negative amounts, signs, names, and positive signed 64-bit IDs are validated before persistence. Invalid requests return 422. When sub_category_id is omitted or empty, sub_category_name must contain 1 to 16 non-blank characters.
  */
 export interface TransactionWrite {
   transaction_date: DateString;
   /**
-     * Magnitude; stored as `transaction_amount * transaction_sign`.
+     * Non-negative signed 64-bit magnitude; stored as `transaction_amount * transaction_sign`.
      * @minimum 0
      */
   transaction_amount: number;
   transaction_sign: TransactionWriteTransactionSign;
-  /** @maxLength 32 */
+  /**
+     * @minLength 1
+     * @maxLength 32
+     */
   transaction_name: string;
   category_id: Identifier;
   /** Numeric ID, or empty/omitted to find/create by `sub_category_name`. */

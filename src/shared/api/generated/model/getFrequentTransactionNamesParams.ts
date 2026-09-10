@@ -15,18 +15,12 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { DateString } from './dateString';
-import type { Identifier } from './identifier';
 
-export type GetTotalSpendingParams = {
-category_id?: Identifier;
-sub_category_id?: Identifier;
+export type GetFrequentTransactionNamesParams = {
 /**
- * Range start passed directly to SQL; callers conventionally use the first day of a month.
+ * Maximum number of de-duplicated transaction-name recommendations to return. Defaults to 20 and accepts up to 100.
+ * @minimum 1
+ * @maximum 100
  */
-start_month: DateString;
-/**
- * SQL expands this date to the final day of its month.
- */
-end_month: DateString;
+limit?: number;
 };
