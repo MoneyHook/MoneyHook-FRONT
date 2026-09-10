@@ -16,6 +16,7 @@ import {
 } from '@/shared/lib/persisted-user-data'
 
 const CACHE_VERSION = 1
+export const FREQUENT_TRANSACTIONS_CACHE_VERSION = 2
 export const TRANSACTION_FORM_REFERENCE_CACHE_KEYS = {
   categories: `${PERSISTED_USER_DATA_PREFIX}transaction-form:categories`,
   payments: `${PERSISTED_USER_DATA_PREFIX}transaction-form:payments`,
@@ -70,7 +71,7 @@ export function useTransactionFormReferences({ isEdit }: { isEdit: boolean }) {
       ? null
       : readPersistedUserData(
         TRANSACTION_FORM_REFERENCE_CACHE_KEYS.frequentTransactions,
-        CACHE_VERSION,
+        FREQUENT_TRANSACTIONS_CACHE_VERSION,
         isFrequentTransactionsResponse,
       ),
   )
@@ -93,7 +94,7 @@ export function useTransactionFormReferences({ isEdit }: { isEdit: boolean }) {
       initialDataUpdatedAt: cachedPaymentTypes ? 0 : undefined,
     },
   })
-  const frequentTransactionsQuery = useGetFrequentTransactionNames({
+  const frequentTransactionsQuery = useGetFrequentTransactionNames({ limit: 20 }, {
     query: {
       enabled: !isEdit,
       initialData: cachedFrequentTransactions
@@ -136,7 +137,7 @@ export function useTransactionFormReferences({ isEdit }: { isEdit: boolean }) {
     if (frequentTransactionsQuery.data?.status === 200) {
       writePersistedUserData(
         TRANSACTION_FORM_REFERENCE_CACHE_KEYS.frequentTransactions,
-        CACHE_VERSION,
+        FREQUENT_TRANSACTIONS_CACHE_VERSION,
         frequentTransactionsQuery.data.data,
       )
     }

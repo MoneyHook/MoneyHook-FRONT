@@ -55,7 +55,8 @@ describe('transaction mutation cache refresh', () => {
         ['/api/v1/analytics/categories'],
         ['/api/v1/analytics/fixed'],
         ['/api/v1/analytics/payments'],
-        getGetFrequentTransactionNamesQueryKey(),
+        getGetFrequentTransactionNamesQueryKey({ limit: 20 }),
+        getGetFrequentTransactionNamesQueryKey({ limit: 100 }),
       ]
       const paymentKey = getGetPaymentResourcesQueryKey()
       const detailKey = getGetV1TransactionQueryKey('42')

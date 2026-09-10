@@ -4,6 +4,7 @@ import { useBeforeUnload, useBlocker } from 'react-router-dom'
 import {
   MAX_ROWS,
   createImportRows,
+  duplicateCandidatesByRowId,
   toTransactionList,
   type DateFormat,
   type Encoding,
@@ -13,6 +14,7 @@ import {
 import type { Filter } from '../types'
 
 import { useCsvImportApi } from '../api/use-csv-import-api'
+import { useCsvImportDuplicateCheck } from '../api/use-csv-import-duplicate-check'
 import { csvImportReducer, headersFor, initialState } from '../model/csv-import-state'
 import { useCsvFileParser } from './use-csv-file-parser'
 
@@ -45,6 +47,7 @@ export function useCsvImportController(onImported: () => Promise<void>) {
         },
       }),
   })
+  const duplicateCheck = useCsvImportDuplicateCheck(state.previewRows)
   const parseFile = useCsvFileParser(dispatch, state.encoding)
   const headers = useMemo(() => headersFor(state), [state])
   const dataRows = state.rows.filter(
@@ -64,6 +67,14 @@ export function useCsvImportController(onImported: () => Promise<void>) {
   const selected = state.previewRows.filter((row) => row.selected).length
   const errors = state.previewRows.filter((row) => row.errors.length).length
   const selectedErrors = state.previewRows.filter((row) => row.selected && row.errors.length).length
+  const duplicateCandidates = useMemo(
+    () => duplicateCandidatesByRowId({
+      rows: state.previewRows,
+      sign: state.defaults.sign ?? 'expense',
+      transactions: duplicateCheck.transactions,
+    }),
+    [duplicateCheck.transactions, state.defaults.sign, state.previewRows],
+  )
   const canPreview = Boolean(
     dataRows.length <= MAX_ROWS &&
       state.defaults.sign &&
@@ -73,10 +84,10 @@ export function useCsvImportController(onImported: () => Promise<void>) {
   )
 
   const submit = useCallback(() => {
-    if (!selected || selectedErrors || state.importing || !state.defaults.sign) return
+    if (!selected || selectedErrors || duplicateCheck.isChecking || state.importing || !state.defaults.sign) return
     dispatch({ type: 'patch', patch: { importing: true, error: null } })
     mutation.mutate(toTransactionList(state.previewRows, { sign: state.defaults.sign }))
-  }, [mutation, selected, selectedErrors, state.defaults.sign, state.importing, state.previewRows])
+  }, [duplicateCheck.isChecking, mutation, selected, selectedErrors, state.defaults.sign, state.importing, state.previewRows])
 
   const changeHeaderRow = useCallback(
     (headerRowIndex: number | null) => {
@@ -139,10 +150,14 @@ export function useCsvImportController(onImported: () => Promise<void>) {
     changeSign: (sign: ImportSign) =>
       dispatch({ type: 'patch', patch: { defaults: { ...state.defaults, sign } } }),
     dispatch,
+    duplicateCandidates,
+    duplicateCount: duplicateCandidates.size,
     errors,
+    failedDuplicateCheckMonths: duplicateCheck.failedMonths,
     filter,
     filteredRows,
     headers,
+    isCheckingDuplicates: duplicateCheck.isChecking,
     parseFile,
     payments,
     selected,

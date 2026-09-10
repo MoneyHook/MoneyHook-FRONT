@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import { MonthPicker } from './month-picker'
+import { MonthPicker } from '../month-picker'
 
 function renderMonthPicker(
   monthInput = '2026-08',

@@ -4,9 +4,8 @@
  * MoneyHooks API
  * Go/Echo implementation as audited from `moneyHook_api` on 2026-08-26.
  *
- * This is a code-first description, not an aspirational API. Request validation tags exist in
- * the source but Echo validation is commented out, so many database-required fields are not
- * rejected until persistence. See `api-reference.md` for evidence, caveats, and known gaps.
+ * This is a code-first description. Legacy transaction writes validate required fields and
+ * values before persistence. Other legacy write endpoints still have gaps in request validation.
  *
  * Amount convention: write requests send a non-negative magnitude and `*_sign`; the server
  * stores their product. Several aggregate responses therefore expose expenses as negative values.
@@ -40,6 +39,7 @@ import type {
   DeleteFailureResponse,
   ErrorResponse,
   FrequentTransactionResponse,
+  GetFrequentTransactionNamesParams,
   GetHomeParams,
   GetMonthlyFixedIncomeParams,
   GetMonthlyFixedSpendingParams,
@@ -68,6 +68,7 @@ import type {
   TransactionWriteEnvelope,
   V1BadRequestResponse,
   V1CategoriesResponse,
+  V1ErrorResponse,
   V1FixedResponse,
   V1InternalErrorResponse,
   V1NotFoundResponse,
@@ -2261,7 +2262,7 @@ export type groupTransactionsByPaymentResponse409 = {
 }
 
 export type groupTransactionsByPaymentResponse500 = {
-  data: ErrorResponse
+  data: ErrorResponse | V1ErrorResponse
   status: 500
 }
 
@@ -2314,7 +2315,7 @@ export const getGroupTransactionsByPaymentQueryKey = (params?: GroupTransactions
     }
 
 
-export const getGroupTransactionsByPaymentQueryOptions = <TData = Awaited<ReturnType<typeof groupTransactionsByPayment>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | ErrorResponse>(params: GroupTransactionsByPaymentParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof groupTransactionsByPayment>>, TError, TData>>, }
+export const getGroupTransactionsByPaymentQueryOptions = <TData = Awaited<ReturnType<typeof groupTransactionsByPayment>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | ErrorResponse | V1ErrorResponse>(params: GroupTransactionsByPaymentParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof groupTransactionsByPayment>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -2333,10 +2334,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GroupTransactionsByPaymentQueryResult = NonNullable<Awaited<ReturnType<typeof groupTransactionsByPayment>>>
-export type GroupTransactionsByPaymentQueryError = V1UnauthorizedResponse | AuthIdentityConflictResponse | ErrorResponse
+export type GroupTransactionsByPaymentQueryError = V1UnauthorizedResponse | AuthIdentityConflictResponse | ErrorResponse | V1ErrorResponse
 
 
-export function useGroupTransactionsByPayment<TData = Awaited<ReturnType<typeof groupTransactionsByPayment>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | ErrorResponse>(
+export function useGroupTransactionsByPayment<TData = Awaited<ReturnType<typeof groupTransactionsByPayment>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | ErrorResponse | V1ErrorResponse>(
  params: GroupTransactionsByPaymentParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof groupTransactionsByPayment>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof groupTransactionsByPayment>>,
@@ -2346,7 +2347,7 @@ export function useGroupTransactionsByPayment<TData = Awaited<ReturnType<typeof 
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGroupTransactionsByPayment<TData = Awaited<ReturnType<typeof groupTransactionsByPayment>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | ErrorResponse>(
+export function useGroupTransactionsByPayment<TData = Awaited<ReturnType<typeof groupTransactionsByPayment>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | ErrorResponse | V1ErrorResponse>(
  params: GroupTransactionsByPaymentParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof groupTransactionsByPayment>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof groupTransactionsByPayment>>,
@@ -2356,7 +2357,7 @@ export function useGroupTransactionsByPayment<TData = Awaited<ReturnType<typeof 
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGroupTransactionsByPayment<TData = Awaited<ReturnType<typeof groupTransactionsByPayment>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | ErrorResponse>(
+export function useGroupTransactionsByPayment<TData = Awaited<ReturnType<typeof groupTransactionsByPayment>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | ErrorResponse | V1ErrorResponse>(
  params: GroupTransactionsByPaymentParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof groupTransactionsByPayment>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -2364,7 +2365,7 @@ export function useGroupTransactionsByPayment<TData = Awaited<ReturnType<typeof 
  * @summary Group monthly expenses by payment method and compare with prior month
  */
 
-export function useGroupTransactionsByPayment<TData = Awaited<ReturnType<typeof groupTransactionsByPayment>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | ErrorResponse>(
+export function useGroupTransactionsByPayment<TData = Awaited<ReturnType<typeof groupTransactionsByPayment>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | ErrorResponse | V1ErrorResponse>(
  params: GroupTransactionsByPaymentParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof groupTransactionsByPayment>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -2397,7 +2398,7 @@ export type getMonthlyWithdrawalAmountResponse409 = {
 }
 
 export type getMonthlyWithdrawalAmountResponse500 = {
-  data: ErrorResponse
+  data: ErrorResponse | V1ErrorResponse
   status: 500
 }
 
@@ -2452,7 +2453,7 @@ export const getGetMonthlyWithdrawalAmountQueryKey = (params?: GetMonthlyWithdra
     }
 
 
-export const getGetMonthlyWithdrawalAmountQueryOptions = <TData = Awaited<ReturnType<typeof getMonthlyWithdrawalAmount>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | ErrorResponse>(params: GetMonthlyWithdrawalAmountParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMonthlyWithdrawalAmount>>, TError, TData>>, }
+export const getGetMonthlyWithdrawalAmountQueryOptions = <TData = Awaited<ReturnType<typeof getMonthlyWithdrawalAmount>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | ErrorResponse | V1ErrorResponse>(params: GetMonthlyWithdrawalAmountParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMonthlyWithdrawalAmount>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -2471,10 +2472,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetMonthlyWithdrawalAmountQueryResult = NonNullable<Awaited<ReturnType<typeof getMonthlyWithdrawalAmount>>>
-export type GetMonthlyWithdrawalAmountQueryError = V1UnauthorizedResponse | AuthIdentityConflictResponse | ErrorResponse
+export type GetMonthlyWithdrawalAmountQueryError = V1UnauthorizedResponse | AuthIdentityConflictResponse | ErrorResponse | V1ErrorResponse
 
 
-export function useGetMonthlyWithdrawalAmount<TData = Awaited<ReturnType<typeof getMonthlyWithdrawalAmount>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | ErrorResponse>(
+export function useGetMonthlyWithdrawalAmount<TData = Awaited<ReturnType<typeof getMonthlyWithdrawalAmount>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | ErrorResponse | V1ErrorResponse>(
  params: GetMonthlyWithdrawalAmountParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMonthlyWithdrawalAmount>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getMonthlyWithdrawalAmount>>,
@@ -2484,7 +2485,7 @@ export function useGetMonthlyWithdrawalAmount<TData = Awaited<ReturnType<typeof 
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetMonthlyWithdrawalAmount<TData = Awaited<ReturnType<typeof getMonthlyWithdrawalAmount>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | ErrorResponse>(
+export function useGetMonthlyWithdrawalAmount<TData = Awaited<ReturnType<typeof getMonthlyWithdrawalAmount>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | ErrorResponse | V1ErrorResponse>(
  params: GetMonthlyWithdrawalAmountParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMonthlyWithdrawalAmount>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getMonthlyWithdrawalAmount>>,
@@ -2494,7 +2495,7 @@ export function useGetMonthlyWithdrawalAmount<TData = Awaited<ReturnType<typeof 
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetMonthlyWithdrawalAmount<TData = Awaited<ReturnType<typeof getMonthlyWithdrawalAmount>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | ErrorResponse>(
+export function useGetMonthlyWithdrawalAmount<TData = Awaited<ReturnType<typeof getMonthlyWithdrawalAmount>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | ErrorResponse | V1ErrorResponse>(
  params: GetMonthlyWithdrawalAmountParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMonthlyWithdrawalAmount>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -2502,7 +2503,7 @@ export function useGetMonthlyWithdrawalAmount<TData = Awaited<ReturnType<typeof 
  * @summary Calculate card/payment withdrawals due in a month
  */
 
-export function useGetMonthlyWithdrawalAmount<TData = Awaited<ReturnType<typeof getMonthlyWithdrawalAmount>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | ErrorResponse>(
+export function useGetMonthlyWithdrawalAmount<TData = Awaited<ReturnType<typeof getMonthlyWithdrawalAmount>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | ErrorResponse | V1ErrorResponse>(
  params: GetMonthlyWithdrawalAmountParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMonthlyWithdrawalAmount>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -2524,6 +2525,11 @@ export type getFrequentTransactionNamesResponse200 = {
   status: 200
 }
 
+export type getFrequentTransactionNamesResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
 export type getFrequentTransactionNamesResponse401 = {
   data: V1UnauthorizedResponse
   status: 401
@@ -2542,26 +2548,33 @@ export type getFrequentTransactionNamesResponse500 = {
 export type getFrequentTransactionNamesResponseSuccess = (getFrequentTransactionNamesResponse200) & {
   headers: Headers;
 };
-export type getFrequentTransactionNamesResponseError = (getFrequentTransactionNamesResponse401 | getFrequentTransactionNamesResponse409 | getFrequentTransactionNamesResponse500) & {
+export type getFrequentTransactionNamesResponseError = (getFrequentTransactionNamesResponse400 | getFrequentTransactionNamesResponse401 | getFrequentTransactionNamesResponse409 | getFrequentTransactionNamesResponse500) & {
   headers: Headers;
 };
 
 export type getFrequentTransactionNamesResponse = (getFrequentTransactionNamesResponseSuccess | getFrequentTransactionNamesResponseError)
 
-export const getGetFrequentTransactionNamesUrl = () => {
+export const getGetFrequentTransactionNamesUrl = (params?: GetFrequentTransactionNamesParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/transaction/getFrequentTransactionName`
+  return stringifiedParams.length > 0 ? `/api/transaction/getFrequentTransactionName?${stringifiedParams}` : `/api/transaction/getFrequentTransactionName`
 }
 
 /**
  * @summary List previously used transaction-name configurations by frequency
  */
-export const getFrequentTransactionNames = async ( options?: RequestInit): Promise<getFrequentTransactionNamesResponse> => {
+export const getFrequentTransactionNames = async (params?: GetFrequentTransactionNamesParams, options?: RequestInit): Promise<getFrequentTransactionNamesResponse> => {
 
-  return apiFetch<getFrequentTransactionNamesResponse>(getGetFrequentTransactionNamesUrl(),
+  return apiFetch<getFrequentTransactionNamesResponse>(getGetFrequentTransactionNamesUrl(params),
   {
     ...options,
     method: 'GET'
@@ -2574,23 +2587,23 @@ export const getFrequentTransactionNames = async ( options?: RequestInit): Promi
 
 
 
-export const getGetFrequentTransactionNamesQueryKey = () => {
+export const getGetFrequentTransactionNamesQueryKey = (params?: GetFrequentTransactionNamesParams,) => {
     return [
-    `/api/transaction/getFrequentTransactionName`
+    `/api/transaction/getFrequentTransactionName`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getGetFrequentTransactionNamesQueryOptions = <TData = Awaited<ReturnType<typeof getFrequentTransactionNames>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFrequentTransactionNames>>, TError, TData>>, }
+export const getGetFrequentTransactionNamesQueryOptions = <TData = Awaited<ReturnType<typeof getFrequentTransactionNames>>, TError = ErrorResponse | V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(params?: GetFrequentTransactionNamesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFrequentTransactionNames>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetFrequentTransactionNamesQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getGetFrequentTransactionNamesQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFrequentTransactionNames>>> = ({ signal }) => getFrequentTransactionNames({ signal });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFrequentTransactionNames>>> = ({ signal }) => getFrequentTransactionNames(params, { signal });
 
 
 
@@ -2600,11 +2613,11 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetFrequentTransactionNamesQueryResult = NonNullable<Awaited<ReturnType<typeof getFrequentTransactionNames>>>
-export type GetFrequentTransactionNamesQueryError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse
+export type GetFrequentTransactionNamesQueryError = ErrorResponse | V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse
 
 
-export function useGetFrequentTransactionNames<TData = Awaited<ReturnType<typeof getFrequentTransactionNames>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFrequentTransactionNames>>, TError, TData>> & Pick<
+export function useGetFrequentTransactionNames<TData = Awaited<ReturnType<typeof getFrequentTransactionNames>>, TError = ErrorResponse | V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
+ params: undefined |  GetFrequentTransactionNamesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFrequentTransactionNames>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getFrequentTransactionNames>>,
           TError,
@@ -2613,8 +2626,8 @@ export function useGetFrequentTransactionNames<TData = Awaited<ReturnType<typeof
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetFrequentTransactionNames<TData = Awaited<ReturnType<typeof getFrequentTransactionNames>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFrequentTransactionNames>>, TError, TData>> & Pick<
+export function useGetFrequentTransactionNames<TData = Awaited<ReturnType<typeof getFrequentTransactionNames>>, TError = ErrorResponse | V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
+ params?: GetFrequentTransactionNamesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFrequentTransactionNames>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getFrequentTransactionNames>>,
           TError,
@@ -2623,20 +2636,20 @@ export function useGetFrequentTransactionNames<TData = Awaited<ReturnType<typeof
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetFrequentTransactionNames<TData = Awaited<ReturnType<typeof getFrequentTransactionNames>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFrequentTransactionNames>>, TError, TData>>, }
+export function useGetFrequentTransactionNames<TData = Awaited<ReturnType<typeof getFrequentTransactionNames>>, TError = ErrorResponse | V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
+ params?: GetFrequentTransactionNamesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFrequentTransactionNames>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary List previously used transaction-name configurations by frequency
  */
 
-export function useGetFrequentTransactionNames<TData = Awaited<ReturnType<typeof getFrequentTransactionNames>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFrequentTransactionNames>>, TError, TData>>, }
+export function useGetFrequentTransactionNames<TData = Awaited<ReturnType<typeof getFrequentTransactionNames>>, TError = ErrorResponse | V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
+ params?: GetFrequentTransactionNamesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFrequentTransactionNames>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetFrequentTransactionNamesQueryOptions(options)
+  const queryOptions = getGetFrequentTransactionNamesQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -2803,7 +2816,7 @@ export const getAddTransactionListUrl = () => {
 }
 
 /**
- * Subcategories are resolved or created before the database batch insert; the whole workflow is not wrapped in one transaction.
+ * Every row is validated before persistence. Subcategory resolution and the batch insert run in one database transaction; any failure rolls back the entire batch, including new subcategories.
  * @summary Add a list of transactions
  */
 export const addTransactionList = async (transactionListWriteRequest: TransactionListWriteRequest, options?: RequestInit): Promise<addTransactionListResponse> => {
@@ -2915,6 +2928,7 @@ export const getEditTransactionUrl = () => {
 }
 
 /**
+ * Subcategory resolution and the update are atomic. A missing transaction returns 422.
  * @summary Edit one transaction owned by the authenticated user
  */
 export const editTransaction = async (transactionEditEnvelope: TransactionEditEnvelope, options?: RequestInit): Promise<editTransactionResponse> => {

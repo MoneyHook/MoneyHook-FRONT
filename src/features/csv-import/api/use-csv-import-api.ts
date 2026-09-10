@@ -22,7 +22,7 @@ export function useCsvImportApi({
 }) {
   const categoriesQuery = useGetCategoryWithSubCategoryList()
   const paymentsQuery = useGetPaymentResources()
-  const frequentTransactionsQuery = useGetFrequentTransactionNames()
+  const frequentTransactionsQuery = useGetFrequentTransactionNames({ limit: 100 })
   const categories = useMemo<Categories>(
     () =>
       categoriesQuery.data?.status === 200 ? (categoriesQuery.data.data.category_list ?? []) : [],

@@ -4,7 +4,9 @@ import {
   applyBulkEditToImportRows,
   createImportRows,
   displayColumnName,
+  duplicateCandidatesByRowId,
   inferHeaderRow,
+  importMonths,
   normalizeAmount,
   normalizeDate,
   toTransactionList,
@@ -139,5 +141,29 @@ describe('CSV import model', () => {
     expect(toTransactionList(updated, { sign: 'expense' })).toMatchObject({
       transaction_list: [expect.objectContaining({ payment_id: 'cash' })],
     })
+  })
+
+  it('collects unique import months and finds only matching registered transactions', () => {
+    const rows = createImportRows({
+      rows: [['日付', '名称', '金額'], ['2026/09/01', 'Amazon', '3,980'], ['2026/10/01', 'ランチ', '1,200'], ['2026/09/01', 'Amazon 再掲', '3,980']],
+      headerRowIndex: 0,
+      mapping: { amount: 2, date: 0, name: 1 },
+      defaults,
+      dateFormat: 'auto',
+      categories,
+    })
+    const matches = duplicateCandidatesByRowId({
+      rows,
+      sign: 'expense',
+      transactions: [
+        { transaction_id: 'match', transaction_name: 'Amazon', transaction_amount: 3980, transaction_sign: -1, transaction_date: '2026-09-01', category_id: 'food', category_name: '食費', sub_category_id: 'groceries', sub_category_name: '食料品', fixed_flg: false, payment_id: 'card', payment_name: 'カード' },
+        { transaction_id: 'income', transaction_name: '返金', transaction_amount: 3980, transaction_sign: 1, transaction_date: '2026-09-01', category_id: 'food', category_name: '食費', sub_category_id: 'groceries', sub_category_name: '食料品', fixed_flg: false, payment_id: null, payment_name: null },
+        { transaction_id: 'different-date', transaction_name: 'Amazon', transaction_amount: 3980, transaction_sign: -1, transaction_date: '2026-09-02', category_id: 'food', category_name: '食費', sub_category_id: 'groceries', sub_category_name: '食料品', fixed_flg: false, payment_id: null, payment_name: null },
+        { transaction_id: 'different-amount', transaction_name: 'Amazon', transaction_amount: 3981, transaction_sign: -1, transaction_date: '2026-09-01', category_id: 'food', category_name: '食費', sub_category_id: 'groceries', sub_category_name: '食料品', fixed_flg: false, payment_id: null, payment_name: null },
+      ],
+    })
+
+    expect(importMonths(rows)).toEqual(['2026-09-01', '2026-10-01'])
+    expect([...matches.entries()]).toEqual([[rows[0].id, [expect.objectContaining({ transaction_id: 'match' })]], [rows[2].id, [expect.objectContaining({ transaction_id: 'match' })]]])
   })
 })
