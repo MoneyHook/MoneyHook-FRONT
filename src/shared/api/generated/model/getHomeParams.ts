@@ -4,9 +4,8 @@
  * MoneyHooks API
  * Go/Echo implementation as audited from `moneyHook_api` on 2026-08-26.
  *
- * This is a code-first description, not an aspirational API. Request validation tags exist in
- * the source but Echo validation is commented out, so many database-required fields are not
- * rejected until persistence. See `api-reference.md` for evidence, caveats, and known gaps.
+ * This is a code-first description. Legacy transaction writes validate required fields and
+ * values before persistence. Other legacy write endpoints still have gaps in request validation.
  *
  * Amount convention: write requests send a non-negative magnitude and `*_sign`; the server
  * stores their product. Several aggregate responses therefore expose expenses as negative values.
@@ -16,7 +15,6 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { DateString } from './dateString';
 import type { MonthParameter } from './monthParameter';
 
 export type GetHomeParams = {

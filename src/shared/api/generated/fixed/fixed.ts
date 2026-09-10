@@ -4,9 +4,8 @@
  * MoneyHooks API
  * Go/Echo implementation as audited from `moneyHook_api` on 2026-08-26.
  *
- * This is a code-first description, not an aspirational API. Request validation tags exist in
- * the source but Echo validation is commented out, so many database-required fields are not
- * rejected until persistence. See `api-reference.md` for evidence, caveats, and known gaps.
+ * This is a code-first description. Legacy transaction writes validate required fields and
+ * values before persistence. Other legacy write endpoints still have gaps in request validation.
  *
  * Amount convention: write requests send a non-negative magnitude and `*_sign`; the server
  * stores their product. Several aggregate responses therefore expose expenses as negative values.
@@ -371,6 +370,7 @@ export const getAddFixedUrl = () => {
 }
 
 /**
+ * Subcategory resolution and the insert are atomic. Existing same-name subcategories are reused.
  * @summary Add a recurring transaction
  */
 export const addFixed = async (fixedWriteEnvelope: FixedWriteEnvelope, options?: RequestInit): Promise<addFixedResponse> => {
@@ -482,6 +482,7 @@ export const getEditFixedUrl = () => {
 }
 
 /**
+ * Subcategory resolution and the update are atomic. Existing same-name subcategories are reused; a missing recurring transaction returns 422.
  * @summary Edit or enable/disable a recurring transaction
  */
 export const editFixed = async (fixedEditEnvelope: FixedEditEnvelope, options?: RequestInit): Promise<editFixedResponse> => {

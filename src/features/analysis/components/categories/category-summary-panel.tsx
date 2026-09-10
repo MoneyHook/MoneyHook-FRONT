@@ -13,7 +13,7 @@ import type {
 import { formatCurrency, formatPercent } from '../../model/analysis-overview'
 import { analysisChartColors } from '../analysis-chart-colors'
 import { CategoryAnalysisPanel } from './category-analysis-panel'
-import { CategoryIcon } from './category-icon'
+import { CategoryIcon } from '../category-icon'
 
 function CategoryDonut({
   items,

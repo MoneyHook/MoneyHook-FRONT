@@ -1,5 +1,6 @@
 import type { TransactionListWriteRequest } from '@/shared/api/generated/model/transactionListWriteRequest'
 import type { FrequentTransactionResponseTransactionListItem } from '@/shared/api/generated/model/frequentTransactionResponseTransactionListItem'
+import type { TimelineTransaction } from '@/shared/api/generated/model/timelineTransaction'
 
 export const MAX_FILE_SIZE = 5 * 1024 * 1024
 export const MAX_COLUMNS = 100
@@ -31,6 +32,8 @@ export type ImportDefaults = {
   paymentId: string
   sign: ImportSign
 }
+
+export type DuplicateCandidatesByRowId = Map<number, TimelineTransaction[]>
 
 export function isBlankCsvRow(row: string[]) {
   return row.every((value) => !value.trim())
@@ -77,6 +80,34 @@ export function normalizeAmount(value: string) {
   if (!/^\d+$/.test(source)) return null
   const amount = Number(source)
   return Number.isSafeInteger(amount) && amount >= 1 && amount <= 9_999_999 ? String(amount) : null
+}
+
+export function importMonths(rows: ImportRow[]) {
+  return [...new Set(rows
+    .filter((row) => /^\d{4}-\d{2}-\d{2}$/.test(row.date) && Boolean(normalizeAmount(row.amount)))
+    .map((row) => `${row.date.slice(0, 7)}-01`))]
+}
+
+export function duplicateCandidatesByRowId({ rows, transactions, sign }: {
+  rows: ImportRow[]
+  transactions: TimelineTransaction[]
+  sign: ImportSign
+}): DuplicateCandidatesByRowId {
+  const transactionSign = sign === 'expense' ? -1 : 1
+  const candidatesByKey = new Map<string, TimelineTransaction[]>()
+
+  transactions.forEach((transaction) => {
+    if (transaction.transaction_sign !== transactionSign) return
+    const key = `${transaction.transaction_date}:${transaction.transaction_amount}`
+    candidatesByKey.set(key, [...(candidatesByKey.get(key) ?? []), transaction])
+  })
+
+  return new Map(rows.flatMap((row) => {
+    const amount = normalizeAmount(row.amount)
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(row.date) || !amount) return []
+    const candidates = candidatesByKey.get(`${row.date}:${amount}`) ?? []
+    return candidates.length ? [[row.id, candidates] as const] : []
+  }))
 }
 
 export function validateImportRow(row: Omit<ImportRow, 'errors'>, categories: Array<{ category_id: string; category_name: string; sub_category_list?: Array<{ sub_category_id: string; sub_category_name: string; enable: boolean }> }>) {
