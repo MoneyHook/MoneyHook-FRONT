@@ -72,8 +72,11 @@ beforeEach(() => {
     http.get('http://api.test/api/payment/getPayment', () =>
       HttpResponse.json({ payment_list: [] }),
     ),
-    http.get('http://api.test/api/transaction/getFrequentTransactionName', () =>
-      HttpResponse.json({
+    http.get('http://api.test/api/transaction/getFrequentTransactionName', ({ request }) => {
+      if (new URL(request.url).searchParams.get('limit') !== '100') {
+        return HttpResponse.json({ message: '候補件数が不正です' }, { status: 400 })
+      }
+      return HttpResponse.json({
         transaction_list: [
           {
             transaction_name: 'ランチ',
@@ -83,7 +86,10 @@ beforeEach(() => {
             fixed_flg: false,
           },
         ],
-      }),
+      })
+    }),
+    http.get('http://api.test/api/transaction/getTimelineData', () =>
+      HttpResponse.json({ transaction_list: [] }),
     ),
   )
 })
@@ -114,6 +120,7 @@ describe('CSV import controller', () => {
     act(() => result.current.changeMapping('name', 1))
     act(() => result.current.changeMapping('amount', 2))
     await waitFor(() => expect(result.current.selected).toBe(1))
+    await waitFor(() => expect(result.current.isCheckingDuplicates).toBe(false))
     act(() =>
       result.current.dispatch({
         type: 'set-row',
@@ -122,6 +129,7 @@ describe('CSV import controller', () => {
         categories: result.current.categories,
       }),
     )
+    await waitFor(() => expect(result.current.isCheckingDuplicates).toBe(false))
     act(() => result.current.submit())
     await waitFor(() => expect(result.current.state.error).toContain('取引を登録できませんでした'))
     expect(onImported).not.toHaveBeenCalled()
@@ -177,5 +185,49 @@ describe('CSV import controller', () => {
     act(() => ParserWorker.instances[1].complete())
     expect(result.current.state.error).toBeNull()
     expect(result.current.state.rows).toHaveLength(2)
+  })
+
+  it('checks each import month once, flags matches, and permits import after a check failure', async () => {
+    const checkedMonths: string[] = []
+    const requests: unknown[] = []
+    server.use(
+      http.get('http://api.test/api/transaction/getTimelineData', ({ request }) => {
+        const month = new URL(request.url).searchParams.get('month')
+        if (month) checkedMonths.push(month)
+        if (month === '2026-10-01') return HttpResponse.json({ message: 'failed' }, { status: 500 })
+        return HttpResponse.json({
+          transaction_list: [{
+            transaction_id: 'existing', transaction_name: '登録済みランチ', transaction_amount: 1200,
+            transaction_sign: -1, transaction_date: '2026-09-28', category_id: '10', category_name: '食費',
+            sub_category_id: '11', sub_category_name: '外食', fixed_flg: false, payment_id: null, payment_name: null,
+          }],
+        })
+      }),
+      http.post('http://api.test/api/transaction/addTransactionList', async ({ request }) => {
+        requests.push(await request.json())
+        return HttpResponse.json({ success: true })
+      }),
+    )
+    const { result } = renderController()
+    await waitFor(() => expect(result.current.categories).toHaveLength(1))
+    act(() => result.current.dispatch({
+      type: 'patch',
+      patch: {
+        previewRows: [
+          { id: 0, sourceRowNumber: 2, source: [], date: '2026-09-28', name: 'ランチ', amount: '1200', categoryId: '10', subcategoryId: '11', paymentId: '', selected: true, errors: [] },
+          { id: 1, sourceRowNumber: 3, source: [], date: '2026-10-01', name: '別の取引', amount: '500', categoryId: '10', subcategoryId: '11', paymentId: '', selected: true, errors: [] },
+        ],
+      },
+    }))
+    expect(result.current.isCheckingDuplicates).toBe(true)
+    act(() => result.current.submit())
+    expect(requests).toHaveLength(0)
+    await waitFor(() => expect(result.current.isCheckingDuplicates).toBe(false))
+    expect(checkedMonths.sort()).toEqual(['2026-09-01', '2026-10-01'])
+    expect(result.current.duplicateCandidates.get(0)).toEqual([expect.objectContaining({ transaction_id: 'existing' })])
+    expect(result.current.duplicateCandidates.has(1)).toBe(false)
+    expect(result.current.failedDuplicateCheckMonths).toEqual(['2026-10-01'])
+    act(() => result.current.submit())
+    await waitFor(() => expect(requests).toHaveLength(1))
   })
 })
