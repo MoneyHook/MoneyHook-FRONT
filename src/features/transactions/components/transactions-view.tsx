@@ -22,17 +22,18 @@ export function TransactionsView() {
 
   return (
     <>
-      <section aria-labelledby="transactions-page-title" className="motion-route-enter mx-auto w-full max-w-6xl px-4 pb-28 pt-4 sm:px-6 md:px-8 md:pb-10 md:pt-8">
-        <header className="flex items-center justify-between gap-4">
-          <h1 className="text-2xl font-semibold tracking-[-0.04em] sm:text-3xl" id="transactions-page-title">取引</h1>
+      <section aria-labelledby="transactions-page-title" className="motion-route-enter mx-auto flex h-svh min-h-0 w-full max-w-6xl flex-col overflow-hidden px-4 pt-2 sm:px-6 md:px-8 md:pt-5">
+        <header className="flex shrink-0 items-center justify-between gap-4">
+          <h1 className="text-xl font-semibold tracking-[-0.04em] sm:text-2xl" id="transactions-page-title">取引</h1>
           <div className="flex items-center gap-1">
             <div className="md:hidden"><TransactionFilterButton activeCount={controller.activeFilterCount} onClick={controller.openMobileFilters} /></div>
             <TransactionFilterButton activeCount={controller.activeFilterCount} className="hidden md:inline-flex" onClick={controller.openDesktopFilters} />
           </div>
         </header>
 
-        <div className="mt-4 sm:mt-6">
+        <div className="mt-3 flex min-h-0 flex-1 flex-col sm:mt-4">
           <TransactionsViewTabs onChange={controller.changeView} value={controller.view} />
+          <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-2" data-slot="transactions-scroll-area">
           {controller.data && controller.activeFilterCount ? (
             <div className="space-y-3 pt-4 sm:pt-5">
               <ActiveFilterChips filters={controller.filters} items={controller.data.items} onRemove={controller.removeFilter} references={controller.references} />
@@ -43,6 +44,7 @@ export function TransactionsView() {
           {controller.isError ? <ErrorState message={controller.error instanceof Error ? controller.error.message : '取引データを取得できませんでした。'} onRetry={() => void controller.refetch()} title="取引を表示できません" /> : null}
           {controller.data && controller.filteredData && controller.view === 'list' ? <TransactionsListPanel data={controller.filteredData} hasFilters={Boolean(controller.activeFilterCount)} month={controller.month} onClearFilters={controller.clearAppliedFilters} onMonthChange={controller.changeMonth} onOpen={controller.openTransaction} /> : null}
           {controller.data && controller.filteredData && controller.view === 'calendar' ? <TransactionsCalendarPanel data={controller.filteredData} month={controller.month} onDateChange={controller.changeDate} onMonthChange={controller.changeMonth} onOpen={controller.openTransaction} selectedDate={controller.selectedDate} /> : null}
+          </div>
         </div>
       </section>
 

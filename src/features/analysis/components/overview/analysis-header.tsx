@@ -37,7 +37,7 @@ export function AnalysisHeader({
     <>
       <header className="flex items-center justify-between gap-4">
         <h1
-          className="text-2xl font-semibold tracking-[-0.04em] sm:text-3xl"
+          className="text-xl font-semibold tracking-[-0.04em] sm:text-2xl"
           id="analysis-page-title"
         >
           分析
@@ -89,7 +89,7 @@ export function AnalysisHeader({
         </Popover>
       </header>
 
-      <nav aria-label="分析表示" className="mt-5 border-b sm:mt-7">
+      <nav aria-label="分析表示" className="mt-3 border-b sm:mt-5">
         <ul className="grid grid-cols-4">
           {analysisViews.map((item) => {
             const isActive = item.value === view

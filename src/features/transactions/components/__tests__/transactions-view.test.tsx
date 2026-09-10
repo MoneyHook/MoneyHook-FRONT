@@ -134,6 +134,10 @@ describe('TransactionsView', () => {
     renderTransactions()
 
     expect(await screen.findByText('ランチ')).toBeVisible()
+    expect(document.querySelector('[data-slot="transactions-scroll-area"]')).toHaveClass(
+      'overflow-y-auto',
+      'scrollbar-hidden',
+    )
     expect(screen.getByText('+¥20,320')).toBeVisible()
     expect(screen.getByText('給与（8月分）')).toBeVisible()
     expect(screen.getAllByRole('button', { name: '取引を絞り込む' })[0]).toBeEnabled()
