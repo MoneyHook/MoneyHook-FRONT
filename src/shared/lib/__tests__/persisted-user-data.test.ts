@@ -8,7 +8,7 @@ import {
   readPersistedUserData,
   writePersistedUserData,
   writePersistedQueryData,
-} from './persisted-user-data'
+} from '../persisted-user-data'
 
 describe('persisted user data', () => {
   beforeEach(() => {

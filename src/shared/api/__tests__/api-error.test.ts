@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { normalizeApiError } from './api-error'
+import { normalizeApiError } from '../api-error'
 
 describe('normalizeApiError', () => {
   it('normalizes the v1 error shape', () => {

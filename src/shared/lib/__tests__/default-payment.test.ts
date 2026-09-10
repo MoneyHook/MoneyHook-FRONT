@@ -5,7 +5,7 @@ import {
   clearDefaultPaymentId,
   readDefaultPaymentId,
   writeDefaultPaymentId,
-} from './default-payment'
+} from '../default-payment'
 
 describe('default payment', () => {
   beforeEach(() => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { getPaymentIconSource } from './payment-icon'
+import { getPaymentIconSource } from '../payment-icon'
 
 describe('getPaymentIconSource', () => {
   it.each([

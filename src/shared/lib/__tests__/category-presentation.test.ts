@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { getCategoryPresentation } from './category-presentation'
+import { getCategoryPresentation } from '../category-presentation'
 
 describe('getCategoryPresentation', () => {
   it('returns the presentation registered for an API master category', () => {

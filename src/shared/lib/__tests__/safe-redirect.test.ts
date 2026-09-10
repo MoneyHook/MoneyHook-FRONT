@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { DEFAULT_AUTHENTICATED_PATH, getSafeAppRedirect } from './safe-redirect'
+import { DEFAULT_AUTHENTICATED_PATH, getSafeAppRedirect } from '../safe-redirect'
 
 describe('getSafeAppRedirect', () => {
   it('allows app-local paths including search and hash', () => {

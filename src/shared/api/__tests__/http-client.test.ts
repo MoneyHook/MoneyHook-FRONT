@@ -25,7 +25,7 @@ describe('apiFetch', () => {
         HttpResponse.json({ status: 'success' }),
       ),
     )
-    const { apiFetch, withApiAuth } = await import('./http-client')
+    const { apiFetch, withApiAuth } = await import('../http-client')
 
     const result = await apiFetch<{
       data: { status: string }
@@ -51,7 +51,7 @@ describe('apiFetch', () => {
       },
     }))
 
-    const { apiFetch } = await import('./http-client')
+    const { apiFetch } = await import('../http-client')
     const result = await apiFetch<{ data: string; status: number }>('/')
 
     expect(result.status).toBe(200)
@@ -65,7 +65,7 @@ describe('apiFetch', () => {
         HttpResponse.json('追加に失敗しました', { status: 422 }),
       ),
     )
-    const { apiFetch, withApiAuth } = await import('./http-client')
+    const { apiFetch, withApiAuth } = await import('../http-client')
 
     await expect(
       apiFetch('/api/failure', withApiAuth('none', { method: 'POST' })),
@@ -92,7 +92,7 @@ describe('apiFetch', () => {
       }),
     }))
 
-    const { apiFetch } = await import('./http-client')
+    const { apiFetch } = await import('../http-client')
     const result = await apiFetch<{ data: { status: string }; status: number }>(
       '/api/v1/protected',
     )
@@ -108,7 +108,7 @@ describe('apiFetch', () => {
       }),
     }))
 
-    const { apiFetch } = await import('./http-client')
+    const { apiFetch } = await import('../http-client')
     await expect(apiFetch('/api/v1/protected')).rejects.toMatchObject({
       status: 401,
       code: 'AUTH_REQUIRED',

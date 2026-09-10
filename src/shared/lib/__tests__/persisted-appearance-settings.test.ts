@@ -5,7 +5,7 @@ import {
   CHART_PALETTE_STORAGE_KEY,
   clearPersistedAppearanceSettings,
   THEME_STORAGE_KEY,
-} from './persisted-appearance-settings'
+} from '../persisted-appearance-settings'
 
 describe('persisted appearance settings', () => {
   beforeEach(() => {
