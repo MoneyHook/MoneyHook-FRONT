@@ -35,8 +35,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
-  SidebarRail,
-  SidebarTrigger,
   useSidebar,
 } from '@/shared/components/ui/sidebar'
 
@@ -113,10 +111,17 @@ function SidebarAccountMenu() {
 }
 
 function DesktopSidebar({ pathname }: { pathname: string }) {
+  const { state, toggleSidebar } = useSidebar()
+  const sidebarToggleLabel = state === 'expanded' ? 'サイドバーを閉じる' : 'サイドバーを開く'
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="h-16 justify-center border-b px-3">
-        <Brand className="group-data-[collapsible=icon]:[&_span:last-child]:hidden" />
+        <Brand
+          aria-label={sidebarToggleLabel}
+          className="group-data-[collapsible=icon]:[&_span:last-child]:hidden"
+          onClick={toggleSidebar}
+        />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup className="px-2 py-5">
@@ -154,7 +159,6 @@ function DesktopSidebar({ pathname }: { pathname: string }) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
-      <SidebarRail />
     </Sidebar>
   )
 }
@@ -217,26 +221,6 @@ function MobileNavigation({ pathname }: { pathname: string }) {
   )
 }
 
-function FloatingControls() {
-  const { state } = useSidebar()
-  const triggerPosition =
-    state === 'expanded'
-      ? 'md:left-[calc(var(--sidebar-width)+0.75rem)]'
-      : 'md:left-[calc(var(--sidebar-width-icon)+0.75rem)]'
-
-  return (
-    <div className="pointer-events-none fixed inset-0 z-40">
-      <SidebarTrigger
-        aria-label="サイドバーを切り替える"
-        className={cn(
-          'pointer-events-auto fixed top-4 hidden rounded-full shadow-sm transition-[left,background-color] duration-200 hover:bg-muted md:inline-flex',
-          triggerPosition,
-        )}
-      />
-    </div>
-  )
-}
-
 export function AppShell() {
   const location = useLocation()
   const isTransactionComposer =
@@ -252,7 +236,6 @@ export function AppShell() {
         本文へ移動
       </a>
 
-      <FloatingControls />
       <DesktopSidebar pathname={location.pathname} />
       <SidebarInset id="main-content" tabIndex={-1}>
         <Outlet />

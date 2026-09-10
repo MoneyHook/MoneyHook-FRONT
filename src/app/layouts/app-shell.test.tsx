@@ -43,18 +43,6 @@ function renderAppShell(initialEntry = '/app/home') {
   )
 }
 
-function getFloatingSidebarTrigger() {
-  const trigger = document.querySelector<HTMLButtonElement>(
-    '[data-slot="sidebar-trigger"]',
-  )
-
-  if (!trigger) {
-    throw new Error('Floating sidebar trigger was not rendered')
-  }
-
-  return trigger
-}
-
 describe('AppShell', () => {
   beforeEach(() => {
     setViewportWidth(1024)
@@ -66,7 +54,7 @@ describe('AppShell', () => {
     renderAppShell()
 
     expect(screen.queryByRole('banner')).not.toBeInTheDocument()
-    expect(getFloatingSidebarTrigger()).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'サイドバーを閉じる' })).toBeInTheDocument()
     expect(document.querySelector('[data-slot="sidebar-inset"]')).toHaveClass(
       'min-w-0',
     )
@@ -114,24 +102,18 @@ describe('AppShell', () => {
     expect(authState.signOut).toHaveBeenCalledOnce()
   })
 
-  it('toggles the desktop sidebar from the floating trigger', async () => {
+  it('toggles the desktop sidebar from the MoneyHooks logo', async () => {
     const user = userEvent.setup()
     renderAppShell()
 
-    const trigger = getFloatingSidebarTrigger()
     const sidebar = document.querySelector('[data-slot="sidebar"]')
 
     expect(sidebar).toHaveAttribute('data-state', 'expanded')
-    expect(trigger).toHaveClass(
-      'md:left-[calc(var(--sidebar-width)+0.75rem)]',
-    )
 
-    await user.click(trigger)
+    await user.click(screen.getByRole('button', { name: 'サイドバーを閉じる' }))
 
     expect(sidebar).toHaveAttribute('data-state', 'collapsed')
-    expect(trigger).toHaveClass(
-      'md:left-[calc(var(--sidebar-width-icon)+0.75rem)]',
-    )
+    expect(screen.getByRole('button', { name: 'サイドバーを開く' })).toBeInTheDocument()
   })
 
   it('removes the floating account menu and keeps bottom navigation on mobile', () => {
@@ -154,6 +136,6 @@ describe('AppShell', () => {
     expect(
       screen.getByRole('link', { name: '新しい取引を追加' }).querySelector('svg'),
     ).toBeInTheDocument()
-    expect(getFloatingSidebarTrigger()).toHaveClass('hidden')
+    expect(screen.queryByRole('button', { name: 'サイドバーを閉じる' })).not.toBeInTheDocument()
   })
 })

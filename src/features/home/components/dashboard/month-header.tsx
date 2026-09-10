@@ -16,7 +16,7 @@ export function MonthHeader({
   return (
     <header className="flex items-center justify-between gap-4">
       <h1
-        className="text-xl font-semibold tracking-[-0.04em] sm:text-3xl"
+        className="text-lg font-semibold tracking-[-0.04em] sm:text-2xl"
         id="home-page-title"
       >
         ホーム
