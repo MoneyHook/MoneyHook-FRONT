@@ -15,7 +15,7 @@ export function HomeDashboard() {
   return (
     <section
       aria-labelledby="home-page-title"
-      className="motion-route-enter mx-auto w-full max-w-7xl px-4 pb-24 pt-2 sm:px-6 sm:pt-6 md:px-8 md:pb-10 md:pt-8"
+      className="motion-route-enter mx-auto w-full max-w-7xl px-4 pb-24 pt-2 sm:px-6 sm:pt-4 md:px-8 md:pb-10 md:pt-6"
     >
       <MonthHeader
         maxMonth={month.currentMonthInput}

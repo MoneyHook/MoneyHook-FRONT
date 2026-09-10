@@ -214,6 +214,10 @@ describe('AnalysisDashboard', () => {
     expect(screen.getByRole('status', { name: '分析概要を読み込んでいます' })).toBeVisible()
 
     expect(await screen.findByText('¥600,000')).toBeVisible()
+    expect(document.querySelector('[data-slot="analysis-scroll-area"]')).toHaveClass(
+      'overflow-y-auto',
+      'scrollbar-hidden',
+    )
     expect(screen.getByText('カテゴリ別支出（上位5件）')).toBeVisible()
     expect(screen.getByText('固定費の内訳')).toBeVisible()
     expect(screen.getByText('支出の増減（前期間比）')).toBeVisible()
