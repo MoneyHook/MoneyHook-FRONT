@@ -1,88 +1,57 @@
+import { ArrowDown, ChartColumnIncreasing, ListChecks, Sparkles } from 'lucide-react'
 import { Navigate, useSearchParams } from 'react-router-dom'
-import { BarChart3, CheckCircle2, PieChart, Sparkles, TrendingUp } from 'lucide-react'
 
 import { LoginPanel, useAuth } from '@/features/auth'
-import { Brand } from '@/shared/components/brand'
 import { FullScreenLoading } from '@/shared/components/app-state'
+import { Brand } from '@/shared/components/brand'
 import { getSafeAppRedirect } from '@/shared/lib/safe-redirect'
 
-const benefits = [
+const productStories = [
   {
     icon: Sparkles,
-    title: 'すぐに始められる',
-    description: 'Googleアカウントで\nかんたんに利用開始',
+    eyebrow: '01 — HOME',
+    title: '今月の流れを、\nひと目で。',
+    description: '支出のペース、予算との距離、気になる変化を一つの画面で確認できます。',
+    image: '/login/home-dashboard.webp',
+    imageAlt: '今月の支出、予算比、支出ペースを表示したMoneyHooksのホーム画面',
   },
   {
-    icon: PieChart,
-    title: '家計をひと目で把握',
-    description: '収支や支出をグラフで\n分かりやすく可視化',
+    icon: ChartColumnIncreasing,
+    eyebrow: '02 — ANALYSIS',
+    title: '使い方の傾向を、\nすぐ理解。',
+    description: '月ごとの推移とカテゴリ別の内訳から、お金の使い方をやさしく読み解けます。',
+    image: '/login/analysis-overview.webp',
+    imageAlt: '月別支出推移とカテゴリ別支出を表示したMoneyHooksの分析画面',
   },
   {
-    icon: CheckCircle2,
-    title: 'シンプルに管理',
-    description: 'ムダなく続けられる\nシンプルな操作性',
+    icon: ListChecks,
+    eyebrow: '03 — TRANSACTIONS',
+    title: '毎日の記録を、\n迷わず整理。',
+    description: '収支を日付ごとに見渡せるので、振り返りたい一件にもすぐたどり着けます。',
+    image: '/login/transactions-list.webp',
+    imageAlt: '日付ごとの収支と取引一覧を表示したMoneyHooksの取引画面',
   },
 ] as const
 
-function LoginVisual() {
+function ProductStory({
+  story,
+  index,
+}: {
+  story: (typeof productStories)[number]
+  index: number
+}) {
+  const Icon = story.icon
+
   return (
-    <section aria-label="MoneyHooksの特徴" className="login-visual motion-auth-visual">
-      <div className="login-visual-orbit login-visual-orbit-large" />
-      <div className="login-visual-orbit login-visual-orbit-small" />
-      <div className="login-visual-spark login-visual-spark-top" />
-      <div className="login-visual-spark login-visual-spark-bottom" />
-
-      <div className="login-dashboard" aria-hidden="true">
-        <div className="login-dashboard-sidebar">
-          <span />
-          <span />
-          <span />
-          <span />
-        </div>
-        <div className="login-dashboard-main">
-          <div className="login-dashboard-toolbar">
-            <span />
-            <span />
-          </div>
-          <div className="login-chart">
-            <span className="login-chart-line login-chart-line-one" />
-            <span className="login-chart-line login-chart-line-two" />
-            <span className="login-chart-line login-chart-line-three" />
-            <span className="login-chart-line login-chart-line-four" />
-            <span className="login-chart-point login-chart-point-one" />
-            <span className="login-chart-point login-chart-point-two" />
-            <span className="login-chart-point login-chart-point-three" />
-          </div>
-          <div className="login-dashboard-footer">
-            <span />
-            <span />
-            <span />
-          </div>
-        </div>
+    <section className={`login-story login-story-${index + 1}`}>
+      <div className="login-story-copy">
+        <p className="login-story-eyebrow"><Icon aria-hidden="true" />{story.eyebrow}</p>
+        <h2>{story.title}</h2>
+        <p>{story.description}</p>
       </div>
-
-      <div className="login-summary-card login-summary-card-income" aria-hidden="true">
-        <span>今月の収支</span>
-        <strong>¥128,500</strong>
-        <small><TrendingUp /> 12.5%</small>
-      </div>
-      <div className="login-summary-card login-summary-card-pie" aria-hidden="true">
-        <PieChart />
-      </div>
-      <div className="login-summary-card login-summary-card-bars" aria-hidden="true">
-        <BarChart3 />
-      </div>
-
-      <div className="login-benefits">
-        {benefits.map(({ icon: Icon, title, description }) => (
-          <div className="login-benefit" key={title}>
-            <span className="login-benefit-icon"><Icon aria-hidden="true" /></span>
-            <strong>{title}</strong>
-            <p>{description}</p>
-          </div>
-        ))}
-      </div>
-      <p className="login-data-note"><Sparkles aria-hidden="true" />毎日の家計管理を、もっと身近に</p>
+      <figure className="login-screen-frame">
+        <img alt={story.imageAlt} loading="lazy" src={story.image} />
+      </figure>
     </section>
   )
 }
@@ -101,16 +70,49 @@ export function LoginPage() {
   }
 
   return (
-    <main className="login-page relative min-h-svh overflow-hidden bg-background">
-      <header className="absolute inset-x-0 top-0 z-10 px-6 py-6 md:px-10 md:py-8">
-        <Brand />
+    <main className="login-page">
+      <header className="login-header">
+        <Brand className="login-brand" />
+        <a className="login-header-link" href="#login-panel">ログイン</a>
       </header>
 
-      <div className="relative z-10 mx-auto grid min-h-svh w-full max-w-7xl items-center gap-12 px-6 py-28 md:grid-cols-[minmax(0,1.1fr)_minmax(24rem,0.9fr)] md:gap-16 md:px-12 lg:gap-24 lg:px-16">
-        <LoginVisual />
-        <div className="flex justify-center md:justify-end">
-          <LoginPanel />
+      <section className="login-hero">
+        <div className="login-hero-glow login-hero-glow-one" />
+        <div className="login-hero-glow login-hero-glow-two" />
+        <div className="login-hero-grid" />
+        <div className="login-hero-content">
+          <div className="login-hero-copy">
+            <p className="login-hero-kicker"><Sparkles aria-hidden="true" />YOUR MONEY, IN MOTION</p>
+            <h1>お金の流れを、<br />自分の味方に。</h1>
+            <p>毎日の記録から、今月の使い方まで。MoneyHooksなら、家計との距離がぐっと近くなります。</p>
+            <a className="login-scroll-cue" href="#features"><ArrowDown aria-hidden="true" />できることを見る</a>
+          </div>
+
+          <div className="login-hero-screen" aria-hidden="true">
+            <img alt="" src="/login/home-dashboard.webp" />
+          </div>
+
+          <div className="login-panel-wrap" id="login-panel">
+            <LoginPanel />
+          </div>
         </div>
+      </section>
+
+      <div className="login-content" id="features">
+        <div className="login-intro">
+          <p>EVERYDAY CLARITY</p>
+          <h2>記録するだけで、<br />見える景色が変わっていく。</h2>
+        </div>
+
+        {productStories.map((story, index) => (
+          <ProductStory index={index} key={story.eyebrow} story={story} />
+        ))}
+
+        <section className="login-closing">
+          <Sparkles aria-hidden="true" />
+          <p>今日から、家計をもっと身近に。</p>
+          <a href="#login-panel">Googleで無料ではじめる <ArrowDown aria-hidden="true" /></a>
+        </section>
       </div>
     </main>
   )
