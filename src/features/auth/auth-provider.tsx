@@ -1,11 +1,3 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ReactNode,
-} from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { FirebaseError } from 'firebase/app'
 import {
@@ -15,6 +7,14 @@ import {
   signOut as firebaseSignOut,
   type User,
 } from 'firebase/auth'
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 
 import { EnvironmentConfigurationError } from '@/shared/config/environment'
 import { getFirebaseAuth } from '@/shared/lib/firebase'

@@ -11,9 +11,8 @@ import {
 } from '@/shared/lib/default-payment'
 
 import { usePaymentSettings } from '../api/use-payment-settings'
-import type { PaymentSettingsFormValues } from '../model/payment-settings'
-
 import type { EditorState } from '../model/payment-editor'
+import type { PaymentSettingsFormValues } from '../model/payment-settings'
 
 function errorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback

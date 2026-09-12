@@ -1,8 +1,8 @@
 import {
+  closestCenter,
   DndContext,
   KeyboardSensor,
   PointerSensor,
-  closestCenter,
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
@@ -55,7 +55,6 @@ import {
 import { Skeleton } from '@/shared/components/ui/skeleton'
 
 import { SettingsSection } from '../../components/settings-section'
-
 import { usePaymentSettingsController } from '../hooks/use-payment-settings-controller'
 import { PaymentForm } from './payment-form'
 import { SortablePaymentRow } from './sortable-payment-row'

@@ -1,12 +1,13 @@
 import { ErrorState } from '@/shared/components/app-state'
-import type { AnalysisRange } from '../model/analysis-overview'
+
 import { useAnalysisFixedController } from '../hooks/use-analysis-fixed-controller'
-import { FixedSkeleton, EmptyFixed } from './fixed/fixed-analysis-states'
-import { FixedSummaryPanel } from './fixed/fixed-summary-panel'
-import { FixedBreakdownPanel } from './fixed/fixed-breakdown-panel'
-import { FixedTrendPanel } from './fixed/fixed-trend-panel'
+import type { AnalysisRange } from '../model/analysis-overview'
 import { CategoryTrendTable } from './fixed/category-trend-table'
+import { EmptyFixed, FixedSkeleton } from './fixed/fixed-analysis-states'
+import { FixedBreakdownPanel } from './fixed/fixed-breakdown-panel'
+import { FixedSummaryPanel } from './fixed/fixed-summary-panel'
 import { TransactionsPanel } from './fixed/fixed-transactions-panel'
+import { FixedTrendPanel } from './fixed/fixed-trend-panel'
 
 export function AnalysisFixedContent({ range }: { range: AnalysisRange }) {
   const {

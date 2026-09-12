@@ -1,9 +1,11 @@
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react'
+
 import { cn } from '@/shared/lib/utils'
+
 import {
+  type CategoryChange,
   formatCurrency,
   formatSignedCurrency,
-  type CategoryChange,
   type HomeDashboardViewModel,
 } from '../../model/home-dashboard'
 import { DashboardCard } from './dashboard-card'

@@ -12,8 +12,8 @@ import type {
 } from '../../model/analysis-categories'
 import { formatCurrency, formatPercent } from '../../model/analysis-overview'
 import { analysisChartColors } from '../analysis-chart-colors'
-import { CategoryAnalysisPanel } from './category-analysis-panel'
 import { CategoryIcon } from '../category-icon'
+import { CategoryAnalysisPanel } from './category-analysis-panel'
 
 function CategoryDonut({
   items,

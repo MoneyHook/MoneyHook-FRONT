@@ -122,6 +122,9 @@ importers:
       eslint-plugin-react-refresh:
         specifier: ^0.5.5
         version: 0.5.5(eslint@10.9.1(jiti@2.7.0))
+      eslint-plugin-simple-import-sort:
+        specifier: ^14.0.0
+        version: 14.0.0(eslint@10.9.1(jiti@2.7.0))
       firebase-tools:
         specifier: ^15.28.2
         version: 15.28.2(@types/node@24.13.3)
@@ -5274,6 +5277,14 @@ packages:
       }
     peerDependencies:
       eslint: ^9 || ^10
+
+  eslint-plugin-simple-import-sort@14.0.0:
+    resolution:
+      {
+        integrity: sha512-NUJO0+XFCkk+o5EsAJruTgnfMEpeWrPWeJS15UVF60GgXmqz1BJ9/3hzlvG7lkL8Bubzos5cCLptThbFfPnSMQ==,
+      }
+    peerDependencies:
+      eslint: '>=5.0.0'
 
   eslint-scope@9.1.2:
     resolution:
@@ -13629,6 +13640,10 @@ snapshots:
       - supports-color
 
   eslint-plugin-react-refresh@0.5.5(eslint@10.9.1(jiti@2.7.0)):
+    dependencies:
+      eslint: 10.9.1(jiti@2.7.0)
+
+  eslint-plugin-simple-import-sort@14.0.0(eslint@10.9.1(jiti@2.7.0)):
     dependencies:
       eslint: 10.9.1(jiti@2.7.0)
 

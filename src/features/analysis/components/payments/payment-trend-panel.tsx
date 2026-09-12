@@ -7,9 +7,10 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { analysisChartColors } from '../analysis-chart-colors'
-import type { AnalysisPaymentsViewModel } from '../../model/analysis-payments'
+
 import { formatCurrency } from '../../model/analysis-overview'
+import type { AnalysisPaymentsViewModel } from '../../model/analysis-payments'
+import { analysisChartColors } from '../analysis-chart-colors'
 import { AnalysisPanel } from './payments-analysis-panel'
 
 type PaymentTrendRow = {

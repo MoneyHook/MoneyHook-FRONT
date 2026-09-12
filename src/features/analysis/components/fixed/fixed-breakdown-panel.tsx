@@ -1,14 +1,15 @@
 import { ChevronRight } from 'lucide-react'
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
-import { analysisChartColors } from '../analysis-chart-colors'
+
 import {
-  buildFixedBreakdown,
   type AnalysisFixedViewModel,
+  buildFixedBreakdown,
   type FixedCategoryItem,
 } from '../../model/analysis-fixed'
 import { formatCurrency, formatPercent } from '../../model/analysis-overview'
-import { AnalysisPanel } from './fixed-analysis-panel'
+import { analysisChartColors } from '../analysis-chart-colors'
 import { CategoryIcon } from '../category-icon'
+import { AnalysisPanel } from './fixed-analysis-panel'
 
 function FixedDonut({
   categories,

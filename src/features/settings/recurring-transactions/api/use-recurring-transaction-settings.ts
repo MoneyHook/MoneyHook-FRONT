@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
 
+import { useGetCategoryWithSubCategoryList } from '@/shared/api/generated/category/category'
 import {
   getGetDeletedFixedQueryKey,
   getGetFixedQueryKey,
@@ -9,7 +10,6 @@ import {
   useGetDeletedFixed,
   useGetFixed,
 } from '@/shared/api/generated/fixed/fixed'
-import { useGetCategoryWithSubCategoryList } from '@/shared/api/generated/category/category'
 import { useGetPaymentResources } from '@/shared/api/generated/payment/payment'
 
 export function useRecurringTransactionSettings() {

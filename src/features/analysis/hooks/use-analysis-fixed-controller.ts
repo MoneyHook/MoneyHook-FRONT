@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+
 import { useAnalysisFixed } from '../api/use-analysis-fixed'
 import { normalizeFixedCategorySelection } from '../model/analysis-fixed'
 import type { AnalysisRange } from '../model/analysis-overview'

@@ -11,11 +11,12 @@ import {
   House,
   Landmark,
   Lightbulb,
+  type LucideIcon,
   MoreHorizontal,
   Plane,
   ReceiptText,
-  Shirt,
   ShieldCheck,
+  Shirt,
   ShoppingBag,
   Smartphone,
   Sparkles,
@@ -24,7 +25,6 @@ import {
   TrainFront,
   Users,
   Utensils,
-  type LucideIcon,
 } from 'lucide-react'
 
 export type CategoryPresentation = {

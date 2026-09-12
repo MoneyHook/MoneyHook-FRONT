@@ -10,9 +10,8 @@ import {
 } from '@/shared/components/ui/sheet'
 import { cn } from '@/shared/lib/utils'
 
-import { TransactionCandidateChip } from '../transaction-candidates'
-
 import type { TransactionFormController } from '../../hooks/use-transaction-form-controller'
+import { TransactionCandidateChip } from '../transaction-candidates'
 import { CategoryIcon, PaymentIcon } from './transaction-form-icons'
 
 function SheetOption({

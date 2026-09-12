@@ -1,7 +1,8 @@
 import { useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
+
+import { type AnalysisView, normalizeView } from '../model/analysis-navigation'
 import { resolveAnalysisRange } from '../model/analysis-overview'
-import { normalizeView, type AnalysisView } from '../model/analysis-navigation'
 
 export function useAnalysisDashboardController() {
   const [searchParams, setSearchParams] = useSearchParams()

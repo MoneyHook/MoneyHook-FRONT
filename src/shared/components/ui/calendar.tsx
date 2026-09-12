@@ -1,10 +1,10 @@
-import * as React from 'react'
 import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
+import * as React from 'react'
 import {
-  DayPicker,
-  getDefaultClassNames,
   type DayButtonProps,
+  DayPicker,
   type DayPickerProps,
+  getDefaultClassNames,
 } from 'react-day-picker'
 
 import { Button, buttonVariants } from '@/shared/components/ui/button'

@@ -4,13 +4,15 @@ import {
   ArrowUpRight,
   Lightbulb,
 } from 'lucide-react'
+
 import { Card } from '@/shared/components/ui/card'
 import { cn } from '@/shared/lib/utils'
+
 import {
+  type AnalysisOverviewViewModel,
   formatCurrency,
   formatPercent,
   formatSignedCurrency,
-  type AnalysisOverviewViewModel,
 } from '../../model/analysis-overview'
 import { AnalysisPanel } from './overview-analysis-panel'
 import { formatSignedPercent } from './overview-format'

@@ -7,8 +7,8 @@ import type {
   CategoryTransactionItem,
 } from '../../model/analysis-categories'
 import { formatCurrency } from '../../model/analysis-overview'
-import { CategoryAnalysisPanel } from './category-analysis-panel'
 import { CategoryIcon } from '../category-icon'
+import { CategoryAnalysisPanel } from './category-analysis-panel'
 
 function formatTransactionDate(value: string) {
   const [year, month, day] = value.split('-').map(Number)

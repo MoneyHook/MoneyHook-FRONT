@@ -1,5 +1,5 @@
 import { ArrowDown, ArrowUp, CalendarDays, LoaderCircle } from 'lucide-react'
-import { useState, type FormEvent } from 'react'
+import { type FormEvent, useState } from 'react'
 
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
@@ -13,9 +13,9 @@ import {
 import { cn } from '@/shared/lib/utils'
 
 import {
-  validateRecurringTransaction,
   type RecurringTransactionFormErrors,
   type RecurringTransactionFormValues,
+  validateRecurringTransaction,
 } from '../model/recurring-transaction-settings'
 
 type Category = {

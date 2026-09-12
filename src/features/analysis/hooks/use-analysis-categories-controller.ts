@@ -3,10 +3,10 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { useAnalysisCategories } from '../api/use-analysis-categories'
 import {
-  getSelectedCategory,
-  normalizeCategoryUrlState,
   type CategoryGroup,
   type CategoryListMode,
+  getSelectedCategory,
+  normalizeCategoryUrlState,
 } from '../model/analysis-categories'
 import type { AnalysisRange } from '../model/analysis-overview'
 
