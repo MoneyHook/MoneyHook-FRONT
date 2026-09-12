@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 
 import { MonthPicker } from '@/shared/components/month-picker'
 import { Button } from '@/shared/components/ui/button'
+import { Card } from '@/shared/components/ui/card'
 import { getCategoryPresentation } from '@/shared/lib/category-presentation'
 import { cn } from '@/shared/lib/utils'
 
@@ -69,7 +70,7 @@ function SelectedDayDetails({ data, onOpen, selectedDate }: { data: Transactions
   const categories = getCategoryTotals(items)
 
   return (
-    <section aria-labelledby="selected-transaction-date" className="rounded-2xl border bg-card p-4 shadow-[0_8px_28px_color-mix(in_oklab,var(--foreground)_5%,transparent)] sm:p-6">
+    <Card aria-labelledby="selected-transaction-date" className="p-4 sm:p-6">
       <div className="flex items-start justify-between gap-4">
         <h2 className="text-lg font-semibold tracking-[-0.03em] sm:text-2xl" id="selected-transaction-date">{formatJapaneseDate(selectedDate, true)}</h2>
         <div className="shrink-0 text-right"><p className="text-xs text-muted-foreground sm:text-sm">支出合計</p><p className="mt-1 font-semibold tabular-nums sm:text-lg">{formatCurrency(expenseAmount)}</p></div>
@@ -84,14 +85,14 @@ function SelectedDayDetails({ data, onOpen, selectedDate }: { data: Transactions
         </div>
       ) : null}
       {items.length ? <div className="mt-4 divide-y border-t">{items.map((item) => <TransactionRow item={item} key={item.id} onOpen={onOpen} />)}</div> : <div className="mt-5 flex min-h-28 flex-col items-center justify-center border-t text-center"><ChartPie aria-hidden="true" className="size-6 text-muted-foreground" /><p className="mt-2 text-sm font-medium">この日の取引はありません</p></div>}
-    </section>
+    </Card>
   )
 }
 
 export function TransactionsCalendarPanel({ data, month, onOpen, selectedDate, onMonthChange, onDateChange }: { data: TransactionsViewModel; month: TransactionMonth; onOpen: (id: string) => void; selectedDate: string; onMonthChange: (month: string) => void; onDateChange: (date: string) => void }) {
   return (
     <div aria-labelledby="transactions-calendar-tab" className="motion-route-enter space-y-4 pt-4 sm:space-y-5 sm:pt-6" id="transactions-calendar-panel" role="tabpanel">
-      <section aria-label={`${month.monthLabel}のカレンダー`} className="rounded-2xl border bg-card p-3 shadow-[0_8px_28px_color-mix(in_oklab,var(--foreground)_5%,transparent)] sm:p-5"><MonthNavigation month={month} onMonthChange={onMonthChange} /><CalendarGrid data={data} month={month} onDateChange={onDateChange} selectedDate={selectedDate} /></section>
+      <Card aria-label={`${month.monthLabel}のカレンダー`} className="p-3 sm:p-5"><MonthNavigation month={month} onMonthChange={onMonthChange} /><CalendarGrid data={data} month={month} onDateChange={onDateChange} selectedDate={selectedDate} /></Card>
       <SelectedDayDetails data={data} onOpen={onOpen} selectedDate={selectedDate} />
     </div>
   )

@@ -1,6 +1,8 @@
 import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 
+import { Card } from '@/shared/components/ui/card'
+
 type SettingsSectionProps = {
   action?: ReactNode
   children: ReactNode
@@ -21,10 +23,11 @@ export function SettingsSection({
   titleId,
 }: SettingsSectionProps) {
   return (
-    <section
+    <Card
       aria-label={showHeader ? undefined : title}
       aria-labelledby={showHeader ? titleId : undefined}
-      className="max-w-5xl rounded-2xl border bg-card p-5 sm:p-6"
+      className="block max-w-5xl p-5 sm:p-6"
+      role="region"
     >
       {showHeader ? (
         <header className="flex items-start justify-between gap-4 border-b pb-5">
@@ -45,6 +48,6 @@ export function SettingsSection({
         <div className="flex justify-end border-b pb-4">{action}</div>
       ) : null}
       <div className={showHeader || action ? 'pt-6' : undefined}>{children}</div>
-    </section>
+    </Card>
   )
 }

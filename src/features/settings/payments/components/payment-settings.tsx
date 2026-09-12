@@ -25,6 +25,7 @@ import {
   AlertDialogTitle,
 } from '@/shared/components/ui/alert-dialog'
 import { Button } from '@/shared/components/ui/button'
+import { Card } from '@/shared/components/ui/card'
 import {
   Dialog,
   DialogClose,
@@ -113,7 +114,7 @@ export function PaymentSettings({ showHeader = true }: { showHeader?: boolean })
       ) : null}
       {!isLoading && !hasError ? (
         <div className="space-y-5">
-          <div className="space-y-2 rounded-xl border bg-muted/20 p-4">
+          <Card className="gap-2 rounded-xl bg-background p-4">
             <label className="text-sm font-medium" htmlFor="default-payment">
               デフォルトの支払い方法
             </label>
@@ -137,7 +138,7 @@ export function PaymentSettings({ showHeader = true }: { showHeader?: boolean })
                 ))}
               </SelectContent>
             </Select>
-          </div>
+          </Card>
           {payments.length === 0 ? (
             <div className="rounded-xl border border-dashed px-4 py-8 text-center">
               <CreditCard

@@ -1,6 +1,15 @@
 import { ChevronDown } from 'lucide-react'
 import { Button } from '@/shared/components/ui/button'
 import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/shared/components/ui/table'
+import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
@@ -115,59 +124,67 @@ export function CategoryTrendTable({
           selectedCategoryIds={selectedCategoryIds}
         />
       </div>
-      <div className="overflow-x-auto border-t">
-        <table className="min-w-208 w-full border-collapse text-xs tabular-nums sm:text-sm">
-          <caption className="sr-only">
+      <div className="border-t">
+        <Table className="min-w-208 w-full border-collapse text-xs tabular-nums sm:text-sm">
+          <TableCaption className="sr-only">
             選択した固定費カテゴリの月平均、月別支出、年間換算
-          </caption>
-          <thead className="bg-muted/45 text-muted-foreground">
-            <tr>
-              <th className="sticky left-0 z-10 min-w-36 bg-muted px-4 py-3 text-left font-medium sm:px-6">
+          </TableCaption>
+          <TableHeader className="text-muted-foreground bg-card">
+            <TableRow>
+              <TableHead className="sticky left-0 z-10 min-w-36 bg-card px-4 py-3 text-left font-medium sm:px-6">
                 カテゴリ
-              </th>
-              <th className="px-3 py-3 text-right font-medium">月平均</th>
+              </TableHead>
+              <TableHead className="px-3 py-3 text-right font-medium">
+                月平均
+              </TableHead>
               {data.series.map((item) => (
-                <th
+                <TableHead
                   className="px-3 py-3 text-right font-medium"
                   key={item.bucket}
                 >
                   {item.label}
-                </th>
+                </TableHead>
               ))}
-              <th className="px-4 py-3 text-right font-medium sm:px-6">
+              <TableHead className="px-4 py-3 text-right font-medium sm:px-6">
                 年間換算
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y">
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody className="divide-y">
             {categories.map((category) => {
               const byBucket = new Map(
                 category.series.map((item) => [item.bucket, item.expenseAmount]),
               )
               return (
-                <tr className="transition-colors hover:bg-muted/35" key={category.id}>
-                  <th className="sticky left-0 z-10 bg-card px-4 py-3 text-left font-semibold sm:px-6">
+                <TableRow
+                  className="transition-colors bg-card"
+                  key={category.id}
+                >
+                  <TableHead
+                    className="sticky left-0 z-10 bg-card px-4 py-3 text-left font-semibold sm:px-6"
+                    scope="row"
+                  >
                     <span className="flex items-center gap-2">
                       <CategoryIcon name={category.name} />
                       <span>{category.name}</span>
                     </span>
-                  </th>
-                  <td className="px-3 py-3 text-right font-semibold">
+                  </TableHead>
+                  <TableCell className="px-3 py-3 text-right font-semibold">
                     {formatCurrency(category.monthlyAverage)}
-                  </td>
+                  </TableCell>
                   {data.series.map((item) => (
-                    <td className="px-3 py-3 text-right" key={item.bucket}>
+                    <TableCell className="px-3 py-3 text-right" key={item.bucket}>
                       {formatCurrency(byBucket.get(item.bucket) ?? 0)}
-                    </td>
+                    </TableCell>
                   ))}
-                  <td className="px-4 py-3 text-right font-semibold sm:px-6">
+                  <TableCell className="px-4 py-3 text-right font-semibold sm:px-6">
                     {formatCurrency(category.annualizedAmount)}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )
             })}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </AnalysisPanel>
   )
