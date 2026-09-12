@@ -213,7 +213,7 @@ export function TransactionFormView({
       />
       <div className="fixed right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-30 sm:static sm:mt-6 sm:flex sm:justify-end">
         <Button
-          className="h-12 rounded-full px-5 shadow-lg sm:h-9 sm:rounded-lg sm:px-2.5 sm:shadow-none"
+          className="h-12 rounded-full px-5 text-base shadow-lg sm:px-7 sm:rounded-lg sm:shadow-none"
           disabled={isSaving || isDeleting}
           form="transaction-form"
           size="lg"

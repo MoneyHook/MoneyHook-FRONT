@@ -546,7 +546,8 @@ describe('NewTransactionView', () => {
     expect(saveButton).toHaveClass(
       'h-12',
       'rounded-full',
-      'sm:h-9',
+      'text-base',
+      'sm:px-7',
       'sm:rounded-lg',
     )
     expect(transactionForm).toHaveClass(
