@@ -1,0 +1,4 @@
+interface:
+  display_name: "Reactコンポーネント整理"
+  short_description: "表示・操作を保ちながらReactの責務分割とテスト配置を整理する"
+  default_prompt: "$react-component-refactor を使って、指定したReactコンポーネントの責務とテスト配置を、既存の挙動を保ちながら整理してください。"
