@@ -2,7 +2,11 @@ import { Skeleton } from '@/shared/components/ui/skeleton'
 
 export function OverviewSkeleton() {
   return (
-    <div aria-label="分析概要を読み込んでいます" className="space-y-4" role="status">
+    <div
+      aria-label="分析概要を読み込んでいます"
+      className="space-y-4"
+      role="status"
+    >
       <Skeleton className="h-20 rounded-2xl" />
       <Skeleton className="h-44 rounded-2xl" />
       <Skeleton className="h-80 rounded-2xl" />

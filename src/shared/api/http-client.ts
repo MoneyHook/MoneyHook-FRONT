@@ -21,7 +21,9 @@ export function withApiAuth(
   }
 }
 
-async function getAuthorizationValue(mode: ApiAuthMode): Promise<string | null> {
+async function getAuthorizationValue(
+  mode: ApiAuthMode,
+): Promise<string | null> {
   if (mode === 'none') {
     return null
   }

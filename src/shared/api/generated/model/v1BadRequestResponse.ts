@@ -15,9 +15,9 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { V1ErrorResponse } from './v1ErrorResponse';
+import type { V1ErrorResponse } from './v1ErrorResponse'
 
 /**
  * Invalid JSON, path parameter, or analysis query
  */
-export type V1BadRequestResponse = V1ErrorResponse;
+export type V1BadRequestResponse = V1ErrorResponse

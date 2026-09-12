@@ -10,7 +10,10 @@ import { ChangesPanel } from './overview-changes-panel'
 import { HighlightsPanel } from './overview-highlights-panel'
 import { OverviewSkeleton } from './overview-skeleton'
 
-export function OverviewContent({ range, getViewLink }: {
+export function OverviewContent({
+  range,
+  getViewLink,
+}: {
   range: AnalysisRange
   getViewLink: (view: AnalysisView) => { search: string }
 }) {

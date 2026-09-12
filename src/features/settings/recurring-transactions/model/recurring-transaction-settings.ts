@@ -11,7 +11,10 @@ export type RecurringTransactionFormValues = {
 }
 
 export type RecurringTransactionFormErrors = Partial<
-  Record<Exclude<keyof RecurringTransactionFormValues, 'paymentId' | 'sign'>, string>
+  Record<
+    Exclude<keyof RecurringTransactionFormValues, 'paymentId' | 'sign'>,
+    string
+  >
 >
 
 export type RecurringTransactionRule = {
@@ -47,13 +50,23 @@ export function validateRecurringTransaction(
   const day = Number(values.day)
   const nameLength = Array.from(values.transactionName.trim()).length
 
-  if (!/^\d+$/.test(values.amount) || !Number.isSafeInteger(amount) || amount < 1 || amount > 9_999_999) {
+  if (
+    !/^\d+$/.test(values.amount) ||
+    !Number.isSafeInteger(amount) ||
+    amount < 1 ||
+    amount > 9_999_999
+  ) {
     errors.amount = '金額は1〜9,999,999円の整数で入力してください。'
   }
   if (nameLength < 1 || nameLength > 32) {
     errors.transactionName = '取引名は1〜32文字で入力してください。'
   }
-  if (!/^\d+$/.test(values.day) || !Number.isSafeInteger(day) || day < 1 || day > 31) {
+  if (
+    !/^\d+$/.test(values.day) ||
+    !Number.isSafeInteger(day) ||
+    day < 1 ||
+    day > 31
+  ) {
     errors.day = '入力日は1〜31の整数で入力してください。'
   }
   if (!values.categoryId) {

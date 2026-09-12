@@ -90,16 +90,14 @@ export function FixedBreakdownPanel({
                 }}
               />
               <CategoryIcon name={category.name} />
-              <span className="min-w-0 text-[0.6875rem] font-semibold leading-4 sm:text-sm">
+              <span className="min-w-0 text-[0.6875rem] leading-4 font-semibold sm:text-sm">
                 {category.name}
               </span>
               <span className="min-w-16 text-right text-xs tabular-nums sm:min-w-24 sm:text-sm">
                 <span className="block font-semibold">
                   {formatCurrency(category.amount)}
                 </span>
-                <span
-                  className="block text-[0.625rem] text-muted-foreground sm:text-xs"
-                >
+                <span className="block text-[0.625rem] text-muted-foreground sm:text-xs">
                   {formatPercent(category.ratio)}
                 </span>
               </span>
@@ -108,11 +106,14 @@ export function FixedBreakdownPanel({
         </ul>
       </div>
       <a
-        className="mt-4 flex min-h-11 items-center justify-between rounded-xl border px-4 text-sm font-medium outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+        className="mt-4 flex min-h-11 items-center justify-between rounded-xl border px-4 text-sm font-medium transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
         href="#fixed-transactions"
       >
         固定費の取引一覧を見る
-        <ChevronRight aria-hidden="true" className="size-4 text-muted-foreground" />
+        <ChevronRight
+          aria-hidden="true"
+          className="size-4 text-muted-foreground"
+        />
       </a>
     </AnalysisPanel>
   )

@@ -15,9 +15,9 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { CategoryWithSubcategoryResponseCategoryListItem } from './categoryWithSubcategoryResponseCategoryListItem';
+import type { CategoryWithSubcategoryResponseCategoryListItem } from './categoryWithSubcategoryResponseCategoryListItem'
 
 export interface CategoryWithSubcategoryResponse {
   /** @nullable */
-  category_list: CategoryWithSubcategoryResponseCategoryListItem[] | null;
+  category_list: CategoryWithSubcategoryResponseCategoryListItem[] | null
 }

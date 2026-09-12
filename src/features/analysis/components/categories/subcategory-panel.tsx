@@ -1,16 +1,15 @@
 import { Tags } from 'lucide-react'
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 
-import type { CategoryAnalysisItem, SubcategoryAnalysisItem } from '../../model/analysis-categories'
+import type {
+  CategoryAnalysisItem,
+  SubcategoryAnalysisItem,
+} from '../../model/analysis-categories'
 import { formatCurrency, formatPercent } from '../../model/analysis-overview'
 import { analysisChartColors } from '../analysis-chart-colors'
 import { CategoryAnalysisPanel } from './category-analysis-panel'
 
-function SubcategoryDonut({
-  category,
-}: {
-  category: CategoryAnalysisItem
-}) {
+function SubcategoryDonut({ category }: { category: CategoryAnalysisItem }) {
   if (category.subcategories.length === 0) {
     return (
       <div className="flex min-h-40 flex-col items-center justify-center text-center text-muted-foreground">
@@ -96,7 +95,11 @@ function SubcategoryList({ items }: { items: SubcategoryAnalysisItem[] }) {
   )
 }
 
-export function SubcategoryPanel({ category }: { category: CategoryAnalysisItem }) {
+export function SubcategoryPanel({
+  category,
+}: {
+  category: CategoryAnalysisItem
+}) {
   return (
     <CategoryAnalysisPanel>
       <div className="flex items-baseline justify-between gap-4">

@@ -15,10 +15,7 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import {
-  useMutation,
-  useQuery
-} from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query'
 import type {
   DataTag,
   DefinedInitialDataOptions,
@@ -31,8 +28,8 @@ import type {
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
-  UseQueryResult
-} from '@tanstack/react-query';
+  UseQueryResult,
+} from '@tanstack/react-query'
 
 import type {
   AuthIdentityConflictResponse,
@@ -42,28 +39,28 @@ import type {
   SubcategoryListResponse,
   SuccessResponse,
   V1InternalErrorResponse,
-  V1UnauthorizedResponse
-} from '../model';
+  V1UnauthorizedResponse,
+} from '../model'
 
-import { apiFetch } from '../../http-client';
+import { apiFetch } from '../../http-client'
 
-
-
-
-const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKey: K } => {
-  const result = { queryKey } as T & { queryKey: K };
+const withQueryKey = <T extends object, K>(
+  query: T,
+  queryKey: K,
+): T & { queryKey: K } => {
+  const result = { queryKey } as T & { queryKey: K }
   for (const key of Object.keys(query)) {
     // The explicit queryKey always wins, matching the previous
     // `{ ...query, queryKey }` spread where it was set last.
-    if (key === 'queryKey') continue;
+    if (key === 'queryKey') continue
     Object.defineProperty(result, key, {
       enumerable: true,
       configurable: true,
       get: () => (query as Record<string, unknown>)[key],
-    });
+    })
   }
-  return result;
-};
+  return result
+}
 
 export type getSubCategoryListResponse200 = {
   data: SubcategoryListResponse
@@ -85,114 +82,205 @@ export type getSubCategoryListResponse500 = {
   status: 500
 }
 
-export type getSubCategoryListResponseSuccess = (getSubCategoryListResponse200) & {
-  headers: Headers;
-};
-export type getSubCategoryListResponseError = (getSubCategoryListResponse401 | getSubCategoryListResponse409 | getSubCategoryListResponse500) & {
-  headers: Headers;
-};
+export type getSubCategoryListResponseSuccess =
+  getSubCategoryListResponse200 & {
+    headers: Headers
+  }
+export type getSubCategoryListResponseError = (
+  | getSubCategoryListResponse401
+  | getSubCategoryListResponse409
+  | getSubCategoryListResponse500
+) & {
+  headers: Headers
+}
 
-export type getSubCategoryListResponse = (getSubCategoryListResponseSuccess | getSubCategoryListResponseError)
+export type getSubCategoryListResponse =
+  getSubCategoryListResponseSuccess | getSubCategoryListResponseError
 
-export const getGetSubCategoryListUrl = (categoryId: Identifier,) => {
-
-
-
-
+export const getGetSubCategoryListUrl = (categoryId: Identifier) => {
   return `/api/subCategory/getSubCategoryList/${categoryId}`
 }
 
 /**
  * @summary List visible master/user subcategories for a category
  */
-export const getSubCategoryList = async (categoryId: Identifier, options?: RequestInit): Promise<getSubCategoryListResponse> => {
-
-  return apiFetch<getSubCategoryListResponse>(getGetSubCategoryListUrl(categoryId),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGetSubCategoryListQueryKey = (categoryId: Identifier,) => {
-    return [
-    `/api/subCategory/getSubCategoryList/${categoryId}`
-    ] as const;
-    }
-
-
-export const getGetSubCategoryListQueryOptions = <TData = Awaited<ReturnType<typeof getSubCategoryList>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(categoryId: Identifier, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSubCategoryList>>, TError, TData>>, }
-) => {
-
-const {query: queryOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetSubCategoryListQueryKey(categoryId);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSubCategoryList>>> = ({ signal }) => getSubCategoryList(categoryId, { signal });
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: categoryId !== null && categoryId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSubCategoryList>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+export const getSubCategoryList = async (
+  categoryId: Identifier,
+  options?: RequestInit,
+): Promise<getSubCategoryListResponse> => {
+  return apiFetch<getSubCategoryListResponse>(
+    getGetSubCategoryListUrl(categoryId),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
 }
 
-export type GetSubCategoryListQueryResult = NonNullable<Awaited<ReturnType<typeof getSubCategoryList>>>
-export type GetSubCategoryListQueryError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse
+export const getGetSubCategoryListQueryKey = (categoryId: Identifier) => {
+  return [`/api/subCategory/getSubCategoryList/${categoryId}`] as const
+}
 
+export const getGetSubCategoryListQueryOptions = <
+  TData = Awaited<ReturnType<typeof getSubCategoryList>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  categoryId: Identifier,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getSubCategoryList>>,
+        TError,
+        TData
+      >
+    >
+  },
+) => {
+  const { query: queryOptions } = options ?? {}
 
-export function useGetSubCategoryList<TData = Awaited<ReturnType<typeof getSubCategoryList>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
- categoryId: Identifier, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSubCategoryList>>, TError, TData>> & Pick<
+  const queryKey =
+    queryOptions?.queryKey ?? getGetSubCategoryListQueryKey(categoryId)
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getSubCategoryList>>
+  > = ({ signal }) => getSubCategoryList(categoryId, { signal })
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: categoryId !== null && categoryId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getSubCategoryList>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetSubCategoryListQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getSubCategoryList>>
+>
+export type GetSubCategoryListQueryError =
+  | V1UnauthorizedResponse
+  | AuthIdentityConflictResponse
+  | V1InternalErrorResponse
+
+export function useGetSubCategoryList<
+  TData = Awaited<ReturnType<typeof getSubCategoryList>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  categoryId: Identifier,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getSubCategoryList>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getSubCategoryList>>,
           TError,
           Awaited<ReturnType<typeof getSubCategoryList>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetSubCategoryList<TData = Awaited<ReturnType<typeof getSubCategoryList>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
- categoryId: Identifier, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSubCategoryList>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+export function useGetSubCategoryList<
+  TData = Awaited<ReturnType<typeof getSubCategoryList>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  categoryId: Identifier,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getSubCategoryList>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getSubCategoryList>>,
           TError,
           Awaited<ReturnType<typeof getSubCategoryList>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetSubCategoryList<TData = Awaited<ReturnType<typeof getSubCategoryList>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
- categoryId: Identifier, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSubCategoryList>>, TError, TData>>, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+export function useGetSubCategoryList<
+  TData = Awaited<ReturnType<typeof getSubCategoryList>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  categoryId: Identifier,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getSubCategoryList>>,
+        TError,
+        TData
+      >
+    >
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
 /**
  * @summary List visible master/user subcategories for a category
  */
 
-export function useGetSubCategoryList<TData = Awaited<ReturnType<typeof getSubCategoryList>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
- categoryId: Identifier, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSubCategoryList>>, TError, TData>>, }
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetSubCategoryList<
+  TData = Awaited<ReturnType<typeof getSubCategoryList>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  categoryId: Identifier,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getSubCategoryList>>,
+        TError,
+        TData
+      >
+    >
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+} {
+  const queryOptions = getGetSubCategoryListQueryOptions(categoryId, options)
 
-  const queryOptions = getGetSubCategoryListQueryOptions(categoryId,options)
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
+  return withQueryKey(query, queryOptions.queryKey)
 }
-
-
-
-
-
 
 export type editSubCategoryResponse200 = {
   data: SuccessResponse
@@ -219,20 +307,22 @@ export type editSubCategoryResponse500 = {
   status: 500
 }
 
-export type editSubCategoryResponseSuccess = (editSubCategoryResponse200) & {
-  headers: Headers;
-};
-export type editSubCategoryResponseError = (editSubCategoryResponse401 | editSubCategoryResponse409 | editSubCategoryResponse422 | editSubCategoryResponse500) & {
-  headers: Headers;
-};
+export type editSubCategoryResponseSuccess = editSubCategoryResponse200 & {
+  headers: Headers
+}
+export type editSubCategoryResponseError = (
+  | editSubCategoryResponse401
+  | editSubCategoryResponse409
+  | editSubCategoryResponse422
+  | editSubCategoryResponse500
+) & {
+  headers: Headers
+}
 
-export type editSubCategoryResponse = (editSubCategoryResponseSuccess | editSubCategoryResponseError)
+export type editSubCategoryResponse =
+  editSubCategoryResponseSuccess | editSubCategoryResponseError
 
 export const getEditSubCategoryUrl = () => {
-
-
-
-
   return `/api/subCategory/editSubCategory`
 }
 
@@ -240,69 +330,106 @@ export const getEditSubCategoryUrl = () => {
  * `is_enable=true` removes the hidden marker; `false` creates it.
  * @summary Hide or expose a subcategory for the authenticated user
  */
-export const editSubCategory = async (editSubcategoryRequest: EditSubcategoryRequest, options?: RequestInit): Promise<editSubCategoryResponse> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Array.isArray(h)) return Object.fromEntries(h);
-    return h;
-  };
-return apiFetch<editSubCategoryResponse>(getEditSubCategoryUrl(),
-  {
+export const editSubCategory = async (
+  editSubcategoryRequest: EditSubcategoryRequest,
+  options?: RequestInit,
+): Promise<editSubCategoryResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {}
+    if (h instanceof Headers) return Object.fromEntries(h.entries())
+    if (Array.isArray(h)) return Object.fromEntries(h)
+    return h
+  }
+  return apiFetch<editSubCategoryResponse>(getEditSubCategoryUrl(), {
     ...options,
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(editSubcategoryRequest)
+    headers: {
+      'Content-Type': 'application/json',
+      ...getHeaders(options?.headers),
+    },
+    body: JSON.stringify(editSubcategoryRequest),
+  })
+}
+
+export const getEditSubCategoryMutationOptions = <
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | MutationFailureResponse
+    | V1InternalErrorResponse,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof editSubCategory>>,
+    TError,
+    EditSubCategoryMutationVariables,
+    TContext
+  >
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof editSubCategory>>,
+  TError,
+  EditSubCategoryMutationVariables,
+  TContext
+> => {
+  const mutationKey = ['editSubCategory']
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof editSubCategory>>,
+    EditSubCategoryMutationVariables
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return editSubCategory(data)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type EditSubCategoryMutationResult = NonNullable<
+  Awaited<ReturnType<typeof editSubCategory>>
+>
+export type EditSubCategoryMutationBody = EditSubcategoryRequest
+export type EditSubCategoryMutationError =
+  | V1UnauthorizedResponse
+  | AuthIdentityConflictResponse
+  | MutationFailureResponse
+  | V1InternalErrorResponse
+export type EditSubCategoryMutationVariables = { data: EditSubcategoryRequest }
 
-
-
-export const getEditSubCategoryMutationOptions = <TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | MutationFailureResponse | V1InternalErrorResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof editSubCategory>>, TError,EditSubCategoryMutationVariables, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof editSubCategory>>, TError,EditSubCategoryMutationVariables, TContext> => {
-
-const mutationKey = ['editSubCategory'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof editSubCategory>>, EditSubCategoryMutationVariables> = (props) => {
-          const {data} = props ?? {};
-
-          return  editSubCategory(data,)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type EditSubCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof editSubCategory>>>
-    export type EditSubCategoryMutationBody = EditSubcategoryRequest
-    export type EditSubCategoryMutationError = V1UnauthorizedResponse | AuthIdentityConflictResponse | MutationFailureResponse | V1InternalErrorResponse
-    export type EditSubCategoryMutationVariables = {data: EditSubcategoryRequest}
-
-    /**
+/**
  * @summary Hide or expose a subcategory for the authenticated user
  */
-export const useEditSubCategory = <TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | MutationFailureResponse | V1InternalErrorResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof editSubCategory>>, TError,EditSubCategoryMutationVariables, TContext>, }
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof editSubCategory>>,
-        TError,
-        EditSubCategoryMutationVariables,
-        TContext
-      > => {
-      return useMutation(getEditSubCategoryMutationOptions(options), queryClient);
-    }
+export const useEditSubCategory = <
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | MutationFailureResponse
+    | V1InternalErrorResponse,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof editSubCategory>>,
+      TError,
+      EditSubCategoryMutationVariables,
+      TContext
+    >
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof editSubCategory>>,
+  TError,
+  EditSubCategoryMutationVariables,
+  TContext
+> => {
+  return useMutation(getEditSubCategoryMutationOptions(options), queryClient)
+}

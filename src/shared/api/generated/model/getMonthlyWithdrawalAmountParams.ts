@@ -15,11 +15,11 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { MonthParameter } from './monthParameter';
+import type { MonthParameter } from './monthParameter'
 
 export type GetMonthlyWithdrawalAmountParams = {
-/**
- * Date passed directly as the range start; callers should send the first day of a month (`YYYY-MM-01`).
- */
-month: MonthParameter;
-};
+  /**
+   * Date passed directly as the range start; callers should send the first day of a month (`YYYY-MM-01`).
+   */
+  month: MonthParameter
+}

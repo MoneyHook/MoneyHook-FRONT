@@ -2,18 +2,30 @@ import { CircleUserRound, LogOut } from 'lucide-react'
 import { useMemo } from 'react'
 import { toast } from 'sonner'
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar'
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from '@/shared/components/ui/avatar'
 import { Button } from '@/shared/components/ui/button'
 
 import { SettingsSection } from '../../components/settings-section'
 
 type AccountSettingsProps = {
   showHeader?: boolean
-  user: { displayName: string | null; email: string | null; photoURL: string | null } | null
+  user: {
+    displayName: string | null
+    email: string | null
+    photoURL: string | null
+  } | null
   signOut: () => Promise<void>
 }
 
-export function AccountSettings({ showHeader = true, user, signOut }: AccountSettingsProps) {
+export function AccountSettings({
+  showHeader = true,
+  user,
+  signOut,
+}: AccountSettingsProps) {
   const initial = useMemo(() => {
     const source = user?.displayName?.trim() || user?.email?.trim() || 'M'
     return source.slice(0, 1).toUpperCase()
@@ -37,16 +49,32 @@ export function AccountSettings({ showHeader = true, user, signOut }: AccountSet
         <div className="flex min-w-0 items-center gap-3">
           <Avatar size="lg">
             {user?.photoURL ? (
-              <AvatarImage alt="" referrerPolicy="no-referrer" src={user.photoURL} />
+              <AvatarImage
+                alt=""
+                referrerPolicy="no-referrer"
+                src={user.photoURL}
+              />
             ) : null}
             <AvatarFallback>{initial}</AvatarFallback>
           </Avatar>
           <div className="min-w-0 space-y-0.5">
-            <p className="truncate font-medium">{user?.displayName || 'MoneyHooksユーザー'}</p>
-            {user?.email ? <p className="truncate text-sm text-muted-foreground">{user.email}</p> : null}
+            <p className="truncate font-medium">
+              {user?.displayName || 'MoneyHooksユーザー'}
+            </p>
+            {user?.email ? (
+              <p className="truncate text-sm text-muted-foreground">
+                {user.email}
+              </p>
+            ) : null}
           </div>
         </div>
-        <Button className="w-full sm:w-auto" onClick={handleSignOut} size="lg" type="button" variant="destructive">
+        <Button
+          className="w-full sm:w-auto"
+          onClick={handleSignOut}
+          size="lg"
+          type="button"
+          variant="destructive"
+        >
           <LogOut aria-hidden="true" />
           ログアウト
         </Button>

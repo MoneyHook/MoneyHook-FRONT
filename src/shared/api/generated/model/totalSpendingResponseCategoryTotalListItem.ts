@@ -15,10 +15,10 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { TotalSpendingResponseCategoryTotalListItemSubCategoryListItem } from './totalSpendingResponseCategoryTotalListItemSubCategoryListItem';
+import type { TotalSpendingResponseCategoryTotalListItemSubCategoryListItem } from './totalSpendingResponseCategoryTotalListItemSubCategoryListItem'
 
 export type TotalSpendingResponseCategoryTotalListItem = {
-  category_name: string;
-  category_total_amount: number;
-  sub_category_list: TotalSpendingResponseCategoryTotalListItemSubCategoryListItem[];
-};
+  category_name: string
+  category_total_amount: number
+  sub_category_list: TotalSpendingResponseCategoryTotalListItemSubCategoryListItem[]
+}

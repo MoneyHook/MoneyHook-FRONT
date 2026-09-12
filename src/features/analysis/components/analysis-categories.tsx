@@ -2,7 +2,10 @@ import { ErrorState } from '@/shared/components/app-state'
 
 import { useAnalysisCategoriesController } from '../hooks/use-analysis-categories-controller'
 import type { AnalysisRange } from '../model/analysis-overview'
-import { CategoriesSkeleton, EmptyCategories } from './categories/category-analysis-states'
+import {
+  CategoriesSkeleton,
+  EmptyCategories,
+} from './categories/category-analysis-states'
 import { CategorySummaryPanel } from './categories/category-summary-panel'
 import { CategoryTransactionsPanel } from './categories/category-transactions-panel'
 import { CategoryTrendPanel } from './categories/category-trend-panel'
@@ -59,7 +62,10 @@ export function AnalysisCategoriesContent({ range }: { range: AnalysisRange }) {
         group={group}
         onGroupChange={changeGroup}
       />
-      <CategoryTransactionsPanel category={selectedCategory} onOpen={openTransaction} />
+      <CategoryTransactionsPanel
+        category={selectedCategory}
+        onOpen={openTransaction}
+      />
     </div>
   )
 }

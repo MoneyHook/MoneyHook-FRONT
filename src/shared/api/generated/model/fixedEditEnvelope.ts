@@ -15,8 +15,8 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { FixedEdit } from './fixedEdit';
+import type { FixedEdit } from './fixedEdit'
 
 export interface FixedEditEnvelope {
-  monthly_transaction: FixedEdit;
+  monthly_transaction: FixedEdit
 }

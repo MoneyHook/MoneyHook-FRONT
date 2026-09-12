@@ -64,15 +64,31 @@
   --chart-palette-swatch-default-4: oklch(0.828 0.189 84.429);
   --chart-palette-swatch-default-5: oklch(0.769 0.188 70.08);
   --chart-palette-swatch-colorful-1: oklch(0.66 0.19 25);
-  --chart-palette-swatch-colorful-2: oklch(0.65 0.20 300);
+  --chart-palette-swatch-colorful-2: oklch(0.65 0.2 300);
   --chart-palette-swatch-colorful-3: oklch(0.68 0.18 250);
-  --chart-palette-swatch-colorful-4: oklch(0.70 0.15 165);
+  --chart-palette-swatch-colorful-4: oklch(0.7 0.15 165);
   --chart-palette-swatch-colorful-5: oklch(0.76 0.17 75);
   --chart-palette-swatch-monochrome-1: var(--primary);
-  --chart-palette-swatch-monochrome-2: color-mix(in oklch, var(--primary) 82%, var(--background));
-  --chart-palette-swatch-monochrome-3: color-mix(in oklch, var(--primary) 64%, var(--background));
-  --chart-palette-swatch-monochrome-4: color-mix(in oklch, var(--primary) 46%, var(--background));
-  --chart-palette-swatch-monochrome-5: color-mix(in oklch, var(--primary) 28%, var(--background));
+  --chart-palette-swatch-monochrome-2: color-mix(
+    in oklch,
+    var(--primary) 82%,
+    var(--background)
+  );
+  --chart-palette-swatch-monochrome-3: color-mix(
+    in oklch,
+    var(--primary) 64%,
+    var(--background)
+  );
+  --chart-palette-swatch-monochrome-4: color-mix(
+    in oklch,
+    var(--primary) 46%,
+    var(--background)
+  );
+  --chart-palette-swatch-monochrome-5: color-mix(
+    in oklch,
+    var(--primary) 28%,
+    var(--background)
+  );
 
   --radius: 0.75rem;
 
@@ -84,7 +100,12 @@
   --login-orbit-strong: oklch(0.58 0.18 250 / 32%);
   --login-illustration-surface: oklch(0.95 0.04 250 / 70%);
   --login-illustration-line: oklch(0.58 0.18 250 / 42%);
-  --login-page-background: linear-gradient(145deg, oklch(0.985 0.012 225), oklch(0.92 0.06 230) 48%, oklch(0.95 0.05 300));
+  --login-page-background: linear-gradient(
+    145deg,
+    oklch(0.985 0.012 225),
+    oklch(0.92 0.06 230) 48%,
+    oklch(0.95 0.05 300)
+  );
   --login-page-foreground: oklch(0.27 0.055 255);
   --login-page-muted: oklch(0.43 0.045 252 / 88%);
   --login-kicker: oklch(0.56 0.16 235);
@@ -169,7 +190,12 @@
   --login-orbit-strong: oklch(0.72 0.12 250 / 38%);
   --login-illustration-surface: oklch(0.31 0.055 250 / 70%);
   --login-illustration-line: oklch(0.72 0.12 250 / 48%);
-  --login-page-background: linear-gradient(145deg, oklch(0.985 0.012 225), oklch(0.92 0.06 230) 48%, oklch(0.95 0.05 300));
+  --login-page-background: linear-gradient(
+    145deg,
+    oklch(0.985 0.012 225),
+    oklch(0.92 0.06 230) 48%,
+    oklch(0.95 0.05 300)
+  );
   --login-page-foreground: oklch(0.27 0.055 255);
   --login-page-muted: oklch(0.43 0.045 252 / 88%);
   --login-kicker: oklch(0.56 0.16 235);
@@ -191,9 +217,9 @@
 
 :root[data-chart-palette='colorful'] {
   --chart-series-1: oklch(0.66 0.19 25);
-  --chart-series-2: oklch(0.65 0.20 300);
+  --chart-series-2: oklch(0.65 0.2 300);
   --chart-series-3: oklch(0.68 0.18 250);
-  --chart-series-4: oklch(0.70 0.15 165);
+  --chart-series-4: oklch(0.7 0.15 165);
   --chart-series-5: oklch(0.76 0.17 75);
 }
 
@@ -215,10 +241,26 @@
 
 .dark {
   --chart-palette-swatch-monochrome-1: var(--primary);
-  --chart-palette-swatch-monochrome-2: color-mix(in oklch, var(--primary) 83%, var(--background));
-  --chart-palette-swatch-monochrome-3: color-mix(in oklch, var(--primary) 66%, var(--background));
-  --chart-palette-swatch-monochrome-4: color-mix(in oklch, var(--primary) 49%, var(--background));
-  --chart-palette-swatch-monochrome-5: color-mix(in oklch, var(--primary) 32%, var(--background));
+  --chart-palette-swatch-monochrome-2: color-mix(
+    in oklch,
+    var(--primary) 83%,
+    var(--background)
+  );
+  --chart-palette-swatch-monochrome-3: color-mix(
+    in oklch,
+    var(--primary) 66%,
+    var(--background)
+  );
+  --chart-palette-swatch-monochrome-4: color-mix(
+    in oklch,
+    var(--primary) 49%,
+    var(--background)
+  );
+  --chart-palette-swatch-monochrome-5: color-mix(
+    in oklch,
+    var(--primary) 32%,
+    var(--background)
+  );
 }
 
 :root[data-accent='green'] {

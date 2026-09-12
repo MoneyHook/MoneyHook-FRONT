@@ -12,7 +12,11 @@ import {
   type PaymentSettingsFormValues,
 } from '../model/payment-settings'
 
-import { formValuesFromPayment, initialFormValues, type EditorState } from '../model/payment-editor'
+import {
+  formValuesFromPayment,
+  initialFormValues,
+  type EditorState,
+} from '../model/payment-editor'
 
 function PaymentTypeIcon({ paymentTypeName }: { paymentTypeName: string }) {
   if (paymentTypeName.includes('カード')) {
@@ -43,7 +47,9 @@ export function PaymentForm({
       : initialFormValues(paymentTypes[0]?.payment_type_id),
   )
   const [errors, setErrors] = useState<PaymentSettingsFormErrors>({})
-  const selectedType = paymentTypes.find((type) => type.payment_type_id === values.paymentTypeId)
+  const selectedType = paymentTypes.find(
+    (type) => type.payment_type_id === values.paymentTypeId,
+  )
 
   const update = (key: keyof PaymentSettingsFormValues, value: string) => {
     setValues((current) => ({ ...current, [key]: value }))
@@ -61,7 +67,11 @@ export function PaymentForm({
   }
 
   return (
-    <form className="space-y-5" noValidate onSubmit={(event) => void handleSubmit(event)}>
+    <form
+      className="space-y-5"
+      noValidate
+      onSubmit={(event) => void handleSubmit(event)}
+    >
       <div className="space-y-2">
         <label className="text-sm font-medium" htmlFor="payment-name">
           支払い方法名
@@ -84,7 +94,11 @@ export function PaymentForm({
 
       <fieldset className="space-y-2">
         <legend className="text-sm font-medium">支払いの種類</legend>
-        <div aria-label="支払いの種類" className="grid grid-cols-3 gap-2" role="radiogroup">
+        <div
+          aria-label="支払いの種類"
+          className="grid grid-cols-3 gap-2"
+          role="radiogroup"
+        >
           {paymentTypes.map((type) => {
             const isSelected = values.paymentTypeId === type.payment_type_id
 
@@ -92,7 +106,7 @@ export function PaymentForm({
               <button
                 aria-checked={isSelected}
                 className={cn(
-                  'flex min-h-11 items-center justify-center gap-2 rounded-lg border px-2 text-sm font-medium outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50',
+                  'flex min-h-11 items-center justify-center gap-2 rounded-lg border px-2 text-sm font-medium transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50',
                   isSelected && 'border-primary bg-primary/5 text-primary',
                 )}
                 disabled={isSaving}
@@ -168,11 +182,18 @@ export function PaymentForm({
       ) : null}
 
       <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
-        <Button disabled={isSaving} onClick={onCancel} type="button" variant="outline">
+        <Button
+          disabled={isSaving}
+          onClick={onCancel}
+          type="button"
+          variant="outline"
+        >
           キャンセル
         </Button>
         <Button disabled={isSaving} type="submit">
-          {isSaving ? <LoaderCircle aria-hidden="true" className="animate-spin" /> : null}
+          {isSaving ? (
+            <LoaderCircle aria-hidden="true" className="animate-spin" />
+          ) : null}
           {editor.mode === 'add' ? '追加する' : '保存する'}
         </Button>
       </div>

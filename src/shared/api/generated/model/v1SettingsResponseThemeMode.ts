@@ -16,11 +16,11 @@
  * OpenAPI spec version: 0.2.0-v1
  */
 
-export type V1SettingsResponseThemeMode = typeof V1SettingsResponseThemeMode[keyof typeof V1SettingsResponseThemeMode];
-
+export type V1SettingsResponseThemeMode =
+  (typeof V1SettingsResponseThemeMode)[keyof typeof V1SettingsResponseThemeMode]
 
 export const V1SettingsResponseThemeMode = {
   light: 'light',
   dark: 'dark',
   system: 'system',
-} as const;
+} as const

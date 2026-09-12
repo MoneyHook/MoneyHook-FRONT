@@ -4,7 +4,11 @@ import { ja } from 'react-day-picker/locale'
 import { Calendar } from '@/shared/components/ui/calendar'
 import { Card } from '@/shared/components/ui/card'
 import { Input } from '@/shared/components/ui/input'
-import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/shared/components/ui/popover'
 import { cn } from '@/shared/lib/utils'
 
 import { TransactionCandidates } from '../transaction-candidates'
@@ -13,17 +17,32 @@ import type { TransactionFormController } from '../../hooks/use-transaction-form
 import { formatCalendarDate } from '../../model/transaction-form'
 import { CategoryIcon, PaymentIcon } from './transaction-form-icons'
 
-function FormSection({ children, className }: { children: React.ReactNode; className?: string }) {
+function FormSection({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
   return (
-    <Card className={cn('block overflow-hidden', className)}>
-      {children}
-    </Card>
+    <Card className={cn('block overflow-hidden', className)}>{children}</Card>
   )
 }
 
-function FormRow({ children, className }: { children: React.ReactNode; className?: string }) {
+function FormRow({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
   return (
-    <div className={cn('flex min-h-12 items-center gap-3 px-4 sm:min-h-16 sm:px-5', className)}>
+    <div
+      className={cn(
+        'flex min-h-12 items-center gap-3 px-4 sm:min-h-16 sm:px-5',
+        className,
+      )}
+    >
       {children}
     </div>
   )
@@ -83,7 +102,7 @@ export function TransactionFormFields({
               <button
                 aria-invalid={errors.transactionDate ? true : undefined}
                 aria-label="日付"
-                className="flex min-h-12 w-full items-center gap-3 border-b px-4 text-left outline-none transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-16 sm:px-5"
+                className="flex min-h-12 w-full items-center gap-3 border-b px-4 text-left transition-colors outline-none hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-16 sm:px-5"
                 type="button"
               >
                 <CalendarDays
@@ -131,7 +150,10 @@ export function TransactionFormFields({
             </p>
           ) : null}
           <FormRow className="border-b">
-            <label className="text-sm font-medium sm:text-base" htmlFor="new-transaction-amount">
+            <label
+              className="text-sm font-medium sm:text-base"
+              htmlFor="new-transaction-amount"
+            >
               金額
             </label>
             <span className="ml-auto text-lg font-semibold sm:text-xl">¥</span>
@@ -141,7 +163,9 @@ export function TransactionFormFields({
               id="new-transaction-amount"
               inputMode="numeric"
               maxLength={7}
-              onChange={(event) => setValue('amount', event.target.value.replace(/\D/g, ''))}
+              onChange={(event) =>
+                setValue('amount', event.target.value.replace(/\D/g, ''))
+              }
               placeholder="0"
               value={form.amount}
             />
@@ -152,7 +176,10 @@ export function TransactionFormFields({
             </p>
           ) : null}
           <FormRow className="min-h-14 sm:min-h-16">
-            <label className="text-sm font-medium sm:text-base" htmlFor="new-transaction-name">
+            <label
+              className="text-sm font-medium sm:text-base"
+              htmlFor="new-transaction-name"
+            >
               取引名
             </label>
             <Input
@@ -160,7 +187,9 @@ export function TransactionFormFields({
               className="ml-auto h-11 max-w-64 text-right"
               id="new-transaction-name"
               maxLength={32}
-              onChange={(event) => setValue('transactionName', event.target.value)}
+              onChange={(event) =>
+                setValue('transactionName', event.target.value)
+              }
               placeholder="例: ランチ"
               value={form.transactionName}
             />
@@ -179,14 +208,18 @@ export function TransactionFormFields({
                 ? 'new-transaction-category-error'
                 : undefined
             }
-            aria-invalid={errors.categoryId || errors.subcategoryId ? true : undefined}
-            className="flex min-h-20 w-full items-center gap-3 px-4 text-left outline-none transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-28 sm:px-5"
+            aria-invalid={
+              errors.categoryId || errors.subcategoryId ? true : undefined
+            }
+            className="flex min-h-20 w-full items-center gap-3 px-4 text-left transition-colors outline-none hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-28 sm:px-5"
             onClick={openCategorySelection}
             type="button"
           >
             <span className="text-sm font-medium sm:text-base">カテゴリ</span>
             <span className="ml-auto flex min-w-0 items-center gap-3 text-right">
-              {selectedCategory ? <CategoryIcon name={selectedCategory.category_name} /> : null}
+              {selectedCategory ? (
+                <CategoryIcon name={selectedCategory.category_name} />
+              ) : null}
               <span className="min-w-0">
                 <span
                   className={cn(
@@ -202,11 +235,15 @@ export function TransactionFormFields({
                     !selectedSubcategory && 'text-muted-foreground',
                   )}
                 >
-                  {selectedSubcategory?.sub_category_name ?? 'サブカテゴリを選択'}
+                  {selectedSubcategory?.sub_category_name ??
+                    'サブカテゴリを選択'}
                 </span>
               </span>
             </span>
-            <ChevronRight aria-hidden="true" className="size-5 shrink-0 text-muted-foreground" />
+            <ChevronRight
+              aria-hidden="true"
+              className="size-5 shrink-0 text-muted-foreground"
+            />
           </button>
           {errors.categoryId || errors.subcategoryId ? (
             <p
@@ -221,14 +258,19 @@ export function TransactionFormFields({
           <FormRow>
             <span className="flex items-center gap-2 text-sm font-medium sm:text-base">
               固定費フラグ
-              <Info aria-hidden="true" className="size-4 text-muted-foreground" />
+              <Info
+                aria-hidden="true"
+                className="size-4 text-muted-foreground"
+              />
             </span>
             <button
               aria-checked={form.fixed}
               aria-label="固定費フラグ"
               className={cn(
                 'ml-auto flex h-7 w-12 items-center rounded-full p-1 transition-colors focus-visible:ring-3 focus-visible:ring-ring/50',
-                form.fixed ? 'bg-primary justify-end' : 'bg-muted-foreground/25 justify-start',
+                form.fixed
+                  ? 'justify-end bg-primary'
+                  : 'justify-start bg-muted-foreground/25',
               )}
               onClick={() => setValue('fixed', !form.fixed)}
               role="switch"
@@ -242,16 +284,20 @@ export function TransactionFormFields({
         {payments.length ? (
           <FormSection>
             <button
-              className="flex min-h-20 w-full items-center gap-3 px-4 text-left outline-none transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-28 sm:px-5"
+              className="flex min-h-20 w-full items-center gap-3 px-4 text-left transition-colors outline-none hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-28 sm:px-5"
               onClick={() => setSelectionSheet('payment')}
               type="button"
             >
-              <span className="text-sm font-medium sm:text-base">支払い方法</span>
+              <span className="text-sm font-medium sm:text-base">
+                支払い方法
+              </span>
               <span className="ml-auto flex min-w-0 items-center gap-3">
                 {selectedPayment ? (
                   <PaymentIcon
                     paymentName={selectedPayment.payment_name}
-                    paymentTypeName={paymentTypeNames.get(selectedPayment.payment_type_id)}
+                    paymentTypeName={paymentTypeNames.get(
+                      selectedPayment.payment_type_id,
+                    )}
                     sizeClassName="size-11"
                   />
                 ) : null}
@@ -266,7 +312,10 @@ export function TransactionFormFields({
                     : (selectedPayment?.payment_name ?? '選択しない')}
                 </span>
               </span>
-              <ChevronRight aria-hidden="true" className="size-5 shrink-0 text-muted-foreground" />
+              <ChevronRight
+                aria-hidden="true"
+                className="size-5 shrink-0 text-muted-foreground"
+              />
             </button>
           </FormSection>
         ) : null}

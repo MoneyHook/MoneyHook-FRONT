@@ -15,9 +15,9 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { ErrorResponse } from './errorResponse';
+import type { ErrorResponse } from './errorResponse'
 
 /**
  * Database delete failed
  */
-export type DeleteFailureResponse = ErrorResponse;
+export type DeleteFailureResponse = ErrorResponse

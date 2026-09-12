@@ -17,10 +17,10 @@
  */
 
 export type GetFrequentTransactionNamesParams = {
-/**
- * Maximum number of de-duplicated transaction-name recommendations to return. Defaults to 20 and accepts up to 100.
- * @minimum 1
- * @maximum 100
- */
-limit?: number;
-};
+  /**
+   * Maximum number of de-duplicated transaction-name recommendations to return. Defaults to 20 and accepts up to 100.
+   * @minimum 1
+   * @maximum 100
+   */
+  limit?: number
+}

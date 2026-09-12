@@ -53,7 +53,8 @@ export function normalizeApiError(status: number, payload: unknown): ApiError {
     return new ApiError({
       status,
       code: status === 0 ? 'NETWORK_ERROR' : undefined,
-      message: payload || '通信に失敗しました。時間をおいて再度お試しください。',
+      message:
+        payload || '通信に失敗しました。時間をおいて再度お試しください。',
     })
   }
 

@@ -15,16 +15,17 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { DateString } from './dateString';
-import type { Identifier } from './identifier';
-import type { NullableIdentifier } from './nullableIdentifier';
+import type { DateString } from './dateString'
+import type { Identifier } from './identifier'
+import type { NullableIdentifier } from './nullableIdentifier'
 
-export type MonthlyVariableResponseMonthlyVariableListItemSubCategoryListItemTransactionListItem = {
-  transaction_id: Identifier;
-  transaction_name: string;
-  transaction_amount: number;
-  transaction_date: DateString;
-  payment_id: NullableIdentifier | null;
-  /** @nullable */
-  payment_name: string | null;
-};
+export type MonthlyVariableResponseMonthlyVariableListItemSubCategoryListItemTransactionListItem =
+  {
+    transaction_id: Identifier
+    transaction_name: string
+    transaction_amount: number
+    transaction_date: DateString
+    payment_id: NullableIdentifier | null
+    /** @nullable */
+    payment_name: string | null
+  }

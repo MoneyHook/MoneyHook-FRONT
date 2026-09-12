@@ -47,12 +47,18 @@ export const router = createBrowserRouter([
           { path: 'transactions', element: <TransactionsPage /> },
           { path: 'transactions/new', element: <NewTransactionPage /> },
           { path: 'transactions/import', element: <CsvImportPage /> },
-          { path: 'transactions/:transactionId/edit', element: <EditTransactionPage /> },
+          {
+            path: 'transactions/:transactionId/edit',
+            element: <EditTransactionPage />,
+          },
           { path: 'analysis', element: <AnalysisPage /> },
           { path: 'settings', element: <SettingsPage /> },
           { path: 'settings/account', element: <AccountSettingsPage /> },
           { path: 'settings/budget', element: <BudgetSettingsPage /> },
-          { path: 'settings/import', element: <Navigate replace to="/app/transactions/import" /> },
+          {
+            path: 'settings/import',
+            element: <Navigate replace to="/app/transactions/import" />,
+          },
           { path: 'settings/payments', element: <PaymentSettingsPage /> },
           {
             path: 'settings/recurring-transactions',

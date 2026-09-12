@@ -82,7 +82,7 @@ function SummaryRow({
         }}
       />
       <CategoryIcon name={item.name} />
-      <span className="min-w-0 flex-1 text-left text-[0.6875rem] font-semibold leading-4 sm:text-sm">
+      <span className="min-w-0 flex-1 text-left text-[0.6875rem] leading-4 font-semibold sm:text-sm">
         {item.name}
       </span>
       <span className="min-w-16 text-right text-xs tabular-nums sm:min-w-24 sm:text-sm">
@@ -109,7 +109,7 @@ function SummaryRow({
       <button
         aria-current={selected ? 'true' : undefined}
         className={cn(
-          'flex min-h-10 w-full items-center gap-2 rounded-lg px-1.5 outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50',
+          'flex min-h-10 w-full items-center gap-2 rounded-lg px-1.5 transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50',
           selected && presentation.selectionClassName,
         )}
         onClick={() => onSelect(item.id)}
@@ -149,10 +149,7 @@ export function CategorySummaryPanel({
     <CategoryAnalysisPanel id="category-summary">
       <h2 className="text-base font-semibold sm:text-lg">カテゴリ別支出</h2>
       <div className="mx-auto mt-4 grid max-w-4xl items-center gap-4 min-[390px]:grid-cols-[9rem_minmax(0,1fr)] sm:mt-5 sm:grid-cols-[15rem_minmax(0,1fr)] sm:gap-8">
-        <CategoryDonut
-          items={items}
-          total={data.totalExpenseAmount}
-        />
+        <CategoryDonut items={items} total={data.totalExpenseAmount} />
         <ul className="min-w-0 space-y-0.5">
           {items.map((item, index) => (
             <SummaryRow
@@ -168,10 +165,8 @@ export function CategorySummaryPanel({
       {data.categories.length > 5 ? (
         <button
           aria-expanded={listMode === 'all'}
-          className="mt-4 flex min-h-11 w-full items-center justify-between rounded-xl border px-4 text-left text-sm font-medium outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
-          onClick={() =>
-            onListModeChange(listMode === 'all' ? 'top' : 'all')
-          }
+          className="mt-4 flex min-h-11 w-full items-center justify-between rounded-xl border px-4 text-left text-sm font-medium transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+          onClick={() => onListModeChange(listMode === 'all' ? 'top' : 'all')}
           type="button"
         >
           {listMode === 'all'

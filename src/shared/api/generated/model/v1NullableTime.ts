@@ -16,4 +16,4 @@
  * OpenAPI spec version: 0.2.0-v1
  */
 
-export type V1NullableTime = string | null;
+export type V1NullableTime = string | null

@@ -1,18 +1,17 @@
 import { ErrorState } from '@/shared/components/app-state'
 import type { AnalysisRange } from '../model/analysis-overview'
 import { useAnalysisPaymentsController } from '../hooks/use-analysis-payments-controller'
-import { PaymentsSkeleton, EmptyPayments } from './payments/payments-analysis-states'
+import {
+  PaymentsSkeleton,
+  EmptyPayments,
+} from './payments/payments-analysis-states'
 import { PaymentSummaryPanel } from './payments/payment-summary-panel'
 import { PaymentTrendPanel } from './payments/payment-trend-panel'
 import { PaymentDetailsPanel } from './payments/payment-details-panel'
 
 export function AnalysisPaymentsContent({ range }: { range: AnalysisRange }) {
-  const {
-    payments,
-    selectedPayment,
-    setPayment,
-    openTransaction,
-  } = useAnalysisPaymentsController(range)
+  const { payments, selectedPayment, setPayment, openTransaction } =
+    useAnalysisPaymentsController(range)
 
   if (payments.isPending) {
     return <PaymentsSkeleton />

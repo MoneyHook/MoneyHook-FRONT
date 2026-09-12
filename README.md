@@ -32,11 +32,11 @@ cp .env.example .env.local
 
 主な設定:
 
-| 変数 | ローカルでの用途 |
-|---|---|
-| `VITE_API_BASE_URL` | Go APIのベースURL |
-| `VITE_FIREBASE_PROJECT_ID` | ReactとGo APIで共有するFirebase project ID |
-| `VITE_FIREBASE_AUTH_EMULATOR_URL` | Firebase Auth EmulatorのURL |
+| 変数                              | ローカルでの用途                           |
+| --------------------------------- | ------------------------------------------ |
+| `VITE_API_BASE_URL`               | Go APIのベースURL                          |
+| `VITE_FIREBASE_PROJECT_ID`        | ReactとGo APIで共有するFirebase project ID |
+| `VITE_FIREBASE_AUTH_EMULATOR_URL` | Firebase Auth EmulatorのURL                |
 
 Firebase Web client設定を含む全項目は [`.env.example`](.env.example) を確認してください。Vite環境変数はブラウザへ配布されるため、秘密情報やサーバーcredentialを保存しないでください。
 
@@ -62,16 +62,16 @@ Viteがターミナルに表示したURLをブラウザで開きます。停止�
 
 ## よく使うコマンド
 
-| コマンド | 用途 |
-|---|---|
-| `pnpm dev` | 開発サーバーを起動 |
-| `pnpm typecheck` | TypeScriptの型検査 |
-| `pnpm lint` | ESLintとsemantic color check |
-| `pnpm test` | Vitestを実行 |
-| `pnpm build` | production buildを作成 |
-| `pnpm e2e` | Playwright E2Eを実行 |
-| `pnpm api:generate` | OpenAPIからAPIクライアントを生成 |
-| `pnpm contract:test` | OpenAPI契約テストを実行 |
+| コマンド             | 用途                             |
+| -------------------- | -------------------------------- |
+| `pnpm dev`           | 開発サーバーを起動               |
+| `pnpm typecheck`     | TypeScriptの型検査               |
+| `pnpm lint`          | ESLintとsemantic color check     |
+| `pnpm test`          | Vitestを実行                     |
+| `pnpm build`         | production buildを作成           |
+| `pnpm e2e`           | Playwright E2Eを実行             |
+| `pnpm api:generate`  | OpenAPIからAPIクライアントを生成 |
+| `pnpm contract:test` | OpenAPI契約テストを実行          |
 
 `pnpm e2e`はFirebase Auth Emulatorと実Go APIを前提とします。検証条件とAPIクライアントの扱いは [DEVELOPMENT.md](docs/DEVELOPMENT.md) を参照してください。
 

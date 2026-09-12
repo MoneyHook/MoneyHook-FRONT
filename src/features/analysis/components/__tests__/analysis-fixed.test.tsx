@@ -97,7 +97,11 @@ function LocationProbe() {
     <>
       <output data-testid="pathname">{location.pathname}</output>
       <output data-testid="location">{location.search}</output>
-      <output data-testid="return-to">{String((location.state as { returnTo?: unknown } | null)?.returnTo ?? '')}</output>
+      <output data-testid="return-to">
+        {String(
+          (location.state as { returnTo?: unknown } | null)?.returnTo ?? '',
+        )}
+      </output>
     </>
   )
 }
@@ -156,7 +160,9 @@ describe('AnalysisFixedContent', () => {
     const requests = registerHandler()
     renderFixed()
 
-    expect(screen.getByRole('status', { name: '固定費分析を読み込んでいます' })).toBeVisible()
+    expect(
+      screen.getByRole('status', { name: '固定費分析を読み込んでいます' }),
+    ).toBeVisible()
 
     expect(
       await screen.findByRole('heading', { name: '固定費サマリー' }),
@@ -167,11 +173,15 @@ describe('AnalysisFixedContent', () => {
     expect(
       screen.getByRole('heading', { name: '固定費のカテゴリ別推移' }),
     ).toBeVisible()
-    expect(screen.getByRole('heading', { name: '固定費の取引一覧' })).toBeVisible()
+    expect(
+      screen.getByRole('heading', { name: '固定費の取引一覧' }),
+    ).toBeVisible()
     expect(screen.getByText('家賃関連1')).toBeVisible()
     expect(screen.queryByText('家賃関連6')).not.toBeInTheDocument()
 
-    expect(screen.queryByRole('status', { name: '固定費分析を読み込んでいます' })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('status', { name: '固定費分析を読み込んでいます' }),
+    ).not.toBeInTheDocument()
     expect(requests).toHaveLength(1)
     const params = new URL(requests[0]).searchParams
     expect(params.get('start_date')).toBe('2026-03-01')
@@ -191,8 +201,12 @@ describe('AnalysisFixedContent', () => {
       )
       expect(screen.getByTestId('location')).not.toHaveTextContent('metric=')
     })
-    expect(screen.queryByRole('button', { name: '金額' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: '割合' })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: '金額' }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: '割合' }),
+    ).not.toBeInTheDocument()
 
     await user.click(
       screen.getByRole('button', { name: 'カテゴリを選択、2件選択中' }),
@@ -244,18 +258,25 @@ describe('AnalysisFixedContent', () => {
 
     expect(await screen.findByText('固定費分析を表示できません')).toBeVisible()
     await user.click(screen.getByRole('button', { name: 'もう一度試す' }))
-    expect(await screen.findByText('この期間の固定費はありません')).toBeVisible()
+    expect(
+      await screen.findByText('この期間の固定費はありません'),
+    ).toBeVisible()
   })
 
   it('opens the editor from a fixed-cost transaction', async () => {
     registerHandler()
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
-    const returnTo = '/app/analysis?view=fixed&fixedCategory=1&startMonth=2026-03&endMonth=2026-08#fixed-transactions'
+    const returnTo =
+      '/app/analysis?view=fixed&fixedCategory=1&startMonth=2026-03&endMonth=2026-08#fixed-transactions'
     renderFixed(returnTo)
 
-    await user.click(await screen.findByRole('button', { name: '家賃関連1を編集' }))
+    await user.click(
+      await screen.findByRole('button', { name: '家賃関連1を編集' }),
+    )
 
-    expect(screen.getByTestId('pathname')).toHaveTextContent('/app/transactions/11/edit')
+    expect(screen.getByTestId('pathname')).toHaveTextContent(
+      '/app/transactions/11/edit',
+    )
     expect(screen.getByTestId('return-to').textContent).toBe(returnTo)
   })
 })

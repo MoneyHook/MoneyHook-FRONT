@@ -31,7 +31,12 @@ export function MonthHeader({
           onChange={onChange}
           showCalendarIcon
         />
-        <Button aria-label="通知（未対応）" disabled size="icon" variant="ghost">
+        <Button
+          aria-label="通知（未対応）"
+          disabled
+          size="icon"
+          variant="ghost"
+        >
           <Bell aria-hidden="true" />
         </Button>
       </div>

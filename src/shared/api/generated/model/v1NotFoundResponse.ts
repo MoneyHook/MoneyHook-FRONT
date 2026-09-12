@@ -15,9 +15,9 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { V1ErrorResponse } from './v1ErrorResponse';
+import type { V1ErrorResponse } from './v1ErrorResponse'
 
 /**
  * Resource does not exist or is not owned by this user
  */
-export type V1NotFoundResponse = V1ErrorResponse;
+export type V1NotFoundResponse = V1ErrorResponse

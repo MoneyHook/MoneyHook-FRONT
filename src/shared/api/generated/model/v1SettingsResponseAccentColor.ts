@@ -16,8 +16,8 @@
  * OpenAPI spec version: 0.2.0-v1
  */
 
-export type V1SettingsResponseAccentColor = typeof V1SettingsResponseAccentColor[keyof typeof V1SettingsResponseAccentColor];
-
+export type V1SettingsResponseAccentColor =
+  (typeof V1SettingsResponseAccentColor)[keyof typeof V1SettingsResponseAccentColor]
 
 export const V1SettingsResponseAccentColor = {
   blue: 'blue',
@@ -25,4 +25,4 @@ export const V1SettingsResponseAccentColor = {
   violet: 'violet',
   rose: 'rose',
   black: 'black',
-} as const;
+} as const

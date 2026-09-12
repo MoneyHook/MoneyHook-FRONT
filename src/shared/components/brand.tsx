@@ -8,7 +8,11 @@ type BrandProps = {
   onClick?: () => void
 }
 
-export function Brand({ 'aria-label': ariaLabel = 'MoneyHooksのホームへ', className, onClick }: BrandProps) {
+export function Brand({
+  'aria-label': ariaLabel = 'MoneyHooksのホームへ',
+  className,
+  onClick,
+}: BrandProps) {
   const content = (
     <>
       <img
@@ -24,24 +28,25 @@ export function Brand({ 'aria-label': ariaLabel = 'MoneyHooksのホームへ', c
     </>
   )
   const sharedClassName = cn(
-    'inline-flex min-w-0 items-center gap-2.5 rounded-lg outline-none transition-opacity hover:opacity-80 focus-visible:ring-3 focus-visible:ring-ring/50',
+    'inline-flex min-w-0 items-center gap-2.5 rounded-lg transition-opacity outline-none hover:opacity-80 focus-visible:ring-3 focus-visible:ring-ring/50',
     className,
   )
 
   if (onClick) {
     return (
-      <button aria-label={ariaLabel} className={sharedClassName} onClick={onClick} type="button">
+      <button
+        aria-label={ariaLabel}
+        className={sharedClassName}
+        onClick={onClick}
+        type="button"
+      >
         {content}
       </button>
     )
   }
 
   return (
-    <Link
-      aria-label={ariaLabel}
-      className={sharedClassName}
-      to="/"
-    >
+    <Link aria-label={ariaLabel} className={sharedClassName} to="/">
       {content}
     </Link>
   )

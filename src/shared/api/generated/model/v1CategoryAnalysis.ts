@@ -15,22 +15,22 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { Identifier } from './identifier';
-import type { V1ExpenseSeriesItem } from './v1ExpenseSeriesItem';
-import type { V1SubCategoryAnalysis } from './v1SubCategoryAnalysis';
-import type { V1TransactionResource } from './v1TransactionResource';
+import type { Identifier } from './identifier'
+import type { V1ExpenseSeriesItem } from './v1ExpenseSeriesItem'
+import type { V1SubCategoryAnalysis } from './v1SubCategoryAnalysis'
+import type { V1TransactionResource } from './v1TransactionResource'
 
 export interface V1CategoryAnalysis {
-  category_id: Identifier;
-  category_name: string;
+  category_id: Identifier
+  category_name: string
   /** @minimum 0 */
-  expense_amount: number;
+  expense_amount: number
   /**
-     * @minimum 0
-     * @maximum 100
-     */
-  ratio: number;
-  series: V1ExpenseSeriesItem[];
-  sub_category_list: V1SubCategoryAnalysis[];
-  transaction_list: V1TransactionResource[];
+   * @minimum 0
+   * @maximum 100
+   */
+  ratio: number
+  series: V1ExpenseSeriesItem[]
+  sub_category_list: V1SubCategoryAnalysis[]
+  transaction_list: V1TransactionResource[]
 }

@@ -31,7 +31,10 @@ import {
   type ThemeMode,
 } from '@/shared/hooks/appearance-context'
 
-function resolveTheme(theme: ThemeMode, systemPrefersDark: boolean): 'light' | 'dark' {
+function resolveTheme(
+  theme: ThemeMode,
+  systemPrefersDark: boolean,
+): 'light' | 'dark' {
   return theme === 'system' ? (systemPrefersDark ? 'dark' : 'light') : theme
 }
 
@@ -53,7 +56,9 @@ function readStoredAppearanceSettings(): AppearanceSettings {
   const storedChartPalette = readStoredValue(CHART_PALETTE_STORAGE_KEY)
 
   return {
-    theme: isThemeMode(storedTheme) ? storedTheme : DEFAULT_APPEARANCE_SETTINGS.theme,
+    theme: isThemeMode(storedTheme)
+      ? storedTheme
+      : DEFAULT_APPEARANCE_SETTINGS.theme,
     accent: isAccentColor(storedAccent)
       ? storedAccent
       : DEFAULT_APPEARANCE_SETTINGS.accent,
@@ -96,7 +101,9 @@ function AppearanceSettingsProvider({
   status: ReturnType<typeof useAuth>['status']
 }) {
   const queryClient = useQueryClient()
-  const [settings, setSettings] = useState<AppearanceSettings>(readStoredAppearanceSettings)
+  const [settings, setSettings] = useState<AppearanceSettings>(
+    readStoredAppearanceSettings,
+  )
   const [systemPrefersDark, setSystemPrefersDark] = useState(false)
   const settingsQuery = useGetV1Settings({
     query: { enabled: status === 'authenticated' },
@@ -141,40 +148,47 @@ function AppearanceSettingsProvider({
     persistAppearanceSettings(settings)
   }, [settings])
 
-  const save = useCallback((patch: Partial<AppearanceSettings>) => {
-    const previousSettings = settings
-    const nextSettings = { ...settings, ...patch }
-    setSettings(nextSettings)
+  const save = useCallback(
+    (patch: Partial<AppearanceSettings>) => {
+      const previousSettings = settings
+      const nextSettings = { ...settings, ...patch }
+      setSettings(nextSettings)
 
-    saveMutation.mutate(
-      {
-        data: {
-          ...(patch.theme ? { theme_mode: patch.theme } : {}),
-          ...(patch.accent ? { accent_color: patch.accent } : {}),
-          ...(patch.chartPalette ? { chart_palette: patch.chartPalette } : {}),
+      saveMutation.mutate(
+        {
+          data: {
+            ...(patch.theme ? { theme_mode: patch.theme } : {}),
+            ...(patch.accent ? { accent_color: patch.accent } : {}),
+            ...(patch.chartPalette
+              ? { chart_palette: patch.chartPalette }
+              : {}),
+          },
         },
-      },
-      {
-        onError: () => {
-          setSettings(previousSettings)
-          toast.error('表示設定を保存できませんでした。もう一度お試しください。')
+        {
+          onError: () => {
+            setSettings(previousSettings)
+            toast.error(
+              '表示設定を保存できませんでした。もう一度お試しください。',
+            )
+          },
+          onSuccess: (response) => {
+            if (response.status !== 200) {
+              return
+            }
+            const data = response.data
+            const savedSettings = {
+              theme: data.theme_mode,
+              accent: data.accent_color,
+              chartPalette: data.chart_palette,
+            } satisfies AppearanceSettings
+            setSettings(savedSettings)
+            queryClient.setQueryData(getGetV1SettingsQueryKey(), response)
+          },
         },
-        onSuccess: (response) => {
-          if (response.status !== 200) {
-            return
-          }
-          const data = response.data
-          const savedSettings = {
-            theme: data.theme_mode,
-            accent: data.accent_color,
-            chartPalette: data.chart_palette,
-          } satisfies AppearanceSettings
-          setSettings(savedSettings)
-          queryClient.setQueryData(getGetV1SettingsQueryKey(), response)
-        },
-      },
-    )
-  }, [queryClient, saveMutation, settings])
+      )
+    },
+    [queryClient, saveMutation, settings],
+  )
 
   const value = useMemo(
     () => ({
@@ -187,5 +201,9 @@ function AppearanceSettingsProvider({
     [resolvedTheme, save, settings],
   )
 
-  return <AppearanceContext.Provider value={value}>{children}</AppearanceContext.Provider>
+  return (
+    <AppearanceContext.Provider value={value}>
+      {children}
+    </AppearanceContext.Provider>
+  )
 }

@@ -122,7 +122,11 @@ function LocationProbe() {
         {location.search}
         {location.hash}
       </output>
-      <output data-testid="return-to">{String((location.state as { returnTo?: unknown } | null)?.returnTo ?? '')}</output>
+      <output data-testid="return-to">
+        {String(
+          (location.state as { returnTo?: unknown } | null)?.returnTo ?? '',
+        )}
+      </output>
     </>
   )
 }
@@ -181,7 +185,9 @@ describe('AnalysisPaymentsContent', () => {
     const requests = registerHandler()
     renderPayments()
 
-    expect(screen.getByRole('status', { name: '支払い方法分析を読み込んでいます' })).toBeVisible()
+    expect(
+      screen.getByRole('status', { name: '支払い方法分析を読み込んでいます' }),
+    ).toBeVisible()
 
     expect(
       await screen.findByRole('heading', { name: '支払い方法サマリー' }),
@@ -193,13 +199,18 @@ describe('AnalysisPaymentsContent', () => {
     expect(
       screen.getByRole('heading', { name: '支払い方法の詳細' }),
     ).toBeVisible()
-    expect(document.querySelector('img[src="/payment-icons/card_rakuten.svg"]')).not.toBeNull()
-    expect(screen.getByRole('link', { name: '支払い方法の取引一覧を見る' })).toHaveAttribute(
-      'href',
-      '#payment-details',
-    )
+    expect(
+      document.querySelector('img[src="/payment-icons/card_rakuten.svg"]'),
+    ).not.toBeNull()
+    expect(
+      screen.getByRole('link', { name: '支払い方法の取引一覧を見る' }),
+    ).toHaveAttribute('href', '#payment-details')
 
-    expect(screen.queryByRole('status', { name: '支払い方法分析を読み込んでいます' })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('status', {
+        name: '支払い方法分析を読み込んでいます',
+      }),
+    ).not.toBeInTheDocument()
     expect(requests).toHaveLength(1)
     const params = new URL(requests[0]).searchParams
     expect(params.get('start_date')).toBe('2026-03-01')
@@ -251,12 +262,17 @@ describe('AnalysisPaymentsContent', () => {
   it('opens the editor from a payment transaction', async () => {
     registerHandler()
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
-    const returnTo = '/app/analysis?view=payments&payment=2&startMonth=2026-03&endMonth=2026-08#payment-details'
+    const returnTo =
+      '/app/analysis?view=payments&payment=2&startMonth=2026-03&endMonth=2026-08#payment-details'
     renderPayments(returnTo)
 
-    await user.click(await screen.findByRole('button', { name: 'PayPay取引を編集' }))
+    await user.click(
+      await screen.findByRole('button', { name: 'PayPay取引を編集' }),
+    )
 
-    expect(screen.getByTestId('pathname')).toHaveTextContent('/app/transactions/20/edit')
+    expect(screen.getByTestId('pathname')).toHaveTextContent(
+      '/app/transactions/20/edit',
+    )
     expect(screen.getByTestId('return-to').textContent).toBe(returnTo)
   })
 })

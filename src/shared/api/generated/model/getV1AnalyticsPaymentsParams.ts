@@ -15,18 +15,18 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { V1EndDateParameter } from './v1EndDateParameter';
-import type { V1GroupByParameter } from './v1GroupByParameter';
-import type { V1StartDateParameter } from './v1StartDateParameter';
+import type { V1EndDateParameter } from './v1EndDateParameter'
+import type { V1GroupByParameter } from './v1GroupByParameter'
+import type { V1StartDateParameter } from './v1StartDateParameter'
 
 export type GetV1AnalyticsPaymentsParams = {
-/**
- * Inclusive range start.
- */
-start_date: V1StartDateParameter;
-/**
- * Inclusive range end. The server does not expand it to month end.
- */
-end_date: V1EndDateParameter;
-group_by?: V1GroupByParameter;
-};
+  /**
+   * Inclusive range start.
+   */
+  start_date: V1StartDateParameter
+  /**
+   * Inclusive range end. The server does not expand it to month end.
+   */
+  end_date: V1EndDateParameter
+  group_by?: V1GroupByParameter
+}

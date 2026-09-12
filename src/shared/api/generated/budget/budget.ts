@@ -15,10 +15,7 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import {
-  useMutation,
-  useQuery
-} from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query'
 import type {
   DataTag,
   DefinedInitialDataOptions,
@@ -31,8 +28,8 @@ import type {
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
-  UseQueryResult
-} from '@tanstack/react-query';
+  UseQueryResult,
+} from '@tanstack/react-query'
 
 import type {
   AuthIdentityConflictResponse,
@@ -42,28 +39,28 @@ import type {
   V1BudgetResponse,
   V1InternalErrorResponse,
   V1UnauthorizedResponse,
-  V1ValidationErrorResponse
-} from '../model';
+  V1ValidationErrorResponse,
+} from '../model'
 
-import { apiFetch } from '../../http-client';
+import { apiFetch } from '../../http-client'
 
-
-
-
-const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKey: K } => {
-  const result = { queryKey } as T & { queryKey: K };
+const withQueryKey = <T extends object, K>(
+  query: T,
+  queryKey: K,
+): T & { queryKey: K } => {
+  const result = { queryKey } as T & { queryKey: K }
   for (const key of Object.keys(query)) {
     // The explicit queryKey always wins, matching the previous
     // `{ ...query, queryKey }` spread where it was set last.
-    if (key === 'queryKey') continue;
+    if (key === 'queryKey') continue
     Object.defineProperty(result, key, {
       enumerable: true,
       configurable: true,
       get: () => (query as Record<string, unknown>)[key],
-    });
+    })
   }
-  return result;
-};
+  return result
+}
 
 export type getV1BudgetResponse200 = {
   data: V1BudgetResponse
@@ -90,121 +87,194 @@ export type getV1BudgetResponse500 = {
   status: 500
 }
 
-export type getV1BudgetResponseSuccess = (getV1BudgetResponse200) & {
-  headers: Headers;
-};
-export type getV1BudgetResponseError = (getV1BudgetResponse400 | getV1BudgetResponse401 | getV1BudgetResponse409 | getV1BudgetResponse500) & {
-  headers: Headers;
-};
+export type getV1BudgetResponseSuccess = getV1BudgetResponse200 & {
+  headers: Headers
+}
+export type getV1BudgetResponseError = (
+  | getV1BudgetResponse400
+  | getV1BudgetResponse401
+  | getV1BudgetResponse409
+  | getV1BudgetResponse500
+) & {
+  headers: Headers
+}
 
-export type getV1BudgetResponse = (getV1BudgetResponseSuccess | getV1BudgetResponseError)
+export type getV1BudgetResponse =
+  getV1BudgetResponseSuccess | getV1BudgetResponseError
 
-export const getGetV1BudgetUrl = (params: GetV1BudgetParams,) => {
-  const normalizedParams = new URLSearchParams();
+export const getGetV1BudgetUrl = (params: GetV1BudgetParams) => {
+  const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
-
     if (value !== undefined) {
       normalizedParams.append(key, value === null ? 'null' : String(value))
     }
-  });
+  })
 
-  const stringifiedParams = normalizedParams.toString();
+  const stringifiedParams = normalizedParams.toString()
 
-  return stringifiedParams.length > 0 ? `/api/v1/budget?${stringifiedParams}` : `/api/v1/budget`
+  return stringifiedParams.length > 0
+    ? `/api/v1/budget?${stringifiedParams}`
+    : `/api/v1/budget`
 }
 
 /**
  * @summary Get the budget effective for a requested month
  */
-export const getV1Budget = async (params: GetV1BudgetParams, options?: RequestInit): Promise<getV1BudgetResponse> => {
-
-  return apiFetch<getV1BudgetResponse>(getGetV1BudgetUrl(params),
-  {
+export const getV1Budget = async (
+  params: GetV1BudgetParams,
+  options?: RequestInit,
+): Promise<getV1BudgetResponse> => {
+  return apiFetch<getV1BudgetResponse>(getGetV1BudgetUrl(params), {
     ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGetV1BudgetQueryKey = (params?: GetV1BudgetParams,) => {
-    return [
-    `/api/v1/budget`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-
-export const getGetV1BudgetQueryOptions = <TData = Awaited<ReturnType<typeof getV1Budget>>, TError = V1BadRequestResponse | V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(params: GetV1BudgetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getV1Budget>>, TError, TData>>, }
-) => {
-
-const {query: queryOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetV1BudgetQueryKey(params);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getV1Budget>>> = ({ signal }) => getV1Budget(params, { signal });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getV1Budget>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+    method: 'GET',
+  })
 }
 
-export type GetV1BudgetQueryResult = NonNullable<Awaited<ReturnType<typeof getV1Budget>>>
-export type GetV1BudgetQueryError = V1BadRequestResponse | V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse
+export const getGetV1BudgetQueryKey = (params?: GetV1BudgetParams) => {
+  return [`/api/v1/budget`, ...(params ? [params] : [])] as const
+}
 
+export const getGetV1BudgetQueryOptions = <
+  TData = Awaited<ReturnType<typeof getV1Budget>>,
+  TError =
+    | V1BadRequestResponse
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  params: GetV1BudgetParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getV1Budget>>, TError, TData>
+    >
+  },
+) => {
+  const { query: queryOptions } = options ?? {}
 
-export function useGetV1Budget<TData = Awaited<ReturnType<typeof getV1Budget>>, TError = V1BadRequestResponse | V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
- params: GetV1BudgetParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getV1Budget>>, TError, TData>> & Pick<
+  const queryKey = queryOptions?.queryKey ?? getGetV1BudgetQueryKey(params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getV1Budget>>> = ({
+    signal,
+  }) => getV1Budget(params, { signal })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getV1Budget>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetV1BudgetQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getV1Budget>>
+>
+export type GetV1BudgetQueryError =
+  | V1BadRequestResponse
+  | V1UnauthorizedResponse
+  | AuthIdentityConflictResponse
+  | V1InternalErrorResponse
+
+export function useGetV1Budget<
+  TData = Awaited<ReturnType<typeof getV1Budget>>,
+  TError =
+    | V1BadRequestResponse
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  params: GetV1BudgetParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getV1Budget>>, TError, TData>
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getV1Budget>>,
           TError,
           Awaited<ReturnType<typeof getV1Budget>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetV1Budget<TData = Awaited<ReturnType<typeof getV1Budget>>, TError = V1BadRequestResponse | V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
- params: GetV1BudgetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getV1Budget>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+export function useGetV1Budget<
+  TData = Awaited<ReturnType<typeof getV1Budget>>,
+  TError =
+    | V1BadRequestResponse
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  params: GetV1BudgetParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getV1Budget>>, TError, TData>
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getV1Budget>>,
           TError,
           Awaited<ReturnType<typeof getV1Budget>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetV1Budget<TData = Awaited<ReturnType<typeof getV1Budget>>, TError = V1BadRequestResponse | V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
- params: GetV1BudgetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getV1Budget>>, TError, TData>>, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+export function useGetV1Budget<
+  TData = Awaited<ReturnType<typeof getV1Budget>>,
+  TError =
+    | V1BadRequestResponse
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  params: GetV1BudgetParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getV1Budget>>, TError, TData>
+    >
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
 /**
  * @summary Get the budget effective for a requested month
  */
 
-export function useGetV1Budget<TData = Awaited<ReturnType<typeof getV1Budget>>, TError = V1BadRequestResponse | V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
- params: GetV1BudgetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getV1Budget>>, TError, TData>>, }
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetV1Budget<
+  TData = Awaited<ReturnType<typeof getV1Budget>>,
+  TError =
+    | V1BadRequestResponse
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  params: GetV1BudgetParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getV1Budget>>, TError, TData>
+    >
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+} {
+  const queryOptions = getGetV1BudgetQueryOptions(params, options)
 
-  const queryOptions = getGetV1BudgetQueryOptions(params,options)
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
+  return withQueryKey(query, queryOptions.queryKey)
 }
-
-
-
-
-
 
 export type putV1BudgetResponse200 = {
   data: V1BudgetResponse
@@ -236,89 +306,132 @@ export type putV1BudgetResponse500 = {
   status: 500
 }
 
-export type putV1BudgetResponseSuccess = (putV1BudgetResponse200) & {
-  headers: Headers;
-};
-export type putV1BudgetResponseError = (putV1BudgetResponse400 | putV1BudgetResponse401 | putV1BudgetResponse409 | putV1BudgetResponse422 | putV1BudgetResponse500) & {
-  headers: Headers;
-};
+export type putV1BudgetResponseSuccess = putV1BudgetResponse200 & {
+  headers: Headers
+}
+export type putV1BudgetResponseError = (
+  | putV1BudgetResponse400
+  | putV1BudgetResponse401
+  | putV1BudgetResponse409
+  | putV1BudgetResponse422
+  | putV1BudgetResponse500
+) & {
+  headers: Headers
+}
 
-export type putV1BudgetResponse = (putV1BudgetResponseSuccess | putV1BudgetResponseError)
+export type putV1BudgetResponse =
+  putV1BudgetResponseSuccess | putV1BudgetResponseError
 
 export const getPutV1BudgetUrl = () => {
-
-
-
-
   return `/api/v1/budget`
 }
 
 /**
  * @summary Create or update a budget effective from a requested month
  */
-export const putV1Budget = async (v1BudgetRequest: V1BudgetRequest, options?: RequestInit): Promise<putV1BudgetResponse> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Array.isArray(h)) return Object.fromEntries(h);
-    return h;
-  };
-return apiFetch<putV1BudgetResponse>(getPutV1BudgetUrl(),
-  {
+export const putV1Budget = async (
+  v1BudgetRequest: V1BudgetRequest,
+  options?: RequestInit,
+): Promise<putV1BudgetResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {}
+    if (h instanceof Headers) return Object.fromEntries(h.entries())
+    if (Array.isArray(h)) return Object.fromEntries(h)
+    return h
+  }
+  return apiFetch<putV1BudgetResponse>(getPutV1BudgetUrl(), {
     ...options,
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(v1BudgetRequest)
+    headers: {
+      'Content-Type': 'application/json',
+      ...getHeaders(options?.headers),
+    },
+    body: JSON.stringify(v1BudgetRequest),
+  })
+}
+
+export const getPutV1BudgetMutationOptions = <
+  TError =
+    | V1BadRequestResponse
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1ValidationErrorResponse
+    | V1InternalErrorResponse,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof putV1Budget>>,
+    TError,
+    PutV1BudgetMutationVariables,
+    TContext
+  >
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof putV1Budget>>,
+  TError,
+  PutV1BudgetMutationVariables,
+  TContext
+> => {
+  const mutationKey = ['putV1Budget']
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof putV1Budget>>,
+    PutV1BudgetMutationVariables
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return putV1Budget(data)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type PutV1BudgetMutationResult = NonNullable<
+  Awaited<ReturnType<typeof putV1Budget>>
+>
+export type PutV1BudgetMutationBody = V1BudgetRequest
+export type PutV1BudgetMutationError =
+  | V1BadRequestResponse
+  | V1UnauthorizedResponse
+  | AuthIdentityConflictResponse
+  | V1ValidationErrorResponse
+  | V1InternalErrorResponse
+export type PutV1BudgetMutationVariables = { data: V1BudgetRequest }
 
-
-
-export const getPutV1BudgetMutationOptions = <TError = V1BadRequestResponse | V1UnauthorizedResponse | AuthIdentityConflictResponse | V1ValidationErrorResponse | V1InternalErrorResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putV1Budget>>, TError,PutV1BudgetMutationVariables, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof putV1Budget>>, TError,PutV1BudgetMutationVariables, TContext> => {
-
-const mutationKey = ['putV1Budget'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putV1Budget>>, PutV1BudgetMutationVariables> = (props) => {
-          const {data} = props ?? {};
-
-          return  putV1Budget(data,)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PutV1BudgetMutationResult = NonNullable<Awaited<ReturnType<typeof putV1Budget>>>
-    export type PutV1BudgetMutationBody = V1BudgetRequest
-    export type PutV1BudgetMutationError = V1BadRequestResponse | V1UnauthorizedResponse | AuthIdentityConflictResponse | V1ValidationErrorResponse | V1InternalErrorResponse
-    export type PutV1BudgetMutationVariables = {data: V1BudgetRequest}
-
-    /**
+/**
  * @summary Create or update a budget effective from a requested month
  */
-export const usePutV1Budget = <TError = V1BadRequestResponse | V1UnauthorizedResponse | AuthIdentityConflictResponse | V1ValidationErrorResponse | V1InternalErrorResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putV1Budget>>, TError,PutV1BudgetMutationVariables, TContext>, }
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof putV1Budget>>,
-        TError,
-        PutV1BudgetMutationVariables,
-        TContext
-      > => {
-      return useMutation(getPutV1BudgetMutationOptions(options), queryClient);
-    }
+export const usePutV1Budget = <
+  TError =
+    | V1BadRequestResponse
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1ValidationErrorResponse
+    | V1InternalErrorResponse,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof putV1Budget>>,
+      TError,
+      PutV1BudgetMutationVariables,
+      TContext
+    >
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof putV1Budget>>,
+  TError,
+  PutV1BudgetMutationVariables,
+  TContext
+> => {
+  return useMutation(getPutV1BudgetMutationOptions(options), queryClient)
+}

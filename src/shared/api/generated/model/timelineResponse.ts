@@ -15,8 +15,8 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { TimelineTransaction } from './timelineTransaction';
+import type { TimelineTransaction } from './timelineTransaction'
 
 export interface TimelineResponse {
-  transaction_list: TimelineTransaction[];
+  transaction_list: TimelineTransaction[]
 }

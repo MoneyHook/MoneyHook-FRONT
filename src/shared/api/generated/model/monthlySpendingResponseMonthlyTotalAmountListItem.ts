@@ -15,10 +15,10 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { DateString } from './dateString';
+import type { DateString } from './dateString'
 
 export type MonthlySpendingResponseMonthlyTotalAmountListItem = {
   /** Expense sum; normally zero or negative. */
-  total_amount: number;
-  month: DateString;
-};
+  total_amount: number
+  month: DateString
+}

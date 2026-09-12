@@ -15,8 +15,8 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { FixedWrite } from './fixedWrite';
+import type { FixedWrite } from './fixedWrite'
 
 export interface FixedWriteEnvelope {
-  monthly_transaction: FixedWrite;
+  monthly_transaction: FixedWrite
 }

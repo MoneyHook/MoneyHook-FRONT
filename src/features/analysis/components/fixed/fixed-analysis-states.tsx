@@ -23,7 +23,10 @@ export function EmptyFixed() {
   return (
     <div className="space-y-3 sm:space-y-4">
       <AnalysisPanel className="flex min-h-64 flex-col items-center justify-center text-center">
-        <WalletCards aria-hidden="true" className="size-8 text-muted-foreground" />
+        <WalletCards
+          aria-hidden="true"
+          className="size-8 text-muted-foreground"
+        />
         <h2 className="mt-4 font-semibold">この期間の固定費はありません</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           固定費を記録すると月別の推移と年間換算を確認できます。

@@ -15,32 +15,32 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { DateString } from './dateString';
-import type { Identifier } from './identifier';
-import type { TransactionWriteTransactionSign } from './transactionWriteTransactionSign';
+import type { DateString } from './dateString'
+import type { Identifier } from './identifier'
+import type { TransactionWriteTransactionSign } from './transactionWriteTransactionSign'
 
 /**
  * Required fields, calendar dates, non-negative amounts, signs, names, and positive signed 64-bit IDs are validated before persistence. Invalid requests return 422. When sub_category_id is omitted or empty, sub_category_name must contain 1 to 16 non-blank characters.
  */
 export interface TransactionWrite {
-  transaction_date: DateString;
+  transaction_date: DateString
   /**
-     * Non-negative signed 64-bit magnitude; stored as `transaction_amount * transaction_sign`.
-     * @minimum 0
-     */
-  transaction_amount: number;
-  transaction_sign: TransactionWriteTransactionSign;
+   * Non-negative signed 64-bit magnitude; stored as `transaction_amount * transaction_sign`.
+   * @minimum 0
+   */
+  transaction_amount: number
+  transaction_sign: TransactionWriteTransactionSign
   /**
-     * @minLength 1
-     * @maxLength 32
-     */
-  transaction_name: string;
-  category_id: Identifier;
+   * @minLength 1
+   * @maxLength 32
+   */
+  transaction_name: string
+  category_id: Identifier
   /** Numeric ID, or empty/omitted to find/create by `sub_category_name`. */
-  sub_category_id?: string;
+  sub_category_id?: string
   /** @maxLength 16 */
-  sub_category_name?: string;
-  fixed_flg: boolean;
+  sub_category_name?: string
+  fixed_flg: boolean
   /** Numeric ID, or empty/omitted for database NULL. */
-  payment_id?: string;
+  payment_id?: string
 }

@@ -54,7 +54,9 @@ describe('AppShell', () => {
     renderAppShell()
 
     expect(screen.queryByRole('banner')).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'サイドバーを閉じる' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'サイドバーを閉じる' }),
+    ).toBeInTheDocument()
     expect(document.querySelector('[data-slot="sidebar-inset"]')).toHaveClass(
       'min-w-0',
     )
@@ -62,7 +64,9 @@ describe('AppShell', () => {
       name: 'アカウントメニューを開く',
     })
     expect(accountMenuButton).toHaveTextContent('MoneyHooksユーザー')
-    expect(accountMenuButton.closest('[data-slot="sidebar-footer"]')).not.toBeNull()
+    expect(
+      accountMenuButton.closest('[data-slot="sidebar-footer"]'),
+    ).not.toBeNull()
   })
 
   it('uses a muted active state without a check icon in the sidebar', () => {
@@ -113,7 +117,9 @@ describe('AppShell', () => {
     await user.click(screen.getByRole('button', { name: 'サイドバーを閉じる' }))
 
     expect(sidebar).toHaveAttribute('data-state', 'collapsed')
-    expect(screen.getByRole('button', { name: 'サイドバーを開く' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'サイドバーを開く' }),
+    ).toBeInTheDocument()
   })
 
   it('removes the floating account menu and keeps bottom navigation on mobile', () => {
@@ -134,8 +140,12 @@ describe('AppShell', () => {
       screen.getByRole('link', { name: '新しい取引を追加' }),
     ).toHaveAttribute('href', '/app/transactions/new')
     expect(
-      screen.getByRole('link', { name: '新しい取引を追加' }).querySelector('svg'),
+      screen
+        .getByRole('link', { name: '新しい取引を追加' })
+        .querySelector('svg'),
     ).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'サイドバーを閉じる' })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'サイドバーを閉じる' }),
+    ).not.toBeInTheDocument()
   })
 })

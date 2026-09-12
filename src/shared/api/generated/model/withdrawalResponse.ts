@@ -15,8 +15,8 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { WithdrawalResponseWithdrawalListItem } from './withdrawalResponseWithdrawalListItem';
+import type { WithdrawalResponseWithdrawalListItem } from './withdrawalResponseWithdrawalListItem'
 
 export interface WithdrawalResponse {
-  withdrawal_list: WithdrawalResponseWithdrawalListItem[];
+  withdrawal_list: WithdrawalResponseWithdrawalListItem[]
 }

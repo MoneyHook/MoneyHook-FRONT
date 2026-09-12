@@ -15,10 +15,10 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { HomeResponseCategoryListItem } from './homeResponseCategoryListItem';
+import type { HomeResponseCategoryListItem } from './homeResponseCategoryListItem'
 
 export interface HomeResponse {
   /** Sum of expense category totals; normally non-positive. */
-  balance: number;
-  category_list: HomeResponseCategoryListItem[];
+  balance: number
+  category_list: HomeResponseCategoryListItem[]
 }

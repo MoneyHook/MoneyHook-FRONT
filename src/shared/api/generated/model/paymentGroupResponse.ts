@@ -15,12 +15,12 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { PaymentGroupResponsePaymentListItem } from './paymentGroupResponsePaymentListItem';
+import type { PaymentGroupResponsePaymentListItem } from './paymentGroupResponsePaymentListItem'
 
 export interface PaymentGroupResponse {
-  total_spending: number;
-  last_month_total_spending: number;
+  total_spending: number
+  last_month_total_spending: number
   /** @nullable */
-  month_over_month_sum: number | null;
-  payment_list: PaymentGroupResponsePaymentListItem[];
+  month_over_month_sum: number | null
+  payment_list: PaymentGroupResponsePaymentListItem[]
 }

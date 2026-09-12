@@ -24,7 +24,9 @@ export type TransactionFilterSummary = {
   balanceAmount: number
 }
 
-export function parseTransactionFilters(params: URLSearchParams): TransactionFilters {
+export function parseTransactionFilters(
+  params: URLSearchParams,
+): TransactionFilters {
   const sign = params.get('sign')
   const fixed = params.get('fixed')
 
@@ -36,7 +38,10 @@ export function parseTransactionFilters(params: URLSearchParams): TransactionFil
   }
 }
 
-export function writeTransactionFilters(params: URLSearchParams, filters: TransactionFilters) {
+export function writeTransactionFilters(
+  params: URLSearchParams,
+  filters: TransactionFilters,
+) {
   const values = {
     sign: filters.sign,
     category: filters.categoryId,
@@ -55,11 +60,15 @@ export function writeTransactionFilters(params: URLSearchParams, filters: Transa
   return params
 }
 
-export function filterTransactions(items: TransactionItem[], filters: TransactionFilters) {
+export function filterTransactions(
+  items: TransactionItem[],
+  filters: TransactionFilters,
+) {
   return items.filter((item) => {
     if (filters.sign === 'expense' && item.sign !== -1) return false
     if (filters.sign === 'income' && item.sign !== 1) return false
-    if (filters.categoryId && item.categoryId !== filters.categoryId) return false
+    if (filters.categoryId && item.categoryId !== filters.categoryId)
+      return false
     if (filters.paymentId && item.paymentId !== filters.paymentId) return false
     if (filters.fixed === 'fixed' && !item.fixed) return false
     if (filters.fixed === 'variable' && item.fixed) return false
@@ -67,7 +76,9 @@ export function filterTransactions(items: TransactionItem[], filters: Transactio
   })
 }
 
-export function summarizeFilteredTransactions(items: TransactionItem[]): TransactionFilterSummary {
+export function summarizeFilteredTransactions(
+  items: TransactionItem[],
+): TransactionFilterSummary {
   const expenseAmount = items.reduce(
     (total, item) => total + (item.sign === -1 ? item.amount : 0),
     0,

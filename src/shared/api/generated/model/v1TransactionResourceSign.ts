@@ -16,10 +16,10 @@
  * OpenAPI spec version: 0.2.0-v1
  */
 
-export type V1TransactionResourceSign = typeof V1TransactionResourceSign[keyof typeof V1TransactionResourceSign];
-
+export type V1TransactionResourceSign =
+  (typeof V1TransactionResourceSign)[keyof typeof V1TransactionResourceSign]
 
 export const V1TransactionResourceSign = {
   NUMBER_MINUS_1: -1,
   NUMBER_1: 1,
-} as const;
+} as const

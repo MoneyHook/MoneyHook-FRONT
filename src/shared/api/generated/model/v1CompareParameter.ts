@@ -16,10 +16,10 @@
  * OpenAPI spec version: 0.2.0-v1
  */
 
-export type V1CompareParameter = typeof V1CompareParameter[keyof typeof V1CompareParameter];
-
+export type V1CompareParameter =
+  (typeof V1CompareParameter)[keyof typeof V1CompareParameter]
 
 export const V1CompareParameter = {
   none: 'none',
   previous_period: 'previous_period',
-} as const;
+} as const

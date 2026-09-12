@@ -9,10 +9,7 @@ export function CategoryAnalysisPanel({
   id,
 }: PropsWithChildren<{ className?: string; id?: string }>) {
   return (
-    <Card
-      className={cn('block p-4 sm:p-6', className)}
-      id={id}
-    >
+    <Card className={cn('block p-4 sm:p-6', className)} id={id}>
       {children}
     </Card>
   )

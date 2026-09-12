@@ -15,8 +15,9 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { Subcategory } from './subcategory';
+import type { Subcategory } from './subcategory'
 
-export type CategoryWithSubcategoryResponseCategoryListItemSubCategoryListItem = Subcategory & {
-  enable: boolean;
-};
+export type CategoryWithSubcategoryResponseCategoryListItemSubCategoryListItem =
+  Subcategory & {
+    enable: boolean
+  }

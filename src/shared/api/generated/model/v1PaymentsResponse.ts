@@ -15,12 +15,12 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { V1AnalysisRange } from './v1AnalysisRange';
-import type { V1PaymentAnalysis } from './v1PaymentAnalysis';
+import type { V1AnalysisRange } from './v1AnalysisRange'
+import type { V1PaymentAnalysis } from './v1PaymentAnalysis'
 
 export interface V1PaymentsResponse {
-  range: V1AnalysisRange;
+  range: V1AnalysisRange
   /** @minimum 0 */
-  total_expense_amount: number;
-  payment_list: V1PaymentAnalysis[];
+  total_expense_amount: number
+  payment_list: V1PaymentAnalysis[]
 }

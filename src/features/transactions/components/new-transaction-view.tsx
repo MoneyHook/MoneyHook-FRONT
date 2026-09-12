@@ -6,6 +6,10 @@ export function NewTransactionView() {
   return <TransactionFormView />
 }
 
-export function EditTransactionView({ transactionId }: { transactionId: string }) {
+export function EditTransactionView({
+  transactionId,
+}: {
+  transactionId: string
+}) {
   return <TransactionFormView transactionId={transactionId} />
 }

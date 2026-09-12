@@ -16,13 +16,13 @@
 
 すべてを事前に読まず、作業中に詳細情報が必要になった場合だけ該当資料を参照してください。
 
-| 確認したい内容 | 参照先 |
-|---|---|
-| 対象機能、画面、スコープ外、金額・日付・ID、UI方針 | [docs/PRODUCT.md](docs/PRODUCT.md) |
+| 確認したい内容                                                | 参照先                                       |
+| ------------------------------------------------------------- | -------------------------------------------- |
+| 対象機能、画面、スコープ外、金額・日付・ID、UI方針            | [docs/PRODUCT.md](docs/PRODUCT.md)           |
 | 採用技術、コード配置、依存方向、状態管理、認証・API・UIの境界 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
-| ローカル環境、環境変数、検証コマンド、トラブルシューティング | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) |
-| 確定済みのフロントエンド判断と理由 | [docs/DECISIONS.md](docs/DECISIONS.md) |
-| branch戦略、commit message、PR、release、hotfix | [docs/GIT_WORKFLOW.md](docs/GIT_WORKFLOW.md) |
+| ローカル環境、環境変数、検証コマンド、トラブルシューティング  | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)   |
+| 確定済みのフロントエンド判断と理由                            | [docs/DECISIONS.md](docs/DECISIONS.md)       |
+| branch戦略、commit message、PR、release、hotfix               | [docs/GIT_WORKFLOW.md](docs/GIT_WORKFLOW.md) |
 
 資料の概要から探す場合は [docs/README.md](docs/README.md) を参照してください。APIのpathやschemaを確認する場合は、必要な箇所だけ [`contracts/openapi.yaml`](contracts/openapi.yaml) を参照してください。
 

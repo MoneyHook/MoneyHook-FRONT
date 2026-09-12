@@ -16,10 +16,11 @@
  * OpenAPI spec version: 0.2.0-v1
  */
 
-export type FixedListResponseMonthlyTransactionListItemMonthlyTransactionSign = typeof FixedListResponseMonthlyTransactionListItemMonthlyTransactionSign[keyof typeof FixedListResponseMonthlyTransactionListItemMonthlyTransactionSign];
+export type FixedListResponseMonthlyTransactionListItemMonthlyTransactionSign =
+  (typeof FixedListResponseMonthlyTransactionListItemMonthlyTransactionSign)[keyof typeof FixedListResponseMonthlyTransactionListItemMonthlyTransactionSign]
 
-
-export const FixedListResponseMonthlyTransactionListItemMonthlyTransactionSign = {
-  NUMBER_MINUS_1: -1,
-  NUMBER_1: 1,
-} as const;
+export const FixedListResponseMonthlyTransactionListItemMonthlyTransactionSign =
+  {
+    NUMBER_MINUS_1: -1,
+    NUMBER_1: 1,
+  } as const

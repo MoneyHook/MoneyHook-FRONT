@@ -6,13 +6,13 @@ MoneyHooks Reactは、既存のGo APIを利用する家計管理SPAです。Goog
 
 ## 現在の画面
 
-| URL | 役割 | 状態 |
-|---|---|---|
-| `/login` | Googleログイン | 実装済み |
-| `/app/home` | 月次サマリーの入口 | AppShellとプレースホルダー |
-| `/app/transactions` | 取引管理の入口 | AppShellとプレースホルダー |
-| `/app/analysis` | 分析の入口 | AppShellとプレースホルダー |
-| `/app/settings` | 設定の入口 | AppShellとプレースホルダー |
+| URL                 | 役割               | 状態                       |
+| ------------------- | ------------------ | -------------------------- |
+| `/login`            | Googleログイン     | 実装済み                   |
+| `/app/home`         | 月次サマリーの入口 | AppShellとプレースホルダー |
+| `/app/transactions` | 取引管理の入口     | AppShellとプレースホルダー |
+| `/app/analysis`     | 分析の入口         | AppShellとプレースホルダー |
+| `/app/settings`     | 設定の入口         | AppShellとプレースホルダー |
 
 業務機能の詳細routeは、該当機能を実装する変更で追加します。将来用のrouteや空featureを先に作りません。
 

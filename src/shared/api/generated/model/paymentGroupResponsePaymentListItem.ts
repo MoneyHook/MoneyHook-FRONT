@@ -15,20 +15,20 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { NullableIdentifier } from './nullableIdentifier';
-import type { PaymentGroupResponsePaymentListItemTransactionListItem } from './paymentGroupResponsePaymentListItemTransactionListItem';
+import type { NullableIdentifier } from './nullableIdentifier'
+import type { PaymentGroupResponsePaymentListItemTransactionListItem } from './paymentGroupResponsePaymentListItemTransactionListItem'
 
 export type PaymentGroupResponsePaymentListItem = {
-  payment_id: NullableIdentifier | null;
+  payment_id: NullableIdentifier | null
   /** Empty payment name is rewritten to `未分類`. */
-  payment_name: string;
-  payment_amount: number;
-  payment_type_id: NullableIdentifier | null;
-  payment_type_name: string;
-  is_payment_due_later: boolean;
+  payment_name: string
+  payment_amount: number
+  payment_type_id: NullableIdentifier | null
+  payment_type_name: string
+  is_payment_due_later: boolean
   /** @nullable */
-  last_month_sum: number | null;
+  last_month_sum: number | null
   /** @nullable */
-  month_over_month: number | null;
-  transaction_list: PaymentGroupResponsePaymentListItemTransactionListItem[];
-};
+  month_over_month: number | null
+  transaction_list: PaymentGroupResponsePaymentListItemTransactionListItem[]
+}

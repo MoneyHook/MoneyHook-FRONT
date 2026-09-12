@@ -15,9 +15,9 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { Identifier } from './identifier';
-import type { PaymentWriteRequest } from './paymentWriteRequest';
+import type { Identifier } from './identifier'
+import type { PaymentWriteRequest } from './paymentWriteRequest'
 
 export type PaymentEditRequest = PaymentWriteRequest & {
-  payment_id: Identifier;
-};
+  payment_id: Identifier
+}

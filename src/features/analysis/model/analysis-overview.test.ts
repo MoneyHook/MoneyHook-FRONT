@@ -210,7 +210,11 @@ describe('analysis overview model', () => {
       name: 'その他',
       amount: 18_000,
     })
-    expect(model.increases.map((item) => item.name)).toEqual(['食費', '日用品', '医療'])
+    expect(model.increases.map((item) => item.name)).toEqual([
+      '食費',
+      '日用品',
+      '医療',
+    ])
     expect(model.decreases.map((item) => item.name)).toEqual(['娯楽', '交通'])
     expect(model.comparisonAmount).toBe(580_000)
     expect(model.differenceAmount).toBe(20_000)

@@ -69,24 +69,47 @@ function registerHandler({ empty = false, failOnce = false } = {}) {
     http.get('http://api.test/api/transaction/getTimelineData', () => {
       if (shouldFail) {
         shouldFail = false
-        return HttpResponse.json({ message: '取得に失敗しました' }, { status: 500 })
+        return HttpResponse.json(
+          { message: '取得に失敗しました' },
+          { status: 500 },
+        )
       }
-      return HttpResponse.json({ transaction_list: empty ? [] : transactionList })
+      return HttpResponse.json({
+        transaction_list: empty ? [] : transactionList,
+      })
     }),
-    http.get('http://api.test/api/category/getCategoryWithSubCategoryList', () =>
-      HttpResponse.json({
-        category_list: [
-          { category_id: '10', category_name: '食費', sub_category_list: [] },
-          { category_id: '12', category_name: '日用品', sub_category_list: [] },
-          { category_id: '14', category_name: '収入', sub_category_list: [] },
-        ],
-      }),
+    http.get(
+      'http://api.test/api/category/getCategoryWithSubCategoryList',
+      () =>
+        HttpResponse.json({
+          category_list: [
+            { category_id: '10', category_name: '食費', sub_category_list: [] },
+            {
+              category_id: '12',
+              category_name: '日用品',
+              sub_category_list: [],
+            },
+            { category_id: '14', category_name: '収入', sub_category_list: [] },
+          ],
+        }),
     ),
     http.get('http://api.test/api/payment/getPayment', () =>
       HttpResponse.json({
         payment_list: [
-          { payment_id: '20', payment_name: '楽天カード', payment_type_id: '2', payment_date: null, closing_date: 31 },
-          { payment_id: '21', payment_name: 'PayPay', payment_type_id: '2', payment_date: null, closing_date: 31 },
+          {
+            payment_id: '20',
+            payment_name: '楽天カード',
+            payment_type_id: '2',
+            payment_date: null,
+            closing_date: 31,
+          },
+          {
+            payment_id: '21',
+            payment_name: 'PayPay',
+            payment_type_id: '2',
+            payment_date: null,
+            closing_date: 31,
+          },
         ],
       }),
     ),
@@ -103,7 +126,9 @@ function LocationProbe() {
   )
 }
 
-function renderTransactions(initialEntry = '/app/transactions?month=2024-08-01&view=list') {
+function renderTransactions(
+  initialEntry = '/app/transactions?month=2024-08-01&view=list',
+) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   })
@@ -134,20 +159,25 @@ describe('TransactionsView', () => {
     renderTransactions()
 
     expect(await screen.findByText('ランチ')).toBeVisible()
-    expect(document.querySelector('[data-slot="transactions-scroll-area"]')).toHaveClass(
-      'overflow-y-auto',
-      'scrollbar-hidden',
-    )
+    expect(
+      document.querySelector('[data-slot="transactions-scroll-area"]'),
+    ).toHaveClass('overflow-y-auto', 'scrollbar-hidden')
     expect(screen.getByText('+¥20,320')).toBeVisible()
     expect(screen.getByText('給与（8月分）')).toBeVisible()
-    expect(screen.getAllByRole('button', { name: '取引を絞り込む' })[0]).toBeEnabled()
-    const addTransactionButton = screen.getByRole('button', { name: '新しい取引を追加' })
+    expect(
+      screen.getAllByRole('button', { name: '取引を絞り込む' })[0],
+    ).toBeEnabled()
+    const addTransactionButton = screen.getByRole('button', {
+      name: '新しい取引を追加',
+    })
     expect(addTransactionButton).toBeEnabled()
     expect(addTransactionButton).toHaveClass('fixed')
 
     fireEvent.click(addTransactionButton)
     await waitFor(() => {
-      expect(screen.getByTestId('pathname')).toHaveTextContent('/app/transactions/new')
+      expect(screen.getByTestId('pathname')).toHaveTextContent(
+        '/app/transactions/new',
+      )
     })
   })
 
@@ -159,7 +189,9 @@ describe('TransactionsView', () => {
     fireEvent.click(screen.getByRole('button', { name: 'ランチを編集' }))
 
     await waitFor(() => {
-      expect(screen.getByTestId('pathname')).toHaveTextContent('/app/transactions/3/edit')
+      expect(screen.getByTestId('pathname')).toHaveTextContent(
+        '/app/transactions/3/edit',
+      )
     })
   })
 
@@ -176,15 +208,16 @@ describe('TransactionsView', () => {
         '?month=2024-08-01&view=calendar&date=2024-08-28',
       )
     })
-    expect(screen.getByRole('button', { name: '8月28日（水）、取引2件' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    )
+    expect(
+      screen.getByRole('button', { name: '8月28日（水）、取引2件' }),
+    ).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('updates the month URL and clears the selected date', async () => {
     registerHandler()
-    renderTransactions('/app/transactions?month=2024-08-01&view=calendar&date=2024-08-28')
+    renderTransactions(
+      '/app/transactions?month=2024-08-01&view=calendar&date=2024-08-28',
+    )
     await screen.findByText('2024年8月28日（水）')
 
     fireEvent.click(screen.getByRole('button', { name: '対象月' }))
@@ -220,7 +253,9 @@ describe('TransactionsView', () => {
     renderTransactions()
     await screen.findByText('ランチ')
 
-    fireEvent.click(screen.getAllByRole('button', { name: '取引を絞り込む' })[0])
+    fireEvent.click(
+      screen.getAllByRole('button', { name: '取引を絞り込む' })[0],
+    )
     expect(await screen.findByText('カテゴリ')).toBeVisible()
     fireEvent.click(await screen.findByRole('button', { name: '食費' }))
     expect(screen.getByText('スーパー')).toBeVisible()
@@ -234,7 +269,9 @@ describe('TransactionsView', () => {
     expect(screen.getByText(/1件・支出/)).toBeVisible()
     fireEvent.click(screen.getByRole('button', { name: '食費を解除' }))
     await waitFor(() => {
-      expect(screen.getByTestId('location')).not.toHaveTextContent('category=10')
+      expect(screen.getByTestId('location')).not.toHaveTextContent(
+        'category=10',
+      )
     })
     expect(screen.getByText('スーパー')).toBeVisible()
   })
@@ -244,7 +281,11 @@ describe('TransactionsView', () => {
     renderTransactions()
     await screen.findByText('ランチ')
 
-    fireEvent.click(screen.getAllByRole('button', { name: '取引を絞り込む' })[1])
-    expect(await screen.findByRole('heading', { name: '絞り込み' })).toBeVisible()
+    fireEvent.click(
+      screen.getAllByRole('button', { name: '取引を絞り込む' })[1],
+    )
+    expect(
+      await screen.findByRole('heading', { name: '絞り込み' }),
+    ).toBeVisible()
   })
 })

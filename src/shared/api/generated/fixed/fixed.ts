@@ -15,10 +15,7 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import {
-  useMutation,
-  useQuery
-} from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query'
 import type {
   DataTag,
   DefinedInitialDataOptions,
@@ -31,8 +28,8 @@ import type {
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
-  UseQueryResult
-} from '@tanstack/react-query';
+  UseQueryResult,
+} from '@tanstack/react-query'
 
 import type {
   AuthIdentityConflictResponse,
@@ -45,28 +42,28 @@ import type {
   MutationFailureResponse,
   SuccessResponse,
   V1InternalErrorResponse,
-  V1UnauthorizedResponse
-} from '../model';
+  V1UnauthorizedResponse,
+} from '../model'
 
-import { apiFetch } from '../../http-client';
+import { apiFetch } from '../../http-client'
 
-
-
-
-const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKey: K } => {
-  const result = { queryKey } as T & { queryKey: K };
+const withQueryKey = <T extends object, K>(
+  query: T,
+  queryKey: K,
+): T & { queryKey: K } => {
+  const result = { queryKey } as T & { queryKey: K }
   for (const key of Object.keys(query)) {
     // The explicit queryKey always wins, matching the previous
     // `{ ...query, queryKey }` spread where it was set last.
-    if (key === 'queryKey') continue;
+    if (key === 'queryKey') continue
     Object.defineProperty(result, key, {
       enumerable: true,
       configurable: true,
       get: () => (query as Record<string, unknown>)[key],
-    });
+    })
   }
-  return result;
-};
+  return result
+}
 
 export type getFixedResponse200 = {
   data: FixedListResponse
@@ -88,114 +85,164 @@ export type getFixedResponse500 = {
   status: 500
 }
 
-export type getFixedResponseSuccess = (getFixedResponse200) & {
-  headers: Headers;
-};
-export type getFixedResponseError = (getFixedResponse401 | getFixedResponse409 | getFixedResponse500) & {
-  headers: Headers;
-};
+export type getFixedResponseSuccess = getFixedResponse200 & {
+  headers: Headers
+}
+export type getFixedResponseError = (
+  getFixedResponse401 | getFixedResponse409 | getFixedResponse500
+) & {
+  headers: Headers
+}
 
-export type getFixedResponse = (getFixedResponseSuccess | getFixedResponseError)
+export type getFixedResponse = getFixedResponseSuccess | getFixedResponseError
 
 export const getGetFixedUrl = () => {
-
-
-
-
   return `/api/fixed/getFixed`
 }
 
 /**
  * @summary List enabled recurring transactions
  */
-export const getFixed = async ( options?: RequestInit): Promise<getFixedResponse> => {
-
-  return apiFetch<getFixedResponse>(getGetFixedUrl(),
-  {
+export const getFixed = async (
+  options?: RequestInit,
+): Promise<getFixedResponse> => {
+  return apiFetch<getFixedResponse>(getGetFixedUrl(), {
     ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGetFixedQueryKey = () => {
-    return [
-    `/api/fixed/getFixed`
-    ] as const;
-    }
-
-
-export const getGetFixedQueryOptions = <TData = Awaited<ReturnType<typeof getFixed>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFixed>>, TError, TData>>, }
-) => {
-
-const {query: queryOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetFixedQueryKey();
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFixed>>> = ({ signal }) => getFixed({ signal });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFixed>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+    method: 'GET',
+  })
 }
 
-export type GetFixedQueryResult = NonNullable<Awaited<ReturnType<typeof getFixed>>>
-export type GetFixedQueryError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse
+export const getGetFixedQueryKey = () => {
+  return [`/api/fixed/getFixed`] as const
+}
 
+export const getGetFixedQueryOptions = <
+  TData = Awaited<ReturnType<typeof getFixed>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<Awaited<ReturnType<typeof getFixed>>, TError, TData>
+  >
+}) => {
+  const { query: queryOptions } = options ?? {}
 
-export function useGetFixed<TData = Awaited<ReturnType<typeof getFixed>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFixed>>, TError, TData>> & Pick<
+  const queryKey = queryOptions?.queryKey ?? getGetFixedQueryKey()
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getFixed>>> = ({
+    signal,
+  }) => getFixed({ signal })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getFixed>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetFixedQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getFixed>>
+>
+export type GetFixedQueryError =
+  | V1UnauthorizedResponse
+  | AuthIdentityConflictResponse
+  | V1InternalErrorResponse
+
+export function useGetFixed<
+  TData = Awaited<ReturnType<typeof getFixed>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getFixed>>, TError, TData>
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getFixed>>,
           TError,
           Awaited<ReturnType<typeof getFixed>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetFixed<TData = Awaited<ReturnType<typeof getFixed>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFixed>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+export function useGetFixed<
+  TData = Awaited<ReturnType<typeof getFixed>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getFixed>>, TError, TData>
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getFixed>>,
           TError,
           Awaited<ReturnType<typeof getFixed>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetFixed<TData = Awaited<ReturnType<typeof getFixed>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFixed>>, TError, TData>>, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+export function useGetFixed<
+  TData = Awaited<ReturnType<typeof getFixed>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getFixed>>, TError, TData>
+    >
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
 /**
  * @summary List enabled recurring transactions
  */
 
-export function useGetFixed<TData = Awaited<ReturnType<typeof getFixed>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFixed>>, TError, TData>>, }
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
+export function useGetFixed<
+  TData = Awaited<ReturnType<typeof getFixed>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getFixed>>, TError, TData>
+    >
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+} {
   const queryOptions = getGetFixedQueryOptions(options)
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 
-  return withQueryKey(query, queryOptions.queryKey);
+  return withQueryKey(query, queryOptions.queryKey)
 }
-
-
-
-
-
 
 export type getDeletedFixedResponse200 = {
   data: DeletedFixed[]
@@ -217,20 +264,21 @@ export type getDeletedFixedResponse500 = {
   status: 500
 }
 
-export type getDeletedFixedResponseSuccess = (getDeletedFixedResponse200) & {
-  headers: Headers;
-};
-export type getDeletedFixedResponseError = (getDeletedFixedResponse401 | getDeletedFixedResponse409 | getDeletedFixedResponse500) & {
-  headers: Headers;
-};
+export type getDeletedFixedResponseSuccess = getDeletedFixedResponse200 & {
+  headers: Headers
+}
+export type getDeletedFixedResponseError = (
+  | getDeletedFixedResponse401
+  | getDeletedFixedResponse409
+  | getDeletedFixedResponse500
+) & {
+  headers: Headers
+}
 
-export type getDeletedFixedResponse = (getDeletedFixedResponseSuccess | getDeletedFixedResponseError)
+export type getDeletedFixedResponse =
+  getDeletedFixedResponseSuccess | getDeletedFixedResponseError
 
 export const getGetDeletedFixedUrl = () => {
-
-
-
-
   return `/api/fixed/getDeletedFixed`
 }
 
@@ -238,94 +286,162 @@ export const getGetDeletedFixedUrl = () => {
  * These rows are not physically deleted; `include_flg=false` is used.
  * @summary List disabled recurring transactions
  */
-export const getDeletedFixed = async ( options?: RequestInit): Promise<getDeletedFixedResponse> => {
-
-  return apiFetch<getDeletedFixedResponse>(getGetDeletedFixedUrl(),
-  {
+export const getDeletedFixed = async (
+  options?: RequestInit,
+): Promise<getDeletedFixedResponse> => {
+  return apiFetch<getDeletedFixedResponse>(getGetDeletedFixedUrl(), {
     ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGetDeletedFixedQueryKey = () => {
-    return [
-    `/api/fixed/getDeletedFixed`
-    ] as const;
-    }
-
-
-export const getGetDeletedFixedQueryOptions = <TData = Awaited<ReturnType<typeof getDeletedFixed>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDeletedFixed>>, TError, TData>>, }
-) => {
-
-const {query: queryOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetDeletedFixedQueryKey();
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDeletedFixed>>> = ({ signal }) => getDeletedFixed({ signal });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDeletedFixed>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+    method: 'GET',
+  })
 }
 
-export type GetDeletedFixedQueryResult = NonNullable<Awaited<ReturnType<typeof getDeletedFixed>>>
-export type GetDeletedFixedQueryError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse
+export const getGetDeletedFixedQueryKey = () => {
+  return [`/api/fixed/getDeletedFixed`] as const
+}
 
+export const getGetDeletedFixedQueryOptions = <
+  TData = Awaited<ReturnType<typeof getDeletedFixed>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<Awaited<ReturnType<typeof getDeletedFixed>>, TError, TData>
+  >
+}) => {
+  const { query: queryOptions } = options ?? {}
 
-export function useGetDeletedFixed<TData = Awaited<ReturnType<typeof getDeletedFixed>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDeletedFixed>>, TError, TData>> & Pick<
+  const queryKey = queryOptions?.queryKey ?? getGetDeletedFixedQueryKey()
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getDeletedFixed>>> = ({
+    signal,
+  }) => getDeletedFixed({ signal })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getDeletedFixed>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetDeletedFixedQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getDeletedFixed>>
+>
+export type GetDeletedFixedQueryError =
+  | V1UnauthorizedResponse
+  | AuthIdentityConflictResponse
+  | V1InternalErrorResponse
+
+export function useGetDeletedFixed<
+  TData = Awaited<ReturnType<typeof getDeletedFixed>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getDeletedFixed>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getDeletedFixed>>,
           TError,
           Awaited<ReturnType<typeof getDeletedFixed>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetDeletedFixed<TData = Awaited<ReturnType<typeof getDeletedFixed>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDeletedFixed>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+export function useGetDeletedFixed<
+  TData = Awaited<ReturnType<typeof getDeletedFixed>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getDeletedFixed>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getDeletedFixed>>,
           TError,
           Awaited<ReturnType<typeof getDeletedFixed>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetDeletedFixed<TData = Awaited<ReturnType<typeof getDeletedFixed>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDeletedFixed>>, TError, TData>>, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+export function useGetDeletedFixed<
+  TData = Awaited<ReturnType<typeof getDeletedFixed>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getDeletedFixed>>,
+        TError,
+        TData
+      >
+    >
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
 /**
  * @summary List disabled recurring transactions
  */
 
-export function useGetDeletedFixed<TData = Awaited<ReturnType<typeof getDeletedFixed>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDeletedFixed>>, TError, TData>>, }
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
+export function useGetDeletedFixed<
+  TData = Awaited<ReturnType<typeof getDeletedFixed>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getDeletedFixed>>,
+        TError,
+        TData
+      >
+    >
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+} {
   const queryOptions = getGetDeletedFixedQueryOptions(options)
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 
-  return withQueryKey(query, queryOptions.queryKey);
+  return withQueryKey(query, queryOptions.queryKey)
 }
-
-
-
-
-
 
 export type addFixedResponse200 = {
   data: SuccessResponse
@@ -352,20 +468,21 @@ export type addFixedResponse500 = {
   status: 500
 }
 
-export type addFixedResponseSuccess = (addFixedResponse200) & {
-  headers: Headers;
-};
-export type addFixedResponseError = (addFixedResponse401 | addFixedResponse409 | addFixedResponse422 | addFixedResponse500) & {
-  headers: Headers;
-};
+export type addFixedResponseSuccess = addFixedResponse200 & {
+  headers: Headers
+}
+export type addFixedResponseError = (
+  | addFixedResponse401
+  | addFixedResponse409
+  | addFixedResponse422
+  | addFixedResponse500
+) & {
+  headers: Headers
+}
 
-export type addFixedResponse = (addFixedResponseSuccess | addFixedResponseError)
+export type addFixedResponse = addFixedResponseSuccess | addFixedResponseError
 
 export const getAddFixedUrl = () => {
-
-
-
-
   return `/api/fixed/addFixed`
 }
 
@@ -373,73 +490,110 @@ export const getAddFixedUrl = () => {
  * Subcategory resolution and the insert are atomic. Existing same-name subcategories are reused.
  * @summary Add a recurring transaction
  */
-export const addFixed = async (fixedWriteEnvelope: FixedWriteEnvelope, options?: RequestInit): Promise<addFixedResponse> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Array.isArray(h)) return Object.fromEntries(h);
-    return h;
-  };
-return apiFetch<addFixedResponse>(getAddFixedUrl(),
-  {
+export const addFixed = async (
+  fixedWriteEnvelope: FixedWriteEnvelope,
+  options?: RequestInit,
+): Promise<addFixedResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {}
+    if (h instanceof Headers) return Object.fromEntries(h.entries())
+    if (Array.isArray(h)) return Object.fromEntries(h)
+    return h
+  }
+  return apiFetch<addFixedResponse>(getAddFixedUrl(), {
     ...options,
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(fixedWriteEnvelope)
+    headers: {
+      'Content-Type': 'application/json',
+      ...getHeaders(options?.headers),
+    },
+    body: JSON.stringify(fixedWriteEnvelope),
+  })
+}
+
+export const getAddFixedMutationOptions = <
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | MutationFailureResponse
+    | V1InternalErrorResponse,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addFixed>>,
+    TError,
+    AddFixedMutationVariables,
+    TContext
+  >
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof addFixed>>,
+  TError,
+  AddFixedMutationVariables,
+  TContext
+> => {
+  const mutationKey = ['addFixed']
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof addFixed>>,
+    AddFixedMutationVariables
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return addFixed(data)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AddFixedMutationResult = NonNullable<
+  Awaited<ReturnType<typeof addFixed>>
+>
+export type AddFixedMutationBody = FixedWriteEnvelope
+export type AddFixedMutationError =
+  | V1UnauthorizedResponse
+  | AuthIdentityConflictResponse
+  | MutationFailureResponse
+  | V1InternalErrorResponse
+export type AddFixedMutationVariables = { data: FixedWriteEnvelope }
 
-
-
-export const getAddFixedMutationOptions = <TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | MutationFailureResponse | V1InternalErrorResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addFixed>>, TError,AddFixedMutationVariables, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof addFixed>>, TError,AddFixedMutationVariables, TContext> => {
-
-const mutationKey = ['addFixed'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addFixed>>, AddFixedMutationVariables> = (props) => {
-          const {data} = props ?? {};
-
-          return  addFixed(data,)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AddFixedMutationResult = NonNullable<Awaited<ReturnType<typeof addFixed>>>
-    export type AddFixedMutationBody = FixedWriteEnvelope
-    export type AddFixedMutationError = V1UnauthorizedResponse | AuthIdentityConflictResponse | MutationFailureResponse | V1InternalErrorResponse
-    export type AddFixedMutationVariables = {data: FixedWriteEnvelope}
-
-    /**
+/**
  * @summary Add a recurring transaction
  */
-export const useAddFixed = <TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | MutationFailureResponse | V1InternalErrorResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addFixed>>, TError,AddFixedMutationVariables, TContext>, }
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof addFixed>>,
-        TError,
-        AddFixedMutationVariables,
-        TContext
-      > => {
-      return useMutation(getAddFixedMutationOptions(options), queryClient);
-    }
-    export type editFixedResponse200 = {
+export const useAddFixed = <
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | MutationFailureResponse
+    | V1InternalErrorResponse,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof addFixed>>,
+      TError,
+      AddFixedMutationVariables,
+      TContext
+    >
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof addFixed>>,
+  TError,
+  AddFixedMutationVariables,
+  TContext
+> => {
+  return useMutation(getAddFixedMutationOptions(options), queryClient)
+}
+export type editFixedResponse200 = {
   data: SuccessResponse
   status: 200
 }
@@ -464,20 +618,22 @@ export type editFixedResponse500 = {
   status: 500
 }
 
-export type editFixedResponseSuccess = (editFixedResponse200) & {
-  headers: Headers;
-};
-export type editFixedResponseError = (editFixedResponse401 | editFixedResponse409 | editFixedResponse422 | editFixedResponse500) & {
-  headers: Headers;
-};
+export type editFixedResponseSuccess = editFixedResponse200 & {
+  headers: Headers
+}
+export type editFixedResponseError = (
+  | editFixedResponse401
+  | editFixedResponse409
+  | editFixedResponse422
+  | editFixedResponse500
+) & {
+  headers: Headers
+}
 
-export type editFixedResponse = (editFixedResponseSuccess | editFixedResponseError)
+export type editFixedResponse =
+  editFixedResponseSuccess | editFixedResponseError
 
 export const getEditFixedUrl = () => {
-
-
-
-
   return `/api/fixed/editFixed`
 }
 
@@ -485,73 +641,110 @@ export const getEditFixedUrl = () => {
  * Subcategory resolution and the update are atomic. Existing same-name subcategories are reused; a missing recurring transaction returns 422.
  * @summary Edit or enable/disable a recurring transaction
  */
-export const editFixed = async (fixedEditEnvelope: FixedEditEnvelope, options?: RequestInit): Promise<editFixedResponse> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Array.isArray(h)) return Object.fromEntries(h);
-    return h;
-  };
-return apiFetch<editFixedResponse>(getEditFixedUrl(),
-  {
+export const editFixed = async (
+  fixedEditEnvelope: FixedEditEnvelope,
+  options?: RequestInit,
+): Promise<editFixedResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {}
+    if (h instanceof Headers) return Object.fromEntries(h.entries())
+    if (Array.isArray(h)) return Object.fromEntries(h)
+    return h
+  }
+  return apiFetch<editFixedResponse>(getEditFixedUrl(), {
     ...options,
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(fixedEditEnvelope)
+    headers: {
+      'Content-Type': 'application/json',
+      ...getHeaders(options?.headers),
+    },
+    body: JSON.stringify(fixedEditEnvelope),
+  })
+}
+
+export const getEditFixedMutationOptions = <
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | MutationFailureResponse
+    | V1InternalErrorResponse,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof editFixed>>,
+    TError,
+    EditFixedMutationVariables,
+    TContext
+  >
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof editFixed>>,
+  TError,
+  EditFixedMutationVariables,
+  TContext
+> => {
+  const mutationKey = ['editFixed']
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof editFixed>>,
+    EditFixedMutationVariables
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return editFixed(data)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type EditFixedMutationResult = NonNullable<
+  Awaited<ReturnType<typeof editFixed>>
+>
+export type EditFixedMutationBody = FixedEditEnvelope
+export type EditFixedMutationError =
+  | V1UnauthorizedResponse
+  | AuthIdentityConflictResponse
+  | MutationFailureResponse
+  | V1InternalErrorResponse
+export type EditFixedMutationVariables = { data: FixedEditEnvelope }
 
-
-
-export const getEditFixedMutationOptions = <TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | MutationFailureResponse | V1InternalErrorResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof editFixed>>, TError,EditFixedMutationVariables, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof editFixed>>, TError,EditFixedMutationVariables, TContext> => {
-
-const mutationKey = ['editFixed'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof editFixed>>, EditFixedMutationVariables> = (props) => {
-          const {data} = props ?? {};
-
-          return  editFixed(data,)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type EditFixedMutationResult = NonNullable<Awaited<ReturnType<typeof editFixed>>>
-    export type EditFixedMutationBody = FixedEditEnvelope
-    export type EditFixedMutationError = V1UnauthorizedResponse | AuthIdentityConflictResponse | MutationFailureResponse | V1InternalErrorResponse
-    export type EditFixedMutationVariables = {data: FixedEditEnvelope}
-
-    /**
+/**
  * @summary Edit or enable/disable a recurring transaction
  */
-export const useEditFixed = <TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | MutationFailureResponse | V1InternalErrorResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof editFixed>>, TError,EditFixedMutationVariables, TContext>, }
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof editFixed>>,
-        TError,
-        EditFixedMutationVariables,
-        TContext
-      > => {
-      return useMutation(getEditFixedMutationOptions(options), queryClient);
-    }
-    export type deleteFixedResponse200 = {
+export const useEditFixed = <
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | MutationFailureResponse
+    | V1InternalErrorResponse,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof editFixed>>,
+      TError,
+      EditFixedMutationVariables,
+      TContext
+    >
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof editFixed>>,
+  TError,
+  EditFixedMutationVariables,
+  TContext
+> => {
+  return useMutation(getEditFixedMutationOptions(options), queryClient)
+}
+export type deleteFixedResponse200 = {
   data: SuccessResponse
   status: 200
 }
@@ -576,83 +769,118 @@ export type deleteFixedResponse500 = {
   status: 500
 }
 
-export type deleteFixedResponseSuccess = (deleteFixedResponse200) & {
-  headers: Headers;
-};
-export type deleteFixedResponseError = (deleteFixedResponse401 | deleteFixedResponse409 | deleteFixedResponse422 | deleteFixedResponse500) & {
-  headers: Headers;
-};
+export type deleteFixedResponseSuccess = deleteFixedResponse200 & {
+  headers: Headers
+}
+export type deleteFixedResponseError = (
+  | deleteFixedResponse401
+  | deleteFixedResponse409
+  | deleteFixedResponse422
+  | deleteFixedResponse500
+) & {
+  headers: Headers
+}
 
-export type deleteFixedResponse = (deleteFixedResponseSuccess | deleteFixedResponseError)
+export type deleteFixedResponse =
+  deleteFixedResponseSuccess | deleteFixedResponseError
 
-export const getDeleteFixedUrl = (monthlyTransactionId: Identifier,) => {
-
-
-
-
+export const getDeleteFixedUrl = (monthlyTransactionId: Identifier) => {
   return `/api/fixed/deleteFixed/${monthlyTransactionId}`
 }
 
 /**
  * @summary Physically delete one recurring transaction owned by the authenticated user
  */
-export const deleteFixed = async (monthlyTransactionId: Identifier, options?: RequestInit): Promise<deleteFixedResponse> => {
+export const deleteFixed = async (
+  monthlyTransactionId: Identifier,
+  options?: RequestInit,
+): Promise<deleteFixedResponse> => {
+  return apiFetch<deleteFixedResponse>(
+    getDeleteFixedUrl(monthlyTransactionId),
+    {
+      ...options,
+      method: 'DELETE',
+    },
+  )
+}
 
-  return apiFetch<deleteFixedResponse>(getDeleteFixedUrl(monthlyTransactionId),
-  {
-    ...options,
-    method: 'DELETE'
+export const getDeleteFixedMutationOptions = <
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | DeleteFailureResponse
+    | V1InternalErrorResponse,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteFixed>>,
+    TError,
+    DeleteFixedMutationVariables,
+    TContext
+  >
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteFixed>>,
+  TError,
+  DeleteFixedMutationVariables,
+  TContext
+> => {
+  const mutationKey = ['deleteFixed']
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } }
 
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteFixed>>,
+    DeleteFixedMutationVariables
+  > = (props) => {
+    const { monthlyTransactionId } = props ?? {}
 
+    return deleteFixed(monthlyTransactionId)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type DeleteFixedMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteFixed>>
+>
 
+export type DeleteFixedMutationError =
+  | V1UnauthorizedResponse
+  | AuthIdentityConflictResponse
+  | DeleteFailureResponse
+  | V1InternalErrorResponse
+export type DeleteFixedMutationVariables = { monthlyTransactionId: Identifier }
 
-
-export const getDeleteFixedMutationOptions = <TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | DeleteFailureResponse | V1InternalErrorResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteFixed>>, TError,DeleteFixedMutationVariables, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof deleteFixed>>, TError,DeleteFixedMutationVariables, TContext> => {
-
-const mutationKey = ['deleteFixed'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteFixed>>, DeleteFixedMutationVariables> = (props) => {
-          const {monthlyTransactionId} = props ?? {};
-
-          return  deleteFixed(monthlyTransactionId,)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type DeleteFixedMutationResult = NonNullable<Awaited<ReturnType<typeof deleteFixed>>>
-
-    export type DeleteFixedMutationError = V1UnauthorizedResponse | AuthIdentityConflictResponse | DeleteFailureResponse | V1InternalErrorResponse
-    export type DeleteFixedMutationVariables = {monthlyTransactionId: Identifier}
-
-    /**
+/**
  * @summary Physically delete one recurring transaction owned by the authenticated user
  */
-export const useDeleteFixed = <TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | DeleteFailureResponse | V1InternalErrorResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteFixed>>, TError,DeleteFixedMutationVariables, TContext>, }
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof deleteFixed>>,
-        TError,
-        DeleteFixedMutationVariables,
-        TContext
-      > => {
-      return useMutation(getDeleteFixedMutationOptions(options), queryClient);
-    }
+export const useDeleteFixed = <
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | DeleteFailureResponse
+    | V1InternalErrorResponse,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deleteFixed>>,
+      TError,
+      DeleteFixedMutationVariables,
+      TContext
+    >
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof deleteFixed>>,
+  TError,
+  DeleteFixedMutationVariables,
+  TContext
+> => {
+  return useMutation(getDeleteFixedMutationOptions(options), queryClient)
+}

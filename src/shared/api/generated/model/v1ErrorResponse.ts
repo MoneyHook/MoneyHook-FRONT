@@ -15,11 +15,11 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { V1ErrorResponseFieldErrors } from './v1ErrorResponseFieldErrors';
+import type { V1ErrorResponseFieldErrors } from './v1ErrorResponseFieldErrors'
 
 export interface V1ErrorResponse {
-  status: 'error';
-  code: string;
-  message: string;
-  field_errors?: V1ErrorResponseFieldErrors;
+  status: 'error'
+  code: string
+  message: string
+  field_errors?: V1ErrorResponseFieldErrors
 }

@@ -15,29 +15,29 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { NullableIdentifier } from './nullableIdentifier';
-import type { V1ExpenseSeriesItem } from './v1ExpenseSeriesItem';
-import type { V1TransactionResource } from './v1TransactionResource';
+import type { NullableIdentifier } from './nullableIdentifier'
+import type { V1ExpenseSeriesItem } from './v1ExpenseSeriesItem'
+import type { V1TransactionResource } from './v1TransactionResource'
 
 export interface V1PaymentAnalysis {
-  payment_id: NullableIdentifier | null;
-  payment_name: string;
-  payment_type_id: NullableIdentifier | null;
+  payment_id: NullableIdentifier | null
+  payment_name: string
+  payment_type_id: NullableIdentifier | null
   /** @nullable */
-  payment_type_name: string | null;
+  payment_type_name: string | null
   /** @nullable */
-  is_payment_due_later: boolean | null;
+  is_payment_due_later: boolean | null
   /** @minimum 0 */
-  expense_amount: number;
+  expense_amount: number
   /**
-     * @minimum 0
-     * @maximum 100
-     */
-  ratio: number;
+   * @minimum 0
+   * @maximum 100
+   */
+  ratio: number
   /** @minimum 1 */
-  transaction_count: number;
+  transaction_count: number
   /** @minimum 0 */
-  average_amount: number;
-  series: V1ExpenseSeriesItem[];
-  transaction_list: V1TransactionResource[];
+  average_amount: number
+  series: V1ExpenseSeriesItem[]
+  transaction_list: V1TransactionResource[]
 }

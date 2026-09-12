@@ -1,4 +1,9 @@
-import { ArrowDownRight, ArrowRight, ArrowUpRight, Lightbulb } from 'lucide-react'
+import {
+  ArrowDownRight,
+  ArrowRight,
+  ArrowUpRight,
+  Lightbulb,
+} from 'lucide-react'
 import { Card } from '@/shared/components/ui/card'
 import { cn } from '@/shared/lib/utils'
 import {
@@ -13,7 +18,11 @@ import { formatSignedPercent } from './overview-format'
 function OverallHighlight({ data }: { data: AnalysisOverviewViewModel }) {
   const isIncrease = data.differenceAmount > 0
   const isDecrease = data.differenceAmount < 0
-  const Icon = isIncrease ? ArrowUpRight : isDecrease ? ArrowDownRight : ArrowRight
+  const Icon = isIncrease
+    ? ArrowUpRight
+    : isDecrease
+      ? ArrowDownRight
+      : ArrowRight
 
   return (
     <Card className="flex flex-row items-start gap-3 rounded-xl bg-background p-3 sm:p-4">
@@ -30,9 +39,13 @@ function OverallHighlight({ data }: { data: AnalysisOverviewViewModel }) {
         <Icon aria-hidden="true" className="size-5" />
       </span>
       <div className="min-w-0">
-        <p className="text-xs font-medium leading-5 sm:text-sm">
+        <p className="text-xs leading-5 font-medium sm:text-sm">
           支出は前期間より {formatCurrency(data.differenceAmount)}
-          {isIncrease ? ' 増加しました' : isDecrease ? ' 減少しました' : 'で変化はありません'}
+          {isIncrease
+            ? ' 増加しました'
+            : isDecrease
+              ? ' 減少しました'
+              : 'で変化はありません'}
         </p>
         <p className="mt-0.5 text-[0.6875rem] text-muted-foreground sm:text-xs">
           {data.differenceRate === null
@@ -51,11 +64,12 @@ function FixedHighlight({ data }: { data: AnalysisOverviewViewModel }) {
         <Lightbulb aria-hidden="true" className="size-5" />
       </span>
       <div className="min-w-0">
-        <p className="text-xs font-medium leading-5 sm:text-sm">
+        <p className="text-xs leading-5 font-medium sm:text-sm">
           固定費の割合は {formatPercent(data.fixedExpenseRatio)} でした
         </p>
         <p className="mt-0.5 text-[0.6875rem] text-muted-foreground sm:text-xs">
-          直近月の固定費は前月比 {formatSignedCurrency(data.latestFixedDifferenceAmount)}
+          直近月の固定費は前月比{' '}
+          {formatSignedCurrency(data.latestFixedDifferenceAmount)}
           {data.latestFixedDifferenceRate === null
             ? ''
             : `（${formatSignedPercent(data.latestFixedDifferenceRate)}）`}

@@ -15,9 +15,9 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { MonthlyVariableResponseMonthlyVariableListItem } from './monthlyVariableResponseMonthlyVariableListItem';
+import type { MonthlyVariableResponseMonthlyVariableListItem } from './monthlyVariableResponseMonthlyVariableListItem'
 
 export interface MonthlyVariableResponse {
-  total_variable: number;
-  monthly_variable_list: MonthlyVariableResponseMonthlyVariableListItem[];
+  total_variable: number
+  monthly_variable_list: MonthlyVariableResponseMonthlyVariableListItem[]
 }

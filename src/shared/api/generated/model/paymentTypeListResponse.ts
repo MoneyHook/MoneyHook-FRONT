@@ -15,8 +15,8 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { PaymentTypeListResponsePaymentTypeListItem } from './paymentTypeListResponsePaymentTypeListItem';
+import type { PaymentTypeListResponsePaymentTypeListItem } from './paymentTypeListResponsePaymentTypeListItem'
 
 export interface PaymentTypeListResponse {
-  payment_type_list: PaymentTypeListResponsePaymentTypeListItem[];
+  payment_type_list: PaymentTypeListResponsePaymentTypeListItem[]
 }
