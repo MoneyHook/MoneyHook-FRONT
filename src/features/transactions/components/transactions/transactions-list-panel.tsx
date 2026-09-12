@@ -2,6 +2,7 @@ import { CalendarDays } from 'lucide-react'
 
 import { MonthPicker } from '@/shared/components/month-picker'
 import { Button } from '@/shared/components/ui/button'
+import { Card } from '@/shared/components/ui/card'
 import { cn } from '@/shared/lib/utils'
 
 import {
@@ -16,14 +17,16 @@ import { TransactionRow } from './transaction-row'
 
 function MonthlySummary({ data, month, onMonthChange }: { data: TransactionsViewModel; month: TransactionMonth; onMonthChange: (month: string) => void }) {
   return (
-    <section aria-label={`${month.monthLabel}の収支`} className="rounded-2xl border bg-card px-4 py-4 shadow-[0_8px_28px_color-mix(in_oklab,var(--foreground)_5%,transparent)] sm:px-6 sm:py-5">
-      <MonthPicker className="px-1 text-base font-semibold sm:text-lg" maxMonth={month.currentMonthInput} monthInput={month.monthInput} monthLabel={month.monthLabel} onChange={onMonthChange} />
+    <Card aria-label={`${month.monthLabel}の収支`} className="block px-4 py-4 sm:px-6 sm:py-5">
+      <div className="flex justify-end">
+        <MonthPicker className="px-1 text-base font-semibold sm:text-lg" maxMonth={month.currentMonthInput} monthInput={month.monthInput} monthLabel={month.monthLabel} onChange={onMonthChange} />
+      </div>
       <dl className="mt-4 grid grid-cols-3 divide-x">
         <div className="min-w-0 pr-3 sm:pr-6"><dt className="text-xs text-muted-foreground sm:text-sm">支出合計</dt><dd className="mt-1 truncate text-lg font-semibold tracking-[-0.03em] tabular-nums sm:text-2xl">{formatCurrency(data.expenseAmount)}</dd></div>
         <div className="min-w-0 px-3 sm:px-6"><dt className="text-xs text-muted-foreground sm:text-sm">収入合計</dt><dd className="mt-1 truncate text-lg font-semibold tracking-[-0.03em] tabular-nums sm:text-2xl">{formatCurrency(data.incomeAmount)}</dd></div>
         <div className="min-w-0 pl-3 sm:pl-6"><dt className="text-xs text-muted-foreground sm:text-sm">収支</dt><dd className={cn('mt-1 truncate text-lg font-semibold tracking-[-0.03em] tabular-nums sm:text-2xl', data.balanceAmount < 0 ? 'text-expense' : data.balanceAmount > 0 ? 'text-income' : 'text-muted-foreground')}>{formatBalance(data.balanceAmount)}</dd></div>
       </dl>
-    </section>
+    </Card>
   )
 }
 
@@ -37,9 +40,9 @@ function TransactionDay({ group, onOpen }: { group: TransactionDayGroup; onOpen:
           {group.incomeAmount > 0 ? <span className="text-income">収入 {formatCurrency(group.incomeAmount)}</span> : null}
         </p>
       </div>
-      <div className="divide-y overflow-hidden rounded-2xl border bg-card shadow-[0_8px_28px_color-mix(in_oklab,var(--foreground)_4%,transparent)]">
+      <Card className="block divide-y overflow-hidden p-0">
         {group.items.map((item) => <TransactionRow item={item} key={item.id} onOpen={onOpen} />)}
-      </div>
+      </Card>
     </section>
   )
 }

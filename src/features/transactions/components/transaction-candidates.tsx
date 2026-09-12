@@ -3,6 +3,7 @@ import { ChevronDown } from 'lucide-react'
 import type { FrequentTransactionResponseTransactionListItem } from '@/shared/api/generated/model/frequentTransactionResponseTransactionListItem'
 import { Badge } from '@/shared/components/ui/badge'
 import { Button } from '@/shared/components/ui/button'
+import { Card } from '@/shared/components/ui/card'
 import { getCategoryPresentation } from '@/shared/lib/category-presentation'
 import { cn } from '@/shared/lib/utils'
 
@@ -52,7 +53,7 @@ export function TransactionCandidates({ transactions, onSelect, onOpenMore }: Tr
   const hasMoreTransactions = transactions.length > CANDIDATES_PREVIEW_COUNT
 
   return (
-    <section aria-labelledby="transaction-candidates-title" className="rounded-2xl border bg-card px-4 py-2 sm:px-5 sm:py-5">
+    <Card aria-labelledby="transaction-candidates-title" className="block px-4 py-2 sm:px-5 sm:py-5" role="region">
       <div className="flex items-baseline justify-between gap-3">
         <div>
           <h2 className="text-sm font-semibold tracking-[-0.03em] sm:text-base" id="transaction-candidates-title">よく使う項目</h2>
@@ -79,6 +80,6 @@ export function TransactionCandidates({ transactions, onSelect, onOpenMore }: Tr
           />
         ))}
       </div>
-    </section>
+    </Card>
   )
 }

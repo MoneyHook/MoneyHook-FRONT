@@ -1,6 +1,7 @@
 import { Check, Monitor, Moon, Sun } from 'lucide-react'
 import type { ReactNode } from 'react'
 
+import { Card } from '@/shared/components/ui/card'
 import { type AccentColor, type ChartPalette, useAppearance } from '@/shared/hooks/appearance-context'
 
 const themeOptions = [
@@ -25,7 +26,7 @@ const chartPaletteOptions: ReadonlyArray<{ value: ChartPalette; label: string; d
 
 function AppearancePanel({ children, description, title }: { children: ReactNode; description: string; title: string }) {
   const titleId = `appearance-${title}`
-  return <section aria-labelledby={titleId} className="rounded-2xl border bg-card p-4 sm:p-5"><div className="grid gap-5 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-8"><div className="space-y-2"><h2 className="text-xl font-semibold tracking-[-0.03em]" id={titleId}>{title}</h2><p className="text-sm leading-6 text-muted-foreground">{description}</p></div>{children}</div></section>
+  return <Card aria-labelledby={titleId} className="block p-4 sm:p-5"><div className="grid gap-5 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-8"><div className="space-y-2"><h2 className="text-xl font-semibold tracking-[-0.03em]" id={titleId}>{title}</h2><p className="text-sm leading-6 text-muted-foreground">{description}</p></div>{children}</div></Card>
 }
 
 function ThemePicker() {
