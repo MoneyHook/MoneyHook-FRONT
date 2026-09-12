@@ -1,11 +1,13 @@
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
+
 import { Badge } from '@/shared/components/ui/badge'
 import { cn } from '@/shared/lib/utils'
+
 import type { FixedTransactionItem } from '../../model/analysis-fixed'
 import { formatCurrency } from '../../model/analysis-overview'
-import { AnalysisPanel } from './fixed-analysis-panel'
 import { CategoryIcon } from '../category-icon'
+import { AnalysisPanel } from './fixed-analysis-panel'
 
 function formatTransactionDate(value: string) {
   const [year, month, day] = value.split('-').map(Number)

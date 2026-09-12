@@ -1,6 +1,8 @@
 import { ArrowRight, WalletCards } from 'lucide-react'
 import { Link } from 'react-router-dom'
+
 import { Button } from '@/shared/components/ui/button'
+
 import {
   formatCurrency,
   formatPercent,

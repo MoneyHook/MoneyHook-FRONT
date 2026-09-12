@@ -6,8 +6,8 @@ import React from 'react'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { server } from '@/test/msw/server'
 import { TooltipProvider } from '@/shared/components/ui/tooltip'
+import { server } from '@/test/msw/server'
 
 vi.mock('@/shared/config/environment', () => ({
   getEnvironment: () => ({ apiBaseUrl: 'http://api.test' }),

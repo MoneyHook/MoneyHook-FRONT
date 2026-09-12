@@ -1,12 +1,14 @@
 import { ArrowRight, Tags } from 'lucide-react'
 import { Link } from 'react-router-dom'
+
 import { Button } from '@/shared/components/ui/button'
 import { getCategoryPresentation } from '@/shared/lib/category-presentation'
 import { cn } from '@/shared/lib/utils'
+
 import {
+  type CategorySummary,
   formatCurrency,
   formatSignedCurrency,
-  type CategorySummary,
   type HomeDashboardViewModel,
 } from '../../model/home-dashboard'
 import { DashboardCard } from './dashboard-card'

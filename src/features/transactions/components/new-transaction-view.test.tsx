@@ -10,9 +10,9 @@ import { http, HttpResponse } from 'msw'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { server } from '@/test/msw/server'
 import { TooltipProvider } from '@/shared/components/ui/tooltip'
 import { writeDefaultPaymentId } from '@/shared/lib/default-payment'
+import { server } from '@/test/msw/server'
 
 import {
   FREQUENT_TRANSACTIONS_CACHE_VERSION,

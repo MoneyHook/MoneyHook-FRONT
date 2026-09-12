@@ -8,6 +8,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+
 import {
   formatCurrency,
   type HomeDashboardViewModel,

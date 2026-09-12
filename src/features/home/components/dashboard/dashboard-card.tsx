@@ -1,5 +1,5 @@
-import { cn } from '@/shared/lib/utils'
 import { Card } from '@/shared/components/ui/card'
+import { cn } from '@/shared/lib/utils'
 
 export function DashboardCard({
   className,

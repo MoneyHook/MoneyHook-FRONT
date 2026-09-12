@@ -1,13 +1,14 @@
 import { ErrorState } from '@/shared/components/app-state'
-import type { AnalysisRange } from '../model/analysis-overview'
+
 import { useAnalysisPaymentsController } from '../hooks/use-analysis-payments-controller'
-import {
-  PaymentsSkeleton,
-  EmptyPayments,
-} from './payments/payments-analysis-states'
+import type { AnalysisRange } from '../model/analysis-overview'
+import { PaymentDetailsPanel } from './payments/payment-details-panel'
 import { PaymentSummaryPanel } from './payments/payment-summary-panel'
 import { PaymentTrendPanel } from './payments/payment-trend-panel'
-import { PaymentDetailsPanel } from './payments/payment-details-panel'
+import {
+  EmptyPayments,
+  PaymentsSkeleton,
+} from './payments/payments-analysis-states'
 
 export function AnalysisPaymentsContent({ range }: { range: AnalysisRange }) {
   const { payments, selectedPayment, setPayment, openTransaction } =

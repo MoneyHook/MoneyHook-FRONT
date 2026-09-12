@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 
+import { useGetV1Budget } from '@/shared/api/generated/budget/budget'
 import type {
   HomeResponse,
   V1FixedResponse,
@@ -10,7 +11,6 @@ import {
   useGetV1AnalyticsFixed,
   useGetV1AnalyticsOverview,
 } from '@/shared/api/generated/transaction/transaction'
-import { useGetV1Budget } from '@/shared/api/generated/budget/budget'
 import {
   usePersistedQueryData,
   usePersistedQueryRefresh,

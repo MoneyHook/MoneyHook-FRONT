@@ -36,6 +36,7 @@ import {
 } from '@/shared/components/ui/empty'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 
+import { SettingsSection } from '../../components/settings-section'
 import { useRecurringTransactionSettings } from '../api/use-recurring-transaction-settings'
 import {
   createRecurringTransactionValues,
@@ -44,7 +45,6 @@ import {
 } from '../model/recurring-transaction-settings'
 import { RecurringTransactionRuleEditor } from './recurring-transaction-rule-editor'
 import { RecurringTransactionRuleList } from './recurring-transaction-rule-list'
-import { SettingsSection } from '../../components/settings-section'
 
 type EditorState =
   | { include: boolean; mode: 'add'; rule: null }

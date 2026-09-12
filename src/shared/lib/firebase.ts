@@ -1,5 +1,5 @@
 import { getApp, getApps, initializeApp } from 'firebase/app'
-import { connectAuthEmulator, getAuth, type Auth } from 'firebase/auth'
+import { type Auth, connectAuthEmulator, getAuth } from 'firebase/auth'
 
 import { getEnvironment } from '@/shared/config/environment'
 

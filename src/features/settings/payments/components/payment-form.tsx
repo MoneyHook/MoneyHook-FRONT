@@ -1,5 +1,5 @@
 import { Banknote, CreditCard, LoaderCircle, QrCode } from 'lucide-react'
-import { useState, type FormEvent } from 'react'
+import { type FormEvent, useState } from 'react'
 
 import type { PaymentTypeListResponsePaymentTypeListItem } from '@/shared/api/generated/model'
 import { Button } from '@/shared/components/ui/button'
@@ -7,16 +7,15 @@ import { Input } from '@/shared/components/ui/input'
 import { cn } from '@/shared/lib/utils'
 
 import {
-  validatePaymentSettings,
-  type PaymentSettingsFormErrors,
-  type PaymentSettingsFormValues,
-} from '../model/payment-settings'
-
-import {
+  type EditorState,
   formValuesFromPayment,
   initialFormValues,
-  type EditorState,
 } from '../model/payment-editor'
+import {
+  type PaymentSettingsFormErrors,
+  type PaymentSettingsFormValues,
+  validatePaymentSettings,
+} from '../model/payment-settings'
 
 function PaymentTypeIcon({ paymentTypeName }: { paymentTypeName: string }) {
   if (paymentTypeName.includes('カード')) {

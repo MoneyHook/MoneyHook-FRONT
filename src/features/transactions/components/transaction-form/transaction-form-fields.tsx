@@ -11,10 +11,9 @@ import {
 } from '@/shared/components/ui/popover'
 import { cn } from '@/shared/lib/utils'
 
-import { TransactionCandidates } from '../transaction-candidates'
-
 import type { TransactionFormController } from '../../hooks/use-transaction-form-controller'
 import { formatCalendarDate } from '../../model/transaction-form'
+import { TransactionCandidates } from '../transaction-candidates'
 import { CategoryIcon, PaymentIcon } from './transaction-form-icons'
 
 function FormSection({

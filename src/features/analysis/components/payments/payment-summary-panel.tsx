@@ -1,10 +1,11 @@
 import { ChevronRight } from 'lucide-react'
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
-import { analysisChartColors } from '../analysis-chart-colors'
-import type { AnalysisPaymentsViewModel } from '../../model/analysis-payments'
+
 import { formatCurrency, formatPercent } from '../../model/analysis-overview'
-import { AnalysisPanel } from './payments-analysis-panel'
+import type { AnalysisPaymentsViewModel } from '../../model/analysis-payments'
+import { analysisChartColors } from '../analysis-chart-colors'
 import { PaymentIcon } from './payment-icon'
+import { AnalysisPanel } from './payments-analysis-panel'
 
 function PaymentDonut({ data }: { data: AnalysisPaymentsViewModel }) {
   return (

@@ -7,9 +7,10 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { analysisChartColors } from '../analysis-chart-colors'
+
 import type { AnalysisFixedViewModel } from '../../model/analysis-fixed'
 import { formatCurrency } from '../../model/analysis-overview'
+import { analysisChartColors } from '../analysis-chart-colors'
 import { AnalysisPanel } from './fixed-analysis-panel'
 
 function TrendTooltip({

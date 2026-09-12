@@ -1,14 +1,16 @@
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
+
 import { cn } from '@/shared/lib/utils'
+
+import { formatCurrency } from '../../model/analysis-overview'
 import type {
   AnalysisPaymentsViewModel,
   PaymentMethodItem,
   PaymentTransactionItem,
 } from '../../model/analysis-payments'
-import { formatCurrency } from '../../model/analysis-overview'
-import { AnalysisPanel } from './payments-analysis-panel'
 import { PaymentIcon } from './payment-icon'
+import { AnalysisPanel } from './payments-analysis-panel'
 
 function formatTransactionDate(value: string) {
   const [year, month, day] = value.split('-').map(Number)

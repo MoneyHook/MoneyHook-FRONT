@@ -1,14 +1,6 @@
 import { ChevronDown } from 'lucide-react'
+
 import { Button } from '@/shared/components/ui/button'
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/shared/components/ui/table'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -18,13 +10,23 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu'
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/shared/components/ui/table'
+
 import type {
   AnalysisFixedViewModel,
   FixedCategoryItem,
 } from '../../model/analysis-fixed'
 import { formatCurrency } from '../../model/analysis-overview'
-import { AnalysisPanel } from './fixed-analysis-panel'
 import { CategoryIcon } from '../category-icon'
+import { AnalysisPanel } from './fixed-analysis-panel'
 
 function CategorySelector({
   categories,

@@ -7,6 +7,7 @@ import { MemoryRouter, useLocation } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { server } from '@/test/msw/server'
+
 import { createAnalysisRange } from '../../model/analysis-overview'
 
 vi.mock('@/shared/config/environment', () => ({

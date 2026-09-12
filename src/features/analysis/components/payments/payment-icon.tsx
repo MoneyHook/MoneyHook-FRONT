@@ -5,8 +5,10 @@ import {
   QrCode,
   WalletCards,
 } from 'lucide-react'
+
 import { getPaymentIconSource } from '@/shared/lib/payment-icon'
 import { cn } from '@/shared/lib/utils'
+
 import type { PaymentMethodItem } from '../../model/analysis-payments'
 
 const paymentIconClasses = [

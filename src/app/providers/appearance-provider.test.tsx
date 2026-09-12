@@ -28,6 +28,7 @@ import {
   THEME_STORAGE_KEY,
   useAppearance,
 } from '@/shared/hooks/appearance-context'
+
 import { AppearanceProvider } from './appearance-provider'
 
 function AppearanceProbe() {

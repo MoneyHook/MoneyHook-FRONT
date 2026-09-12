@@ -1,6 +1,6 @@
-import type { TransactionListWriteRequest } from '@/shared/api/generated/model/transactionListWriteRequest'
 import type { FrequentTransactionResponseTransactionListItem } from '@/shared/api/generated/model/frequentTransactionResponseTransactionListItem'
 import type { TimelineTransaction } from '@/shared/api/generated/model/timelineTransaction'
+import type { TransactionListWriteRequest } from '@/shared/api/generated/model/transactionListWriteRequest'
 
 export const MAX_FILE_SIZE = 5 * 1024 * 1024
 export const MAX_COLUMNS = 100
