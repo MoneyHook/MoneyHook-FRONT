@@ -15,9 +15,9 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { Subcategory } from './subcategory';
+import type { Subcategory } from './subcategory'
 
 export interface SubcategoryListResponse {
   /** @nullable */
-  sub_category_list: Subcategory[] | null;
+  sub_category_list: Subcategory[] | null
 }

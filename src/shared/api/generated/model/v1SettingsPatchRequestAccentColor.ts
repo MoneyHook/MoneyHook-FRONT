@@ -16,8 +16,8 @@
  * OpenAPI spec version: 0.2.0-v1
  */
 
-export type V1SettingsPatchRequestAccentColor = typeof V1SettingsPatchRequestAccentColor[keyof typeof V1SettingsPatchRequestAccentColor];
-
+export type V1SettingsPatchRequestAccentColor =
+  (typeof V1SettingsPatchRequestAccentColor)[keyof typeof V1SettingsPatchRequestAccentColor]
 
 export const V1SettingsPatchRequestAccentColor = {
   blue: 'blue',
@@ -25,4 +25,4 @@ export const V1SettingsPatchRequestAccentColor = {
   violet: 'violet',
   rose: 'rose',
   black: 'black',
-} as const;
+} as const

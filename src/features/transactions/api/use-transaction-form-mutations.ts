@@ -38,7 +38,10 @@ export function useTransactionFormMutations() {
 
     await invalidateTransactionQueries(queryClient)
   }
-  const update = async (transactionId: string, form: NewTransactionFormValues) => {
+  const update = async (
+    transactionId: string,
+    form: NewTransactionFormValues,
+  ) => {
     const response = await updateMutation.mutateAsync({
       transactionId,
       data: {
@@ -71,7 +74,9 @@ export function useTransactionFormMutations() {
     }
 
     await invalidateTransactionQueries(queryClient)
-    queryClient.removeQueries({ queryKey: getGetV1TransactionQueryKey(transactionId) })
+    queryClient.removeQueries({
+      queryKey: getGetV1TransactionQueryKey(transactionId),
+    })
   }
 
   return {

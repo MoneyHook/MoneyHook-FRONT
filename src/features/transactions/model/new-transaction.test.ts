@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
-import { createNewTransactionValues, validateNewTransaction } from './new-transaction'
+import {
+  createNewTransactionValues,
+  validateNewTransaction,
+} from './new-transaction'
 
 describe('validateNewTransaction', () => {
   it('accepts API-compatible values', () => {

@@ -15,9 +15,9 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { Category } from './category';
-import type { CategoryWithSubcategoryResponseCategoryListItemSubCategoryListItem } from './categoryWithSubcategoryResponseCategoryListItemSubCategoryListItem';
+import type { Category } from './category'
+import type { CategoryWithSubcategoryResponseCategoryListItemSubCategoryListItem } from './categoryWithSubcategoryResponseCategoryListItemSubCategoryListItem'
 
 export type CategoryWithSubcategoryResponseCategoryListItem = Category & {
-  sub_category_list: CategoryWithSubcategoryResponseCategoryListItemSubCategoryListItem[];
-};
+  sub_category_list: CategoryWithSubcategoryResponseCategoryListItemSubCategoryListItem[]
+}

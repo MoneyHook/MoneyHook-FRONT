@@ -15,12 +15,12 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { V1SettingsResponseAccentColor } from './v1SettingsResponseAccentColor';
-import type { V1SettingsResponseChartPalette } from './v1SettingsResponseChartPalette';
-import type { V1SettingsResponseThemeMode } from './v1SettingsResponseThemeMode';
+import type { V1SettingsResponseAccentColor } from './v1SettingsResponseAccentColor'
+import type { V1SettingsResponseChartPalette } from './v1SettingsResponseChartPalette'
+import type { V1SettingsResponseThemeMode } from './v1SettingsResponseThemeMode'
 
 export interface V1SettingsResponse {
-  accent_color: V1SettingsResponseAccentColor;
-  theme_mode: V1SettingsResponseThemeMode;
-  chart_palette: V1SettingsResponseChartPalette;
+  accent_color: V1SettingsResponseAccentColor
+  theme_mode: V1SettingsResponseThemeMode
+  chart_palette: V1SettingsResponseChartPalette
 }

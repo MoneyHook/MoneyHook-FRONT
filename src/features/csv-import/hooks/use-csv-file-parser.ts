@@ -10,14 +10,20 @@ import {
 
 import type { CsvImportDispatch } from '../types'
 
-export function useCsvFileParser(dispatch: CsvImportDispatch, defaultEncoding: Encoding) {
+export function useCsvFileParser(
+  dispatch: CsvImportDispatch,
+  defaultEncoding: Encoding,
+) {
   const workerRef = useRef<Worker | null>(null)
   useEffect(() => () => workerRef.current?.terminate(), [])
 
   const parseFile = useCallback(
     (file: File, encoding: Encoding = defaultEncoding) => {
       if (!file.name.toLowerCase().endsWith('.csv'))
-        return dispatch({ type: 'patch', patch: { error: 'CSVファイルを選択してください。' } })
+        return dispatch({
+          type: 'patch',
+          patch: { error: 'CSVファイルを選択してください。' },
+        })
       if (file.size > MAX_FILE_SIZE)
         return dispatch({
           type: 'patch',
@@ -36,25 +42,38 @@ export function useCsvFileParser(dispatch: CsvImportDispatch, defaultEncoding: E
         },
       })
       workerRef.current?.terminate()
-      const worker = new Worker(new URL('../csv-parser.worker.ts', import.meta.url), {
-        type: 'module',
-      })
+      const worker = new Worker(
+        new URL('../csv-parser.worker.ts', import.meta.url),
+        {
+          type: 'module',
+        },
+      )
       workerRef.current = worker
       worker.onmessage = (
-        event: MessageEvent<{ rows?: string[][]; encoding?: string; error?: string }>,
+        event: MessageEvent<{
+          rows?: string[][]
+          encoding?: string
+          error?: string
+        }>,
       ) => {
         worker.terminate()
         if (workerRef.current === worker) workerRef.current = null
         if (event.data.error || !event.data.rows)
           return dispatch({
             type: 'patch',
-            patch: { importing: false, error: event.data.error ?? 'CSVを解析できませんでした。' },
+            patch: {
+              importing: false,
+              error: event.data.error ?? 'CSVを解析できませんでした。',
+            },
           })
         const rows = event.data.rows
         if (Math.max(0, ...rows.map((row) => row.length)) > MAX_COLUMNS)
           return dispatch({
             type: 'patch',
-            patch: { importing: false, error: 'CSVの列数は100列以下にしてください。' },
+            patch: {
+              importing: false,
+              error: 'CSVの列数は100列以下にしてください。',
+            },
           })
         const headerRowIndex = inferHeaderRow(rows)
         const dataRowCount = rows.filter(
@@ -68,7 +87,10 @@ export function useCsvFileParser(dispatch: CsvImportDispatch, defaultEncoding: E
             parsedEncoding: event.data.encoding ?? null,
             headerRowIndex,
             mapping: { date: null, name: null, amount: null },
-            error: dataRowCount > MAX_ROWS ? 'データ行数は10,000行以下にしてください。' : null,
+            error:
+              dataRowCount > MAX_ROWS
+                ? 'データ行数は10,000行以下にしてください。'
+                : null,
           },
         })
       }
@@ -92,7 +114,8 @@ export function useCsvFileParser(dispatch: CsvImportDispatch, defaultEncoding: E
           type: 'patch',
           patch: {
             importing: false,
-            error: 'CSVデータを読み込めませんでした。もう一度ファイルを選択してください。',
+            error:
+              'CSVデータを読み込めませんでした。もう一度ファイルを選択してください。',
           },
         })
       }

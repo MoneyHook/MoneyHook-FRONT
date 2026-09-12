@@ -174,13 +174,15 @@ export function buildAnalysisCategoriesViewModel(
         .sort(compareTransactions),
     }))
 
-  const leading = categories.slice(0, 5).map<CategorySummaryItem>((category) => ({
-    id: category.id,
-    name: category.name,
-    amount: category.amount,
-    ratio: category.ratio,
-    selectable: true,
-  }))
+  const leading = categories
+    .slice(0, 5)
+    .map<CategorySummaryItem>((category) => ({
+      id: category.id,
+      name: category.name,
+      amount: category.amount,
+      ratio: category.ratio,
+      selectable: true,
+    }))
   const remainingAmount = categories
     .slice(5)
     .reduce((sum, category) => sum + category.amount, 0)

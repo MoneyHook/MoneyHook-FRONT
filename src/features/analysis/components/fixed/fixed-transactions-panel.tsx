@@ -15,52 +15,67 @@ function formatTransactionDate(value: string) {
   return `${month}月${day}日（${weekday}）`
 }
 
-function TransactionRow({ item, onOpen }: { item: FixedTransactionItem; onOpen: (id: string) => void }) {
+function TransactionRow({
+  item,
+  onOpen,
+}: {
+  item: FixedTransactionItem
+  onOpen: (id: string) => void
+}) {
   return (
     <li>
       <button
         aria-label={`${item.name}を編集`}
-        className="grid w-full grid-cols-[minmax(5.8rem,auto)_auto_minmax(0,1fr)_auto_auto] items-center gap-2 px-1 py-3 text-left outline-none transition-colors hover:bg-muted/45 focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/50 sm:grid-cols-[8rem_auto_minmax(0,1fr)_auto_auto] sm:gap-4 sm:px-2"
+        className="grid w-full grid-cols-[minmax(5.8rem,auto)_auto_minmax(0,1fr)_auto_auto] items-center gap-2 px-1 py-3 text-left transition-colors outline-none hover:bg-muted/45 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset sm:grid-cols-[8rem_auto_minmax(0,1fr)_auto_auto] sm:gap-4 sm:px-2"
         onClick={() => onOpen(item.id)}
         type="button"
       >
-      <span className="text-[0.6875rem] font-medium sm:text-sm">
-        {formatTransactionDate(item.date)}
-      </span>
-      <CategoryIcon name={item.categoryName} />
-      <span className="flex min-w-0 items-baseline gap-2">
-        <span className="truncate text-xs font-semibold sm:text-sm">
-          {item.name}
+        <span className="text-[0.6875rem] font-medium sm:text-sm">
+          {formatTransactionDate(item.date)}
         </span>
-        <span className="truncate text-[0.625rem] text-muted-foreground sm:text-xs">
-          {item.categoryName} · {item.subcategoryName}
-        </span>
-      </span>
-      <span className="flex items-baseline justify-end gap-2 whitespace-nowrap text-right">
-        {item.paymentName ? (
-          <Badge
-            className="hidden max-w-28 truncate bg-muted px-2 py-1 text-xs font-normal text-muted-foreground min-[390px]:inline-flex sm:text-sm"
-            variant="ghost"
-          >
-            {item.paymentName}
-          </Badge>
-        ) : null}
-        <span className="text-xs font-semibold text-expense tabular-nums sm:text-sm">
-          {formatCurrency(item.amount)}
-        </span>
-        {item.time ? (
-          <span className="text-[0.625rem] text-muted-foreground tabular-nums sm:text-xs">
-            {item.time.slice(0, 5)}
+        <CategoryIcon name={item.categoryName} />
+        <span className="flex min-w-0 items-baseline gap-2">
+          <span className="truncate text-xs font-semibold sm:text-sm">
+            {item.name}
           </span>
-        ) : null}
-      </span>
-        <ChevronRight aria-hidden="true" className="size-4 text-muted-foreground" />
+          <span className="truncate text-[0.625rem] text-muted-foreground sm:text-xs">
+            {item.categoryName} · {item.subcategoryName}
+          </span>
+        </span>
+        <span className="flex items-baseline justify-end gap-2 text-right whitespace-nowrap">
+          {item.paymentName ? (
+            <Badge
+              className="hidden max-w-28 truncate bg-muted px-2 py-1 text-xs font-normal text-muted-foreground min-[390px]:inline-flex sm:text-sm"
+              variant="ghost"
+            >
+              {item.paymentName}
+            </Badge>
+          ) : null}
+          <span className="text-xs font-semibold text-expense tabular-nums sm:text-sm">
+            {formatCurrency(item.amount)}
+          </span>
+          {item.time ? (
+            <span className="text-[0.625rem] text-muted-foreground tabular-nums sm:text-xs">
+              {item.time.slice(0, 5)}
+            </span>
+          ) : null}
+        </span>
+        <ChevronRight
+          aria-hidden="true"
+          className="size-4 text-muted-foreground"
+        />
       </button>
     </li>
   )
 }
 
-export function TransactionsPanel({ items, onOpen }: { items: FixedTransactionItem[]; onOpen: (id: string) => void }) {
+export function TransactionsPanel({
+  items,
+  onOpen,
+}: {
+  items: FixedTransactionItem[]
+  onOpen: (id: string) => void
+}) {
   const [expanded, setExpanded] = useState(false)
   const visibleItems = expanded ? items : items.slice(0, 5)
 
@@ -75,7 +90,11 @@ export function TransactionsPanel({ items, onOpen }: { items: FixedTransactionIt
       {visibleItems.length > 0 ? (
         <ul className="divide-y border-t px-3 transition-[max-height] duration-200 sm:px-4">
           {visibleItems.map((transaction) => (
-            <TransactionRow item={transaction} key={transaction.id} onOpen={onOpen} />
+            <TransactionRow
+              item={transaction}
+              key={transaction.id}
+              onOpen={onOpen}
+            />
           ))}
         </ul>
       ) : (
@@ -87,7 +106,7 @@ export function TransactionsPanel({ items, onOpen }: { items: FixedTransactionIt
         <div className="border-t p-3 sm:p-4">
           <button
             aria-expanded={expanded}
-            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border text-sm font-medium outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border text-sm font-medium transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
             onClick={() => setExpanded((current) => !current)}
             type="button"
           >

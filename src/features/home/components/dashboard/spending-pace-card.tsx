@@ -1,5 +1,17 @@
-import { Area, AreaChart, CartesianGrid, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { formatCurrency, type HomeDashboardViewModel } from '../../model/home-dashboard'
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  Line,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
+import {
+  formatCurrency,
+  type HomeDashboardViewModel,
+} from '../../model/home-dashboard'
 import { DashboardCard } from './dashboard-card'
 
 function PaceTooltip({
@@ -42,14 +54,25 @@ export function SpendingPaceCard({ data }: { data: HomeDashboardViewModel }) {
             今月
           </span>
           <span className="flex items-center gap-2">
-            <span className="w-7 border-t-2 border-dashed border-muted-foreground" /> 前月
+            <span className="w-7 border-t-2 border-dashed border-muted-foreground" />{' '}
+            前月
           </span>
         </div>
       </div>
-      <div className="mt-2 h-36 w-full sm:mt-5 sm:h-64" aria-label="今月と前月の累積支出グラフ">
+      <div
+        className="mt-2 h-36 w-full sm:mt-5 sm:h-64"
+        aria-label="今月と前月の累積支出グラフ"
+      >
         <ResponsiveContainer height="100%" width="100%">
-          <AreaChart data={data.pace} margin={{ bottom: 0, left: -12, right: 4, top: 8 }}>
-            <CartesianGrid stroke="var(--border)" strokeDasharray="4 5" vertical={false} />
+          <AreaChart
+            data={data.pace}
+            margin={{ bottom: 0, left: -12, right: 4, top: 8 }}
+          >
+            <CartesianGrid
+              stroke="var(--border)"
+              strokeDasharray="4 5"
+              vertical={false}
+            />
             <XAxis
               axisLine={{ stroke: 'var(--border)' }}
               dataKey="day"
@@ -61,7 +84,9 @@ export function SpendingPaceCard({ data }: { data: HomeDashboardViewModel }) {
             <YAxis
               axisLine={false}
               tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
-              tickFormatter={(value) => (value === 0 ? '0' : `${Math.round(value / 10000)}万`)}
+              tickFormatter={(value) =>
+                value === 0 ? '0' : `${Math.round(value / 10000)}万`
+              }
               tickLine={false}
               width={42}
             />

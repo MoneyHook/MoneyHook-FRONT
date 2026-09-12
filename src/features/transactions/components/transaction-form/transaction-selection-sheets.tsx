@@ -28,14 +28,16 @@ function SheetOption({
     <button
       aria-pressed={isSelected}
       className={cn(
-        'flex min-h-14 w-full items-center gap-3 rounded-xl px-4 text-left outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50',
+        'flex min-h-14 w-full items-center gap-3 rounded-xl px-4 text-left transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50',
         isSelected && 'bg-accent text-accent-foreground',
       )}
       onClick={onClick}
       type="button"
     >
       {children}
-      {isSelected ? <Check aria-hidden="true" className="ml-auto size-5 text-primary" /> : null}
+      {isSelected ? (
+        <Check aria-hidden="true" className="ml-auto size-5 text-primary" />
+      ) : null}
     </button>
   )
 }
@@ -121,10 +123,12 @@ export function TransactionSelectionSheets({
           side="bottom"
         >
           {categorySelectionStep === 'category' ? (
-            <div className="animate-in fade-in slide-in-from-left-2 duration-150">
+            <div className="animate-in duration-150 fade-in slide-in-from-left-2">
               <SheetHeader className="border-b px-5 py-4 text-left">
                 <SheetTitle>カテゴリを選択</SheetTitle>
-                <SheetDescription>取引のカテゴリを選択してください。</SheetDescription>
+                <SheetDescription>
+                  取引のカテゴリを選択してください。
+                </SheetDescription>
               </SheetHeader>
               <div className="p-2">
                 {categories.map((category) => (
@@ -134,17 +138,19 @@ export function TransactionSelectionSheets({
                     onClick={() => selectCategory(category.category_id)}
                   >
                     <CategoryIcon name={category.category_name} />
-                    <span className="font-medium">{category.category_name}</span>
+                    <span className="font-medium">
+                      {category.category_name}
+                    </span>
                   </SheetOption>
                 ))}
               </div>
             </div>
           ) : (
-            <div className="animate-in fade-in slide-in-from-right-2 duration-150">
+            <div className="animate-in duration-150 fade-in slide-in-from-right-2">
               <SheetHeader className="border-b px-5 py-4 text-left">
                 <Button
                   aria-label="カテゴリ選択へ戻る"
-                  className="-ml-2 mb-1 w-fit"
+                  className="mb-1 -ml-2 w-fit"
                   onClick={() => setCategorySelectionStep('category')}
                   size="sm"
                   type="button"
@@ -154,14 +160,17 @@ export function TransactionSelectionSheets({
                 </Button>
                 <SheetTitle>サブカテゴリを選択</SheetTitle>
                 <SheetDescription>
-                  {selectedCategory?.category_name ?? 'カテゴリ'}のサブカテゴリを選択してください。
+                  {selectedCategory?.category_name ?? 'カテゴリ'}
+                  のサブカテゴリを選択してください。
                 </SheetDescription>
               </SheetHeader>
               <div className="p-2">
                 {enabledSubcategories.length ? (
                   enabledSubcategories.map((subcategory) => (
                     <SheetOption
-                      isSelected={form.subcategoryId === subcategory.sub_category_id}
+                      isSelected={
+                        form.subcategoryId === subcategory.sub_category_id
+                      }
                       key={subcategory.sub_category_id}
                       onClick={() => {
                         setValue('subcategoryId', subcategory.sub_category_id)
@@ -169,7 +178,9 @@ export function TransactionSelectionSheets({
                         setCategorySelectionStep('category')
                       }}
                     >
-                      <span className="font-medium">{subcategory.sub_category_name}</span>
+                      <span className="font-medium">
+                        {subcategory.sub_category_name}
+                      </span>
                     </SheetOption>
                   ))
                 ) : (
@@ -217,7 +228,9 @@ export function TransactionSelectionSheets({
               >
                 <PaymentIcon
                   paymentName={payment.payment_name}
-                  paymentTypeName={paymentTypeNames.get(payment.payment_type_id)}
+                  paymentTypeName={paymentTypeNames.get(
+                    payment.payment_type_id,
+                  )}
                   sizeClassName="size-10"
                 />
                 <span className="font-medium">{payment.payment_name}</span>

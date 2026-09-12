@@ -18,6 +18,8 @@ const transactionReadQueryKeys = [
 export async function invalidateTransactionQueries(queryClient: QueryClient) {
   clearPersistedQueryData()
   await Promise.all(
-    transactionReadQueryKeys.map((queryKey) => queryClient.invalidateQueries({ queryKey })),
+    transactionReadQueryKeys.map((queryKey) =>
+      queryClient.invalidateQueries({ queryKey }),
+    ),
   )
 }

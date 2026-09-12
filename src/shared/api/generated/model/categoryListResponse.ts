@@ -15,9 +15,9 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { Category } from './category';
+import type { Category } from './category'
 
 export interface CategoryListResponse {
   /** @nullable */
-  category_list: Category[] | null;
+  category_list: Category[] | null
 }

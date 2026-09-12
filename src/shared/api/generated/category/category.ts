@@ -15,9 +15,7 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import {
-  useQuery
-} from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query'
 import type {
   DataTag,
   DefinedInitialDataOptions,
@@ -27,36 +25,36 @@ import type {
   QueryKey,
   UndefinedInitialDataOptions,
   UseQueryOptions,
-  UseQueryResult
-} from '@tanstack/react-query';
+  UseQueryResult,
+} from '@tanstack/react-query'
 
 import type {
   AuthIdentityConflictResponse,
   CategoryListResponse,
   CategoryWithSubcategoryResponse,
   V1InternalErrorResponse,
-  V1UnauthorizedResponse
-} from '../model';
+  V1UnauthorizedResponse,
+} from '../model'
 
-import { apiFetch } from '../../http-client';
+import { apiFetch } from '../../http-client'
 
-
-
-
-const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKey: K } => {
-  const result = { queryKey } as T & { queryKey: K };
+const withQueryKey = <T extends object, K>(
+  query: T,
+  queryKey: K,
+): T & { queryKey: K } => {
+  const result = { queryKey } as T & { queryKey: K }
   for (const key of Object.keys(query)) {
     // The explicit queryKey always wins, matching the previous
     // `{ ...query, queryKey }` spread where it was set last.
-    if (key === 'queryKey') continue;
+    if (key === 'queryKey') continue
     Object.defineProperty(result, key, {
       enumerable: true,
       configurable: true,
       get: () => (query as Record<string, unknown>)[key],
-    });
+    })
   }
-  return result;
-};
+  return result
+}
 
 export type getCategoryListResponse200 = {
   data: CategoryListResponse
@@ -78,114 +76,183 @@ export type getCategoryListResponse500 = {
   status: 500
 }
 
-export type getCategoryListResponseSuccess = (getCategoryListResponse200) & {
-  headers: Headers;
-};
-export type getCategoryListResponseError = (getCategoryListResponse401 | getCategoryListResponse409 | getCategoryListResponse500) & {
-  headers: Headers;
-};
+export type getCategoryListResponseSuccess = getCategoryListResponse200 & {
+  headers: Headers
+}
+export type getCategoryListResponseError = (
+  | getCategoryListResponse401
+  | getCategoryListResponse409
+  | getCategoryListResponse500
+) & {
+  headers: Headers
+}
 
-export type getCategoryListResponse = (getCategoryListResponseSuccess | getCategoryListResponseError)
+export type getCategoryListResponse =
+  getCategoryListResponseSuccess | getCategoryListResponseError
 
 export const getGetCategoryListUrl = () => {
-
-
-
-
   return `/api/category/getCategoryList`
 }
 
 /**
  * @summary List master categories
  */
-export const getCategoryList = async ( options?: RequestInit): Promise<getCategoryListResponse> => {
-
-  return apiFetch<getCategoryListResponse>(getGetCategoryListUrl(),
-  {
+export const getCategoryList = async (
+  options?: RequestInit,
+): Promise<getCategoryListResponse> => {
+  return apiFetch<getCategoryListResponse>(getGetCategoryListUrl(), {
     ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGetCategoryListQueryKey = () => {
-    return [
-    `/api/category/getCategoryList`
-    ] as const;
-    }
-
-
-export const getGetCategoryListQueryOptions = <TData = Awaited<ReturnType<typeof getCategoryList>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCategoryList>>, TError, TData>>, }
-) => {
-
-const {query: queryOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetCategoryListQueryKey();
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCategoryList>>> = ({ signal }) => getCategoryList({ signal });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCategoryList>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+    method: 'GET',
+  })
 }
 
-export type GetCategoryListQueryResult = NonNullable<Awaited<ReturnType<typeof getCategoryList>>>
-export type GetCategoryListQueryError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse
+export const getGetCategoryListQueryKey = () => {
+  return [`/api/category/getCategoryList`] as const
+}
 
+export const getGetCategoryListQueryOptions = <
+  TData = Awaited<ReturnType<typeof getCategoryList>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<Awaited<ReturnType<typeof getCategoryList>>, TError, TData>
+  >
+}) => {
+  const { query: queryOptions } = options ?? {}
 
-export function useGetCategoryList<TData = Awaited<ReturnType<typeof getCategoryList>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCategoryList>>, TError, TData>> & Pick<
+  const queryKey = queryOptions?.queryKey ?? getGetCategoryListQueryKey()
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getCategoryList>>> = ({
+    signal,
+  }) => getCategoryList({ signal })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getCategoryList>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetCategoryListQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getCategoryList>>
+>
+export type GetCategoryListQueryError =
+  | V1UnauthorizedResponse
+  | AuthIdentityConflictResponse
+  | V1InternalErrorResponse
+
+export function useGetCategoryList<
+  TData = Awaited<ReturnType<typeof getCategoryList>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getCategoryList>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getCategoryList>>,
           TError,
           Awaited<ReturnType<typeof getCategoryList>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetCategoryList<TData = Awaited<ReturnType<typeof getCategoryList>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCategoryList>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+export function useGetCategoryList<
+  TData = Awaited<ReturnType<typeof getCategoryList>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getCategoryList>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getCategoryList>>,
           TError,
           Awaited<ReturnType<typeof getCategoryList>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetCategoryList<TData = Awaited<ReturnType<typeof getCategoryList>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCategoryList>>, TError, TData>>, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+export function useGetCategoryList<
+  TData = Awaited<ReturnType<typeof getCategoryList>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getCategoryList>>,
+        TError,
+        TData
+      >
+    >
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
 /**
  * @summary List master categories
  */
 
-export function useGetCategoryList<TData = Awaited<ReturnType<typeof getCategoryList>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCategoryList>>, TError, TData>>, }
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
+export function useGetCategoryList<
+  TData = Awaited<ReturnType<typeof getCategoryList>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getCategoryList>>,
+        TError,
+        TData
+      >
+    >
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+} {
   const queryOptions = getGetCategoryListQueryOptions(options)
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 
-  return withQueryKey(query, queryOptions.queryKey);
+  return withQueryKey(query, queryOptions.queryKey)
 }
-
-
-
-
-
 
 export type getCategoryWithSubCategoryListResponse200 = {
   data: CategoryWithSubcategoryResponse
@@ -207,112 +274,190 @@ export type getCategoryWithSubCategoryListResponse500 = {
   status: 500
 }
 
-export type getCategoryWithSubCategoryListResponseSuccess = (getCategoryWithSubCategoryListResponse200) & {
-  headers: Headers;
-};
-export type getCategoryWithSubCategoryListResponseError = (getCategoryWithSubCategoryListResponse401 | getCategoryWithSubCategoryListResponse409 | getCategoryWithSubCategoryListResponse500) & {
-  headers: Headers;
-};
+export type getCategoryWithSubCategoryListResponseSuccess =
+  getCategoryWithSubCategoryListResponse200 & {
+    headers: Headers
+  }
+export type getCategoryWithSubCategoryListResponseError = (
+  | getCategoryWithSubCategoryListResponse401
+  | getCategoryWithSubCategoryListResponse409
+  | getCategoryWithSubCategoryListResponse500
+) & {
+  headers: Headers
+}
 
-export type getCategoryWithSubCategoryListResponse = (getCategoryWithSubCategoryListResponseSuccess | getCategoryWithSubCategoryListResponseError)
+export type getCategoryWithSubCategoryListResponse =
+  | getCategoryWithSubCategoryListResponseSuccess
+  | getCategoryWithSubCategoryListResponseError
 
 export const getGetCategoryWithSubCategoryListUrl = () => {
-
-
-
-
   return `/api/category/getCategoryWithSubCategoryList`
 }
 
 /**
  * @summary List categories with master/user subcategories and visibility
  */
-export const getCategoryWithSubCategoryList = async ( options?: RequestInit): Promise<getCategoryWithSubCategoryListResponse> => {
-
-  return apiFetch<getCategoryWithSubCategoryListResponse>(getGetCategoryWithSubCategoryListUrl(),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGetCategoryWithSubCategoryListQueryKey = () => {
-    return [
-    `/api/category/getCategoryWithSubCategoryList`
-    ] as const;
-    }
-
-
-export const getGetCategoryWithSubCategoryListQueryOptions = <TData = Awaited<ReturnType<typeof getCategoryWithSubCategoryList>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCategoryWithSubCategoryList>>, TError, TData>>, }
-) => {
-
-const {query: queryOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetCategoryWithSubCategoryListQueryKey();
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCategoryWithSubCategoryList>>> = ({ signal }) => getCategoryWithSubCategoryList({ signal });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCategoryWithSubCategoryList>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+export const getCategoryWithSubCategoryList = async (
+  options?: RequestInit,
+): Promise<getCategoryWithSubCategoryListResponse> => {
+  return apiFetch<getCategoryWithSubCategoryListResponse>(
+    getGetCategoryWithSubCategoryListUrl(),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
 }
 
-export type GetCategoryWithSubCategoryListQueryResult = NonNullable<Awaited<ReturnType<typeof getCategoryWithSubCategoryList>>>
-export type GetCategoryWithSubCategoryListQueryError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse
+export const getGetCategoryWithSubCategoryListQueryKey = () => {
+  return [`/api/category/getCategoryWithSubCategoryList`] as const
+}
 
+export const getGetCategoryWithSubCategoryListQueryOptions = <
+  TData = Awaited<ReturnType<typeof getCategoryWithSubCategoryList>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<typeof getCategoryWithSubCategoryList>>,
+      TError,
+      TData
+    >
+  >
+}) => {
+  const { query: queryOptions } = options ?? {}
 
-export function useGetCategoryWithSubCategoryList<TData = Awaited<ReturnType<typeof getCategoryWithSubCategoryList>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCategoryWithSubCategoryList>>, TError, TData>> & Pick<
+  const queryKey =
+    queryOptions?.queryKey ?? getGetCategoryWithSubCategoryListQueryKey()
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getCategoryWithSubCategoryList>>
+  > = ({ signal }) => getCategoryWithSubCategoryList({ signal })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getCategoryWithSubCategoryList>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetCategoryWithSubCategoryListQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getCategoryWithSubCategoryList>>
+>
+export type GetCategoryWithSubCategoryListQueryError =
+  | V1UnauthorizedResponse
+  | AuthIdentityConflictResponse
+  | V1InternalErrorResponse
+
+export function useGetCategoryWithSubCategoryList<
+  TData = Awaited<ReturnType<typeof getCategoryWithSubCategoryList>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getCategoryWithSubCategoryList>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getCategoryWithSubCategoryList>>,
           TError,
           Awaited<ReturnType<typeof getCategoryWithSubCategoryList>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetCategoryWithSubCategoryList<TData = Awaited<ReturnType<typeof getCategoryWithSubCategoryList>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCategoryWithSubCategoryList>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+export function useGetCategoryWithSubCategoryList<
+  TData = Awaited<ReturnType<typeof getCategoryWithSubCategoryList>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getCategoryWithSubCategoryList>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getCategoryWithSubCategoryList>>,
           TError,
           Awaited<ReturnType<typeof getCategoryWithSubCategoryList>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetCategoryWithSubCategoryList<TData = Awaited<ReturnType<typeof getCategoryWithSubCategoryList>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCategoryWithSubCategoryList>>, TError, TData>>, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+export function useGetCategoryWithSubCategoryList<
+  TData = Awaited<ReturnType<typeof getCategoryWithSubCategoryList>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getCategoryWithSubCategoryList>>,
+        TError,
+        TData
+      >
+    >
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
 /**
  * @summary List categories with master/user subcategories and visibility
  */
 
-export function useGetCategoryWithSubCategoryList<TData = Awaited<ReturnType<typeof getCategoryWithSubCategoryList>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCategoryWithSubCategoryList>>, TError, TData>>, }
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
+export function useGetCategoryWithSubCategoryList<
+  TData = Awaited<ReturnType<typeof getCategoryWithSubCategoryList>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getCategoryWithSubCategoryList>>,
+        TError,
+        TData
+      >
+    >
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+} {
   const queryOptions = getGetCategoryWithSubCategoryListQueryOptions(options)
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 
-  return withQueryKey(query, queryOptions.queryKey);
+  return withQueryKey(query, queryOptions.queryKey)
 }
-
-
-
-
-
-

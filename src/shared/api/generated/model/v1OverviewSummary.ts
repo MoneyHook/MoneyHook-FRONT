@@ -18,14 +18,14 @@
 
 export interface V1OverviewSummary {
   /** @minimum 0 */
-  expense_amount: number;
+  expense_amount: number
   /** @minimum 0 */
-  income_amount: number;
-  net_amount: number;
+  income_amount: number
+  net_amount: number
   /** @minimum 0 */
-  fixed_expense_amount: number;
+  fixed_expense_amount: number
   /** @minimum 0 */
-  variable_expense_amount: number;
+  variable_expense_amount: number
   /** @minimum 0 */
-  monthly_average_expense: number;
+  monthly_average_expense: number
 }

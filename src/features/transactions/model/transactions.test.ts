@@ -68,7 +68,10 @@ describe('transaction view model', () => {
     expect(result.expenseAmount).toBe(3_980)
     expect(result.incomeAmount).toBe(25_000)
     expect(result.balanceAmount).toBe(21_020)
-    expect(result.groups[2]).toMatchObject({ expenseAmount: 0, incomeAmount: 25_000 })
+    expect(result.groups[2]).toMatchObject({
+      expenseAmount: 0,
+      incomeAmount: 25_000,
+    })
   })
 
   it('builds complete Sunday-first calendar weeks', () => {
@@ -76,8 +79,16 @@ describe('transaction view model', () => {
     const days = buildCalendarDays(month)
 
     expect(days).toHaveLength(35)
-    expect(days[0]).toEqual({ date: '2024-07-28', day: 28, isCurrentMonth: false })
-    expect(days.at(-1)).toEqual({ date: '2024-08-31', day: 31, isCurrentMonth: true })
+    expect(days[0]).toEqual({
+      date: '2024-07-28',
+      day: 28,
+      isCurrentMonth: false,
+    })
+    expect(days.at(-1)).toEqual({
+      date: '2024-08-31',
+      day: 31,
+      isCurrentMonth: true,
+    })
   })
 
   it('selects today for the current month and the latest transaction for a past month', () => {
@@ -90,9 +101,11 @@ describe('transaction view model', () => {
     ])
 
     expect(getDefaultSelectedDate(currentMonth, [], now)).toBe('2026-08-30')
-    expect(getDefaultSelectedDate(pastMonth, data.items, now)).toBe('2024-08-28')
-    expect(normalizeSelectedDate('2024-09-01', pastMonth, data.items, now)).toBe(
+    expect(getDefaultSelectedDate(pastMonth, data.items, now)).toBe(
       '2024-08-28',
     )
+    expect(
+      normalizeSelectedDate('2024-09-01', pastMonth, data.items, now),
+    ).toBe('2024-08-28')
   })
 })

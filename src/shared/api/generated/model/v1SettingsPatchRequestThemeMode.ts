@@ -16,11 +16,11 @@
  * OpenAPI spec version: 0.2.0-v1
  */
 
-export type V1SettingsPatchRequestThemeMode = typeof V1SettingsPatchRequestThemeMode[keyof typeof V1SettingsPatchRequestThemeMode];
-
+export type V1SettingsPatchRequestThemeMode =
+  (typeof V1SettingsPatchRequestThemeMode)[keyof typeof V1SettingsPatchRequestThemeMode]
 
 export const V1SettingsPatchRequestThemeMode = {
   light: 'light',
   dark: 'dark',
   system: 'system',
-} as const;
+} as const

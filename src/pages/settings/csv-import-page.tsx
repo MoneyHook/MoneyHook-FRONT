@@ -5,5 +5,9 @@ import { invalidateTransactionQueries } from '@/features/transactions'
 
 export function CsvImportPage() {
   const queryClient = useQueryClient()
-  return <CsvImportView onImported={() => invalidateTransactionQueries(queryClient)} />
+  return (
+    <CsvImportView
+      onImported={() => invalidateTransactionQueries(queryClient)}
+    />
+  )
 }

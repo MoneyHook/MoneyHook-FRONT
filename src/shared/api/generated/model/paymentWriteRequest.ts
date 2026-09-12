@@ -15,20 +15,20 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { Identifier } from './identifier';
+import type { Identifier } from './identifier'
 
 export interface PaymentWriteRequest {
   /** @maxLength 32 */
-  payment_name: string;
-  payment_type_id?: Identifier | null;
+  payment_name: string
+  payment_type_id?: Identifier | null
   /**
-     * Intended day of month; no database CHECK constraint.
-     * @nullable
-     */
-  payment_date?: number | null;
+   * Intended day of month; no database CHECK constraint.
+   * @nullable
+   */
+  payment_date?: number | null
   /**
-     * Intended day of month; no database CHECK constraint.
-     * @nullable
-     */
-  closing_date?: number | null;
+   * Intended day of month; no database CHECK constraint.
+   * @nullable
+   */
+  closing_date?: number | null
 }

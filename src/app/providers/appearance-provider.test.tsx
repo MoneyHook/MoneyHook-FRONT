@@ -31,21 +31,30 @@ import {
 import { AppearanceProvider } from './appearance-provider'
 
 function AppearanceProbe() {
-  const { accent, chartPalette, setChartPalette, setTheme, theme } = useAppearance()
+  const { accent, chartPalette, setChartPalette, setTheme, theme } =
+    useAppearance()
   return (
     <div>
       <output aria-label="theme">{theme}</output>
       <output aria-label="accent">{accent}</output>
       <output aria-label="palette">{chartPalette}</output>
-      <button onClick={() => setChartPalette('colorful')} type="button">palette</button>
-      <button onClick={() => setTheme('dark')} type="button">theme</button>
+      <button onClick={() => setChartPalette('colorful')} type="button">
+        palette
+      </button>
+      <button onClick={() => setTheme('dark')} type="button">
+        theme
+      </button>
     </div>
   )
 }
 
 function renderProvider() {
   return render(
-    <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+    <QueryClientProvider
+      client={
+        new QueryClient({ defaultOptions: { queries: { retry: false } } })
+      }
+    >
       <AppearanceProvider>
         <AppearanceProbe />
       </AppearanceProvider>
@@ -84,11 +93,17 @@ describe('AppearanceProvider', () => {
     expect(document.documentElement.dataset.accent).toBe('green')
     expect(document.documentElement.dataset.chartPalette).toBe('colorful')
 
-    resolveSettings?.(HttpResponse.json({
-      accent_color: 'violet', chart_palette: 'monochrome', theme_mode: 'dark',
-    }))
+    resolveSettings?.(
+      HttpResponse.json({
+        accent_color: 'violet',
+        chart_palette: 'monochrome',
+        theme_mode: 'dark',
+      }),
+    )
 
-    await waitFor(() => expect(screen.getByLabelText('theme')).toHaveTextContent('dark'))
+    await waitFor(() =>
+      expect(screen.getByLabelText('theme')).toHaveTextContent('dark'),
+    )
     expect(screen.getByLabelText('accent')).toHaveTextContent('violet')
     expect(screen.getByLabelText('palette')).toHaveTextContent('monochrome')
     expect(document.documentElement).toHaveClass('dark')
@@ -102,27 +117,37 @@ describe('AppearanceProvider', () => {
   it('loads the authenticated user settings from the API and persists changes there', async () => {
     const requests: unknown[] = []
     server.use(
-      http.get('http://api.test/api/v1/settings', () => HttpResponse.json({
-        accent_color: 'violet', chart_palette: 'monochrome', theme_mode: 'dark',
-      })),
+      http.get('http://api.test/api/v1/settings', () =>
+        HttpResponse.json({
+          accent_color: 'violet',
+          chart_palette: 'monochrome',
+          theme_mode: 'dark',
+        }),
+      ),
       http.patch('http://api.test/api/v1/settings', async ({ request }) => {
         requests.push(await request.json())
         return HttpResponse.json({
-          accent_color: 'violet', chart_palette: 'colorful', theme_mode: 'dark',
+          accent_color: 'violet',
+          chart_palette: 'colorful',
+          theme_mode: 'dark',
         })
       }),
     )
 
     renderProvider()
 
-    await waitFor(() => expect(screen.getByLabelText('theme')).toHaveTextContent('dark'))
+    await waitFor(() =>
+      expect(screen.getByLabelText('theme')).toHaveTextContent('dark'),
+    )
     expect(screen.getByLabelText('accent')).toHaveTextContent('violet')
     expect(screen.getByLabelText('palette')).toHaveTextContent('monochrome')
     expect(document.documentElement).toHaveClass('dark')
 
     fireEvent.click(screen.getByRole('button', { name: 'palette' }))
     expect(screen.getByLabelText('palette')).toHaveTextContent('colorful')
-    await waitFor(() => expect(requests).toEqual([{ chart_palette: 'colorful' }]))
+    await waitFor(() =>
+      expect(requests).toEqual([{ chart_palette: 'colorful' }]),
+    )
     expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('dark')
     expect(localStorage.getItem(ACCENT_STORAGE_KEY)).toBe('violet')
     expect(localStorage.getItem(CHART_PALETTE_STORAGE_KEY)).toBe('colorful')
@@ -133,14 +158,19 @@ describe('AppearanceProvider', () => {
     localStorage.setItem(ACCENT_STORAGE_KEY, 'rose')
     localStorage.setItem(CHART_PALETTE_STORAGE_KEY, 'monochrome')
     server.use(
-      http.get('http://api.test/api/v1/settings', () => HttpResponse.json(
-        { code: 'INTERNAL_ERROR', message: 'failed' }, { status: 500 },
-      )),
+      http.get('http://api.test/api/v1/settings', () =>
+        HttpResponse.json(
+          { code: 'INTERNAL_ERROR', message: 'failed' },
+          { status: 500 },
+        ),
+      ),
     )
 
     renderProvider()
 
-    await waitFor(() => expect(screen.getByLabelText('theme')).toHaveTextContent('dark'))
+    await waitFor(() =>
+      expect(screen.getByLabelText('theme')).toHaveTextContent('dark'),
+    )
     expect(screen.getByLabelText('accent')).toHaveTextContent('rose')
     expect(screen.getByLabelText('palette')).toHaveTextContent('monochrome')
     expect(document.documentElement).toHaveClass('dark')
@@ -154,14 +184,19 @@ describe('AppearanceProvider', () => {
     localStorage.setItem(ACCENT_STORAGE_KEY, 'violet')
     localStorage.setItem(CHART_PALETTE_STORAGE_KEY, 'invalid')
     server.use(
-      http.get('http://api.test/api/v1/settings', () => HttpResponse.json(
-        { code: 'INTERNAL_ERROR', message: 'failed' }, { status: 500 },
-      )),
+      http.get('http://api.test/api/v1/settings', () =>
+        HttpResponse.json(
+          { code: 'INTERNAL_ERROR', message: 'failed' },
+          { status: 500 },
+        ),
+      ),
     )
 
     renderProvider()
 
-    await waitFor(() => expect(screen.getByLabelText('theme')).toHaveTextContent('system'))
+    await waitFor(() =>
+      expect(screen.getByLabelText('theme')).toHaveTextContent('system'),
+    )
     expect(screen.getByLabelText('accent')).toHaveTextContent('violet')
     expect(screen.getByLabelText('palette')).toHaveTextContent('default')
     expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('system')
@@ -171,22 +206,33 @@ describe('AppearanceProvider', () => {
 
   it('restores the prior setting and reports an error when saving fails', async () => {
     server.use(
-      http.get('http://api.test/api/v1/settings', () => HttpResponse.json({
-        accent_color: 'blue', chart_palette: 'default', theme_mode: 'system',
-      })),
-      http.patch('http://api.test/api/v1/settings', () => HttpResponse.json(
-        { code: 'INTERNAL_ERROR', message: 'failed' }, { status: 500 },
-      )),
+      http.get('http://api.test/api/v1/settings', () =>
+        HttpResponse.json({
+          accent_color: 'blue',
+          chart_palette: 'default',
+          theme_mode: 'system',
+        }),
+      ),
+      http.patch('http://api.test/api/v1/settings', () =>
+        HttpResponse.json(
+          { code: 'INTERNAL_ERROR', message: 'failed' },
+          { status: 500 },
+        ),
+      ),
     )
 
     renderProvider()
     await screen.findByLabelText('theme')
-    await waitFor(() => expect(screen.getByLabelText('theme')).toHaveTextContent('system'))
+    await waitFor(() =>
+      expect(screen.getByLabelText('theme')).toHaveTextContent('system'),
+    )
 
     fireEvent.click(screen.getByRole('button', { name: 'theme' }))
     expect(screen.getByLabelText('theme')).toHaveTextContent('dark')
     expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('dark')
-    await waitFor(() => expect(screen.getByLabelText('theme')).toHaveTextContent('system'))
+    await waitFor(() =>
+      expect(screen.getByLabelText('theme')).toHaveTextContent('system'),
+    )
     expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('system')
     expect(toastError).toHaveBeenCalledOnce()
   })

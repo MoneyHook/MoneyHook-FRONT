@@ -15,14 +15,14 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { V1AnalysisRange } from './v1AnalysisRange';
-import type { V1CategoryChange } from './v1CategoryChange';
-import type { V1OverviewSeriesItem } from './v1OverviewSeriesItem';
-import type { V1OverviewSummary } from './v1OverviewSummary';
+import type { V1AnalysisRange } from './v1AnalysisRange'
+import type { V1CategoryChange } from './v1CategoryChange'
+import type { V1OverviewSeriesItem } from './v1OverviewSeriesItem'
+import type { V1OverviewSummary } from './v1OverviewSummary'
 
 export interface V1OverviewResponse {
-  range: V1AnalysisRange;
-  summary: V1OverviewSummary;
-  series: V1OverviewSeriesItem[];
-  category_changes: V1CategoryChange[];
+  range: V1AnalysisRange
+  summary: V1OverviewSummary
+  series: V1OverviewSeriesItem[]
+  category_changes: V1CategoryChange[]
 }

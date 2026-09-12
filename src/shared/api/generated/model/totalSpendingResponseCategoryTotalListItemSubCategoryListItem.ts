@@ -15,12 +15,12 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { Identifier } from './identifier';
-import type { TotalSpendingResponseCategoryTotalListItemSubCategoryListItemTransactionListItem } from './totalSpendingResponseCategoryTotalListItemSubCategoryListItemTransactionListItem';
+import type { Identifier } from './identifier'
+import type { TotalSpendingResponseCategoryTotalListItemSubCategoryListItemTransactionListItem } from './totalSpendingResponseCategoryTotalListItemSubCategoryListItemTransactionListItem'
 
 export type TotalSpendingResponseCategoryTotalListItemSubCategoryListItem = {
-  sub_category_id: Identifier;
-  sub_category_name: string;
-  sub_category_total_amount: number;
-  transaction_list: TotalSpendingResponseCategoryTotalListItemSubCategoryListItemTransactionListItem[];
-};
+  sub_category_id: Identifier
+  sub_category_name: string
+  sub_category_total_amount: number
+  transaction_list: TotalSpendingResponseCategoryTotalListItemSubCategoryListItemTransactionListItem[]
+}

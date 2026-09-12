@@ -1,4 +1,10 @@
-import { Banknote, CreditCard, MoreHorizontal, QrCode, WalletCards } from 'lucide-react'
+import {
+  Banknote,
+  CreditCard,
+  MoreHorizontal,
+  QrCode,
+  WalletCards,
+} from 'lucide-react'
 import { getPaymentIconSource } from '@/shared/lib/payment-icon'
 import { cn } from '@/shared/lib/utils'
 import type { PaymentMethodItem } from '../../model/analysis-payments'
@@ -21,9 +27,13 @@ export function PaymentIcon({
   index: number
   size?: 'default' | 'large'
 }) {
-  const iconSource = payment.id === 'unclassified'
-    ? null
-    : getPaymentIconSource({ paymentName: payment.name, paymentTypeName: payment.typeName })
+  const iconSource =
+    payment.id === 'unclassified'
+      ? null
+      : getPaymentIconSource({
+          paymentName: payment.name,
+          paymentTypeName: payment.typeName,
+        })
   const Icon =
     payment.id === 'unclassified'
       ? MoreHorizontal
@@ -39,7 +49,10 @@ export function PaymentIcon({
     return (
       <img
         alt=""
-        className={cn('shrink-0 rounded-full', size === 'large' ? 'size-10 sm:size-12' : 'size-8')}
+        className={cn(
+          'shrink-0 rounded-full',
+          size === 'large' ? 'size-10 sm:size-12' : 'size-8',
+        )}
         height={size === 'large' ? 48 : 32}
         src={iconSource}
         width={size === 'large' ? 48 : 32}

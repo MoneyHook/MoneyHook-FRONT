@@ -59,7 +59,9 @@ test('accepts a Google emulator token at the real API', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Googleで続行' })).toBeVisible()
 })
 
-test('protects app routes and restores a deep link after login', async ({ page }) => {
+test('protects app routes and restores a deep link after login', async ({
+  page,
+}) => {
   await page.goto('/app/analysis')
   await expect(page).toHaveURL(/\/login\?redirect=/)
   await completeGoogleLogin(page)
@@ -68,22 +70,32 @@ test('protects app routes and restores a deep link after login', async ({ page }
   await expect(page.getByRole('heading', { name: '分析' })).toBeVisible()
 
   for (const tab of ['概要', 'カテゴリ', '固定費', '支払い方法']) {
-    await expect(page.getByRole('link', { name: tab, exact: true })).toBeVisible()
+    await expect(
+      page.getByRole('link', { name: tab, exact: true }),
+    ).toBeVisible()
   }
   await page.getByRole('link', { name: 'カテゴリ', exact: true }).click()
   await expect(page).toHaveURL(/\/app\/analysis\?view=categories$/)
-  await expect(page.getByRole('heading', { name: 'カテゴリ別支出' })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: 'カテゴリ別支出' }),
+  ).toBeVisible()
   await expect(page.getByRole('heading', { name: /の内訳$/ })).toBeVisible()
   await page.reload()
-  await expect(page.getByRole('heading', { name: 'カテゴリ別支出' })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: 'カテゴリ別支出' }),
+  ).toBeVisible()
   await page.getByRole('link', { name: '固定費', exact: true }).click()
   await expect(page).toHaveURL(/\/app\/analysis\?view=fixed$/)
-  await expect(page.getByRole('heading', { name: '固定費サマリー' })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: '固定費サマリー' }),
+  ).toBeVisible()
   await expect(
     page.getByRole('heading', { name: '固定費のカテゴリ別推移' }),
   ).toBeVisible()
   await page.reload()
-  await expect(page.getByRole('heading', { name: '固定費サマリー' })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: '固定費サマリー' }),
+  ).toBeVisible()
   await page.getByRole('link', { name: '支払い方法', exact: true }).click()
   await expect(
     page.getByRole('heading', { name: '支払い方法サマリー' }),
@@ -106,7 +118,9 @@ test('protects app routes and restores a deep link after login', async ({ page }
   await expect(page.getByRole('heading', { name: '設定' })).toBeVisible()
 })
 
-test('opens each settings summary card in its dedicated management page', async ({ page }) => {
+test('opens each settings summary card in its dedicated management page', async ({
+  page,
+}) => {
   await signInWithEmulator(page)
   await page.goto('/app/settings')
 
@@ -114,7 +128,11 @@ test('opens each settings summary card in its dedicated management page', async 
     ['アカウントの設定を開く', 'settings/account', 'アカウント'],
     ['予算の設定を開く', 'settings/budget', '予算'],
     ['支払い方法の設定を開く', 'settings/payments', '支払い方法'],
-    ['収支の自動入力の設定を開く', 'settings/recurring-transactions', '収支の自動入力'],
+    [
+      '収支の自動入力の設定を開く',
+      'settings/recurring-transactions',
+      '収支の自動入力',
+    ],
     ['表示の設定を開く', 'settings/appearance', '表示'],
   ] as const) {
     await page.getByRole('link', { name: cardName }).click()
@@ -139,7 +157,9 @@ test('keeps the analysis width stable at 1024px', async ({ page }) => {
   )
 
   await page.getByRole('link', { name: '固定費', exact: true }).click()
-  await expect(page.getByRole('heading', { name: '固定費サマリー' })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: '固定費サマリー' }),
+  ).toBeVisible()
 
   const fixedTabWidths = await analysisTabs.evaluateAll((elements) =>
     elements.map((element) => element.getBoundingClientRect().width),
@@ -182,7 +202,10 @@ test('keeps the analysis width stable at 1024px', async ({ page }) => {
   expect(paymentTabWidths).toEqual(overviewTabWidths)
   expect(paymentLayout.documentWidth).toBe(paymentLayout.viewportWidth)
 
-  await page.getByRole('button', { name: 'サイドバーを切り替える' }).last().click()
+  await page
+    .getByRole('button', { name: 'サイドバーを切り替える' })
+    .last()
+    .click()
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(
     1024,
   )
@@ -196,7 +219,9 @@ test('switches between desktop sidebar and mobile bottom navigation at 769px', a
 
   const desktopNavigation = page.locator('[data-slot="sidebar"]').first()
   await expect(desktopNavigation).toBeVisible()
-  await expect(page.getByRole('navigation', { name: 'メインナビゲーション' })).toBeHidden()
+  await expect(
+    page.getByRole('navigation', { name: 'メインナビゲーション' }),
+  ).toBeHidden()
 
   for (const [label, path] of [
     ['取引', 'transactions'],
@@ -226,7 +251,9 @@ test('switches between desktop sidebar and mobile bottom navigation at 769px', a
   await page.getByRole('link', { name: '取引' }).last().click()
   await expect(page).toHaveURL(appUrl('transactions'))
   await page.reload()
-  await expect(page.getByRole('heading', { name: '取引', exact: true })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: '取引', exact: true }),
+  ).toBeVisible()
 
   await page.setViewportSize({ width: 390, height: 844 })
   await expect(mobileNavigation).toBeVisible()
@@ -241,15 +268,21 @@ test('switches between desktop sidebar and mobile bottom navigation at 769px', a
 
   await page.goto('/app/unknown')
   await expect(desktopNavigation).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'ページが見つかりません' })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: 'ページが見つかりません' }),
+  ).toBeVisible()
 
   await page.goto('/app/home')
-  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
+  await page.evaluate(() =>
+    (document.activeElement as HTMLElement | null)?.blur(),
+  )
   const skipLink = page.getByRole('link', { name: '本文へ移動' })
   let reachedSkipLink = false
   for (let index = 0; index < 12; index += 1) {
     await page.keyboard.press('Tab')
-    if (await skipLink.evaluate((element) => element === document.activeElement)) {
+    if (
+      await skipLink.evaluate((element) => element === document.activeElement)
+    ) {
       reachedSkipLink = true
       break
     }
@@ -259,10 +292,14 @@ test('switches between desktop sidebar and mobile bottom navigation at 769px', a
   await expect(page.locator('#main-content')).toBeFocused()
 })
 
-test('rejects an external login redirect and provides a public 404', async ({ page }) => {
+test('rejects an external login redirect and provides a public 404', async ({
+  page,
+}) => {
   await page.goto('/login?redirect=https://example.com/app/home')
   await expect(page.getByRole('button', { name: 'Googleで続行' })).toBeVisible()
 
   await page.goto('/missing-page')
-  await expect(page.getByRole('heading', { name: 'ページが見つかりません' })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: 'ページが見つかりません' }),
+  ).toBeVisible()
 })

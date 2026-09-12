@@ -18,5 +18,5 @@
 
 export const SuccessResponseValue = {
   status: 'success',
-} as const;
-export type SuccessResponse = typeof SuccessResponseValue;
+} as const
+export type SuccessResponse = typeof SuccessResponseValue

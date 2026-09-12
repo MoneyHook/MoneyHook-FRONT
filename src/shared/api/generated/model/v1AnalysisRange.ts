@@ -15,9 +15,9 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { DateString } from './dateString';
+import type { DateString } from './dateString'
 
 export interface V1AnalysisRange {
-  start_date: DateString;
-  end_date: DateString;
+  start_date: DateString
+  end_date: DateString
 }

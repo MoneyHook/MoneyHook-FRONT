@@ -15,15 +15,15 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { V1SettingsPatchRequestAccentColor } from './v1SettingsPatchRequestAccentColor';
-import type { V1SettingsPatchRequestChartPalette } from './v1SettingsPatchRequestChartPalette';
-import type { V1SettingsPatchRequestThemeMode } from './v1SettingsPatchRequestThemeMode';
+import type { V1SettingsPatchRequestAccentColor } from './v1SettingsPatchRequestAccentColor'
+import type { V1SettingsPatchRequestChartPalette } from './v1SettingsPatchRequestChartPalette'
+import type { V1SettingsPatchRequestThemeMode } from './v1SettingsPatchRequestThemeMode'
 
 /**
  * At least one property must be supplied.
  */
 export interface V1SettingsPatchRequest {
-  accent_color?: V1SettingsPatchRequestAccentColor;
-  theme_mode?: V1SettingsPatchRequestThemeMode;
-  chart_palette?: V1SettingsPatchRequestChartPalette;
+  accent_color?: V1SettingsPatchRequestAccentColor
+  theme_mode?: V1SettingsPatchRequestThemeMode
+  chart_palette?: V1SettingsPatchRequestChartPalette
 }

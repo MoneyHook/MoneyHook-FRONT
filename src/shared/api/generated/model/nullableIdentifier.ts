@@ -15,6 +15,6 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { Identifier } from './identifier';
+import type { Identifier } from './identifier'
 
-export type NullableIdentifier = Identifier | null;
+export type NullableIdentifier = Identifier | null

@@ -15,8 +15,8 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { TransactionWrite } from './transactionWrite';
+import type { TransactionWrite } from './transactionWrite'
 
 export interface TransactionWriteEnvelope {
-  transaction: TransactionWrite;
+  transaction: TransactionWrite
 }

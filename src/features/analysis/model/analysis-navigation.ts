@@ -1,5 +1,3 @@
-
-
 export const analysisViews = [
   { value: 'overview', label: '概要' },
   { value: 'categories', label: 'カテゴリ' },

@@ -7,10 +7,7 @@ export function AnalysisPanel({
   id,
 }: React.PropsWithChildren<{ className?: string; id?: string }>) {
   return (
-    <Card
-      className={cn('block p-4 sm:p-6', className)}
-      id={id}
-    >
+    <Card className={cn('block p-4 sm:p-6', className)} id={id}>
       {children}
     </Card>
   )

@@ -15,14 +15,14 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { DateString } from './dateString';
-import type { Identifier } from './identifier';
+import type { DateString } from './dateString'
+import type { Identifier } from './identifier'
 
 export type WithdrawalResponseWithdrawalListItem = {
-  payment_id: Identifier;
-  payment_name: string;
-  payment_date: number;
-  aggregation_start_date: DateString;
-  aggregation_end_date: DateString;
-  withdrawal_amount: number;
-};
+  payment_id: Identifier
+  payment_name: string
+  payment_date: number
+  aggregation_start_date: DateString
+  aggregation_end_date: DateString
+  withdrawal_amount: number
+}

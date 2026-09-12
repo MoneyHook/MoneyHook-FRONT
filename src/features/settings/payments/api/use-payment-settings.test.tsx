@@ -11,7 +11,9 @@ vi.mock('@/shared/config/environment', () => ({
   getEnvironment: () => ({ apiBaseUrl: 'http://api.test' }),
 }))
 vi.mock('@/shared/lib/firebase', () => ({
-  getFirebaseAuth: () => ({ currentUser: { getIdToken: async () => 'test-token' } }),
+  getFirebaseAuth: () => ({
+    currentUser: { getIdToken: async () => 'test-token' },
+  }),
 }))
 
 const payments = [
@@ -52,20 +54,30 @@ describe('payment reordering', () => {
           })
         }),
       )
-      const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+      const queryClient = new QueryClient({
+        defaultOptions: { queries: { retry: false } },
+      })
       const { result } = renderHook(() => usePaymentSettings(), {
         wrapper: ({ children }: { children: ReactNode }) => (
-          <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+          <QueryClientProvider client={queryClient}>
+            {children}
+          </QueryClientProvider>
         ),
       })
-      await waitFor(() => expect(result.current.paymentsQuery.data?.status).toBe(200))
+      await waitFor(() =>
+        expect(result.current.paymentsQuery.data?.status).toBe(200),
+      )
       const nextPayments = [...payments].reverse()
       let pending: Promise<unknown>
       act(() => {
-        pending = result.current.reorder(nextPayments).catch((error: unknown) => error)
+        pending = result.current
+          .reorder(nextPayments)
+          .catch((error: unknown) => error)
       })
       await waitFor(() =>
-        expect(result.current.paymentsQuery.data?.data).toEqual({ payment_list: nextPayments }),
+        expect(result.current.paymentsQuery.data?.data).toEqual({
+          payment_list: nextPayments,
+        }),
       )
       await waitFor(() => expect(finish).toBeDefined())
       expect(requestedOrder).toEqual({ payment_ids: ['2', '1'] })

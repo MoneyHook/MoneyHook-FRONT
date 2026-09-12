@@ -15,9 +15,9 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { V1ErrorResponse } from './v1ErrorResponse';
+import type { V1ErrorResponse } from './v1ErrorResponse'
 
 /**
  * Firebase UID and the legacy verified-email identity belong to different users
  */
-export type AuthIdentityConflictResponse = V1ErrorResponse;
+export type AuthIdentityConflictResponse = V1ErrorResponse

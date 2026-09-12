@@ -15,12 +15,12 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { Identifier } from './identifier';
-import type { MonthlyVariableResponseMonthlyVariableListItemSubCategoryListItem } from './monthlyVariableResponseMonthlyVariableListItemSubCategoryListItem';
+import type { Identifier } from './identifier'
+import type { MonthlyVariableResponseMonthlyVariableListItemSubCategoryListItem } from './monthlyVariableResponseMonthlyVariableListItemSubCategoryListItem'
 
 export type MonthlyVariableResponseMonthlyVariableListItem = {
-  category_id: Identifier;
-  category_name: string;
-  category_total_amount: number;
-  sub_category_list: MonthlyVariableResponseMonthlyVariableListItemSubCategoryListItem[];
-};
+  category_id: Identifier
+  category_name: string
+  category_total_amount: number
+  sub_category_list: MonthlyVariableResponseMonthlyVariableListItemSubCategoryListItem[]
+}

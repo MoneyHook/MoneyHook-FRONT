@@ -15,34 +15,34 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { DateString } from './dateString';
-import type { Identifier } from './identifier';
-import type { NullableIdentifier } from './nullableIdentifier';
-import type { V1NullableTime } from './v1NullableTime';
-import type { V1TransactionResourceSign } from './v1TransactionResourceSign';
+import type { DateString } from './dateString'
+import type { Identifier } from './identifier'
+import type { NullableIdentifier } from './nullableIdentifier'
+import type { V1NullableTime } from './v1NullableTime'
+import type { V1TransactionResourceSign } from './v1TransactionResourceSign'
 
 export interface V1TransactionResource {
-  transaction_id: Identifier;
-  transaction_date: DateString;
-  transaction_time: V1NullableTime | null;
+  transaction_id: Identifier
+  transaction_date: DateString
+  transaction_time: V1NullableTime | null
   /**
-     * @minLength 1
-     * @maxLength 32
-     */
-  transaction_name: string;
+   * @minLength 1
+   * @maxLength 32
+   */
+  transaction_name: string
   /**
-     * @minimum 1
-     * @maximum 9999999
-     */
-  amount: number;
-  sign: V1TransactionResourceSign;
-  signed_amount: number;
-  category_id: Identifier;
-  category_name: string;
-  sub_category_id: Identifier;
-  sub_category_name: string;
-  fixed_flg: boolean;
-  payment_id: NullableIdentifier | null;
+   * @minimum 1
+   * @maximum 9999999
+   */
+  amount: number
+  sign: V1TransactionResourceSign
+  signed_amount: number
+  category_id: Identifier
+  category_name: string
+  sub_category_id: Identifier
+  sub_category_name: string
+  fixed_flg: boolean
+  payment_id: NullableIdentifier | null
   /** @nullable */
-  payment_name: string | null;
+  payment_name: string | null
 }

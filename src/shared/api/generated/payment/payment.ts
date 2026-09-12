@@ -15,10 +15,7 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import {
-  useMutation,
-  useQuery
-} from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query'
 import type {
   DataTag,
   DefinedInitialDataOptions,
@@ -31,8 +28,8 @@ import type {
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
-  UseQueryResult
-} from '@tanstack/react-query';
+  UseQueryResult,
+} from '@tanstack/react-query'
 
 import type {
   AuthIdentityConflictResponse,
@@ -45,28 +42,28 @@ import type {
   StringMutationFailureResponse,
   SuccessResponse,
   V1InternalErrorResponse,
-  V1UnauthorizedResponse
-} from '../model';
+  V1UnauthorizedResponse,
+} from '../model'
 
-import { apiFetch } from '../../http-client';
+import { apiFetch } from '../../http-client'
 
-
-
-
-const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKey: K } => {
-  const result = { queryKey } as T & { queryKey: K };
+const withQueryKey = <T extends object, K>(
+  query: T,
+  queryKey: K,
+): T & { queryKey: K } => {
+  const result = { queryKey } as T & { queryKey: K }
   for (const key of Object.keys(query)) {
     // The explicit queryKey always wins, matching the previous
     // `{ ...query, queryKey }` spread where it was set last.
-    if (key === 'queryKey') continue;
+    if (key === 'queryKey') continue
     Object.defineProperty(result, key, {
       enumerable: true,
       configurable: true,
       get: () => (query as Record<string, unknown>)[key],
-    });
+    })
   }
-  return result;
-};
+  return result
+}
 
 export type getPaymentResourcesResponse200 = {
   data: PaymentResourceListResponse
@@ -88,20 +85,22 @@ export type getPaymentResourcesResponse500 = {
   status: 500
 }
 
-export type getPaymentResourcesResponseSuccess = (getPaymentResourcesResponse200) & {
-  headers: Headers;
-};
-export type getPaymentResourcesResponseError = (getPaymentResourcesResponse401 | getPaymentResourcesResponse409 | getPaymentResourcesResponse500) & {
-  headers: Headers;
-};
+export type getPaymentResourcesResponseSuccess =
+  getPaymentResourcesResponse200 & {
+    headers: Headers
+  }
+export type getPaymentResourcesResponseError = (
+  | getPaymentResourcesResponse401
+  | getPaymentResourcesResponse409
+  | getPaymentResourcesResponse500
+) & {
+  headers: Headers
+}
 
-export type getPaymentResourcesResponse = (getPaymentResourcesResponseSuccess | getPaymentResourcesResponseError)
+export type getPaymentResourcesResponse =
+  getPaymentResourcesResponseSuccess | getPaymentResourcesResponseError
 
 export const getGetPaymentResourcesUrl = () => {
-
-
-
-
   return `/api/payment/getPayment`
 }
 
@@ -109,94 +108,166 @@ export const getGetPaymentResourcesUrl = () => {
  * A database NULL/zero closing day is exposed as `31`; zero payment day is exposed as null.
  * @summary List payment resources owned by the authenticated user
  */
-export const getPaymentResources = async ( options?: RequestInit): Promise<getPaymentResourcesResponse> => {
-
-  return apiFetch<getPaymentResourcesResponse>(getGetPaymentResourcesUrl(),
-  {
+export const getPaymentResources = async (
+  options?: RequestInit,
+): Promise<getPaymentResourcesResponse> => {
+  return apiFetch<getPaymentResourcesResponse>(getGetPaymentResourcesUrl(), {
     ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGetPaymentResourcesQueryKey = () => {
-    return [
-    `/api/payment/getPayment`
-    ] as const;
-    }
-
-
-export const getGetPaymentResourcesQueryOptions = <TData = Awaited<ReturnType<typeof getPaymentResources>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPaymentResources>>, TError, TData>>, }
-) => {
-
-const {query: queryOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetPaymentResourcesQueryKey();
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPaymentResources>>> = ({ signal }) => getPaymentResources({ signal });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPaymentResources>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+    method: 'GET',
+  })
 }
 
-export type GetPaymentResourcesQueryResult = NonNullable<Awaited<ReturnType<typeof getPaymentResources>>>
-export type GetPaymentResourcesQueryError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse
+export const getGetPaymentResourcesQueryKey = () => {
+  return [`/api/payment/getPayment`] as const
+}
 
+export const getGetPaymentResourcesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getPaymentResources>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<typeof getPaymentResources>>,
+      TError,
+      TData
+    >
+  >
+}) => {
+  const { query: queryOptions } = options ?? {}
 
-export function useGetPaymentResources<TData = Awaited<ReturnType<typeof getPaymentResources>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPaymentResources>>, TError, TData>> & Pick<
+  const queryKey = queryOptions?.queryKey ?? getGetPaymentResourcesQueryKey()
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getPaymentResources>>
+  > = ({ signal }) => getPaymentResources({ signal })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getPaymentResources>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetPaymentResourcesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getPaymentResources>>
+>
+export type GetPaymentResourcesQueryError =
+  | V1UnauthorizedResponse
+  | AuthIdentityConflictResponse
+  | V1InternalErrorResponse
+
+export function useGetPaymentResources<
+  TData = Awaited<ReturnType<typeof getPaymentResources>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getPaymentResources>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getPaymentResources>>,
           TError,
           Awaited<ReturnType<typeof getPaymentResources>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetPaymentResources<TData = Awaited<ReturnType<typeof getPaymentResources>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPaymentResources>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+export function useGetPaymentResources<
+  TData = Awaited<ReturnType<typeof getPaymentResources>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getPaymentResources>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getPaymentResources>>,
           TError,
           Awaited<ReturnType<typeof getPaymentResources>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetPaymentResources<TData = Awaited<ReturnType<typeof getPaymentResources>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPaymentResources>>, TError, TData>>, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+export function useGetPaymentResources<
+  TData = Awaited<ReturnType<typeof getPaymentResources>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getPaymentResources>>,
+        TError,
+        TData
+      >
+    >
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
 /**
  * @summary List payment resources owned by the authenticated user
  */
 
-export function useGetPaymentResources<TData = Awaited<ReturnType<typeof getPaymentResources>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPaymentResources>>, TError, TData>>, }
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
+export function useGetPaymentResources<
+  TData = Awaited<ReturnType<typeof getPaymentResources>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getPaymentResources>>,
+        TError,
+        TData
+      >
+    >
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+} {
   const queryOptions = getGetPaymentResourcesQueryOptions(options)
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 
-  return withQueryKey(query, queryOptions.queryKey);
+  return withQueryKey(query, queryOptions.queryKey)
 }
-
-
-
-
-
 
 export type addPaymentResourceResponse200 = {
   data: SuccessResponse
@@ -223,20 +294,23 @@ export type addPaymentResourceResponse500 = {
   status: 500
 }
 
-export type addPaymentResourceResponseSuccess = (addPaymentResourceResponse200) & {
-  headers: Headers;
-};
-export type addPaymentResourceResponseError = (addPaymentResourceResponse401 | addPaymentResourceResponse409 | addPaymentResourceResponse422 | addPaymentResourceResponse500) & {
-  headers: Headers;
-};
+export type addPaymentResourceResponseSuccess =
+  addPaymentResourceResponse200 & {
+    headers: Headers
+  }
+export type addPaymentResourceResponseError = (
+  | addPaymentResourceResponse401
+  | addPaymentResourceResponse409
+  | addPaymentResourceResponse422
+  | addPaymentResourceResponse500
+) & {
+  headers: Headers
+}
 
-export type addPaymentResourceResponse = (addPaymentResourceResponseSuccess | addPaymentResourceResponseError)
+export type addPaymentResourceResponse =
+  addPaymentResourceResponseSuccess | addPaymentResourceResponseError
 
 export const getAddPaymentResourceUrl = () => {
-
-
-
-
   return `/api/payment/addPayment`
 }
 
@@ -244,73 +318,110 @@ export const getAddPaymentResourceUrl = () => {
  * If `payment_type_id` is omitted/null, type `1` is forced and date fields are ignored.
  * @summary Add a payment resource
  */
-export const addPaymentResource = async (paymentWriteRequest: PaymentWriteRequest, options?: RequestInit): Promise<addPaymentResourceResponse> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Array.isArray(h)) return Object.fromEntries(h);
-    return h;
-  };
-return apiFetch<addPaymentResourceResponse>(getAddPaymentResourceUrl(),
-  {
+export const addPaymentResource = async (
+  paymentWriteRequest: PaymentWriteRequest,
+  options?: RequestInit,
+): Promise<addPaymentResourceResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {}
+    if (h instanceof Headers) return Object.fromEntries(h.entries())
+    if (Array.isArray(h)) return Object.fromEntries(h)
+    return h
+  }
+  return apiFetch<addPaymentResourceResponse>(getAddPaymentResourceUrl(), {
     ...options,
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(paymentWriteRequest)
+    headers: {
+      'Content-Type': 'application/json',
+      ...getHeaders(options?.headers),
+    },
+    body: JSON.stringify(paymentWriteRequest),
+  })
+}
+
+export const getAddPaymentResourceMutationOptions = <
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | StringMutationFailureResponse
+    | V1InternalErrorResponse,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addPaymentResource>>,
+    TError,
+    AddPaymentResourceMutationVariables,
+    TContext
+  >
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof addPaymentResource>>,
+  TError,
+  AddPaymentResourceMutationVariables,
+  TContext
+> => {
+  const mutationKey = ['addPaymentResource']
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof addPaymentResource>>,
+    AddPaymentResourceMutationVariables
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return addPaymentResource(data)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AddPaymentResourceMutationResult = NonNullable<
+  Awaited<ReturnType<typeof addPaymentResource>>
+>
+export type AddPaymentResourceMutationBody = PaymentWriteRequest
+export type AddPaymentResourceMutationError =
+  | V1UnauthorizedResponse
+  | AuthIdentityConflictResponse
+  | StringMutationFailureResponse
+  | V1InternalErrorResponse
+export type AddPaymentResourceMutationVariables = { data: PaymentWriteRequest }
 
-
-
-export const getAddPaymentResourceMutationOptions = <TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | StringMutationFailureResponse | V1InternalErrorResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addPaymentResource>>, TError,AddPaymentResourceMutationVariables, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof addPaymentResource>>, TError,AddPaymentResourceMutationVariables, TContext> => {
-
-const mutationKey = ['addPaymentResource'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addPaymentResource>>, AddPaymentResourceMutationVariables> = (props) => {
-          const {data} = props ?? {};
-
-          return  addPaymentResource(data,)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AddPaymentResourceMutationResult = NonNullable<Awaited<ReturnType<typeof addPaymentResource>>>
-    export type AddPaymentResourceMutationBody = PaymentWriteRequest
-    export type AddPaymentResourceMutationError = V1UnauthorizedResponse | AuthIdentityConflictResponse | StringMutationFailureResponse | V1InternalErrorResponse
-    export type AddPaymentResourceMutationVariables = {data: PaymentWriteRequest}
-
-    /**
+/**
  * @summary Add a payment resource
  */
-export const useAddPaymentResource = <TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | StringMutationFailureResponse | V1InternalErrorResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addPaymentResource>>, TError,AddPaymentResourceMutationVariables, TContext>, }
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof addPaymentResource>>,
-        TError,
-        AddPaymentResourceMutationVariables,
-        TContext
-      > => {
-      return useMutation(getAddPaymentResourceMutationOptions(options), queryClient);
-    }
-    export type editPaymentResourceResponse200 = {
+export const useAddPaymentResource = <
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | StringMutationFailureResponse
+    | V1InternalErrorResponse,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof addPaymentResource>>,
+      TError,
+      AddPaymentResourceMutationVariables,
+      TContext
+    >
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof addPaymentResource>>,
+  TError,
+  AddPaymentResourceMutationVariables,
+  TContext
+> => {
+  return useMutation(getAddPaymentResourceMutationOptions(options), queryClient)
+}
+export type editPaymentResourceResponse200 = {
   data: SuccessResponse
   status: 200
 }
@@ -335,20 +446,23 @@ export type editPaymentResourceResponse500 = {
   status: 500
 }
 
-export type editPaymentResourceResponseSuccess = (editPaymentResourceResponse200) & {
-  headers: Headers;
-};
-export type editPaymentResourceResponseError = (editPaymentResourceResponse401 | editPaymentResourceResponse409 | editPaymentResourceResponse422 | editPaymentResourceResponse500) & {
-  headers: Headers;
-};
+export type editPaymentResourceResponseSuccess =
+  editPaymentResourceResponse200 & {
+    headers: Headers
+  }
+export type editPaymentResourceResponseError = (
+  | editPaymentResourceResponse401
+  | editPaymentResourceResponse409
+  | editPaymentResourceResponse422
+  | editPaymentResourceResponse500
+) & {
+  headers: Headers
+}
 
-export type editPaymentResourceResponse = (editPaymentResourceResponseSuccess | editPaymentResourceResponseError)
+export type editPaymentResourceResponse =
+  editPaymentResourceResponseSuccess | editPaymentResourceResponseError
 
 export const getEditPaymentResourceUrl = () => {
-
-
-
-
   return `/api/payment/editPayment`
 }
 
@@ -356,73 +470,113 @@ export const getEditPaymentResourceUrl = () => {
  * If `payment_type_id` is omitted/null, type `1` is forced and date fields are cleared.
  * @summary Edit a payment resource owned by the authenticated user
  */
-export const editPaymentResource = async (paymentEditRequest: PaymentEditRequest, options?: RequestInit): Promise<editPaymentResourceResponse> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Array.isArray(h)) return Object.fromEntries(h);
-    return h;
-  };
-return apiFetch<editPaymentResourceResponse>(getEditPaymentResourceUrl(),
-  {
+export const editPaymentResource = async (
+  paymentEditRequest: PaymentEditRequest,
+  options?: RequestInit,
+): Promise<editPaymentResourceResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {}
+    if (h instanceof Headers) return Object.fromEntries(h.entries())
+    if (Array.isArray(h)) return Object.fromEntries(h)
+    return h
+  }
+  return apiFetch<editPaymentResourceResponse>(getEditPaymentResourceUrl(), {
     ...options,
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(paymentEditRequest)
+    headers: {
+      'Content-Type': 'application/json',
+      ...getHeaders(options?.headers),
+    },
+    body: JSON.stringify(paymentEditRequest),
+  })
+}
+
+export const getEditPaymentResourceMutationOptions = <
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | StringMutationFailureResponse
+    | V1InternalErrorResponse,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof editPaymentResource>>,
+    TError,
+    EditPaymentResourceMutationVariables,
+    TContext
+  >
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof editPaymentResource>>,
+  TError,
+  EditPaymentResourceMutationVariables,
+  TContext
+> => {
+  const mutationKey = ['editPaymentResource']
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof editPaymentResource>>,
+    EditPaymentResourceMutationVariables
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return editPaymentResource(data)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type EditPaymentResourceMutationResult = NonNullable<
+  Awaited<ReturnType<typeof editPaymentResource>>
+>
+export type EditPaymentResourceMutationBody = PaymentEditRequest
+export type EditPaymentResourceMutationError =
+  | V1UnauthorizedResponse
+  | AuthIdentityConflictResponse
+  | StringMutationFailureResponse
+  | V1InternalErrorResponse
+export type EditPaymentResourceMutationVariables = { data: PaymentEditRequest }
 
-
-
-export const getEditPaymentResourceMutationOptions = <TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | StringMutationFailureResponse | V1InternalErrorResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof editPaymentResource>>, TError,EditPaymentResourceMutationVariables, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof editPaymentResource>>, TError,EditPaymentResourceMutationVariables, TContext> => {
-
-const mutationKey = ['editPaymentResource'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof editPaymentResource>>, EditPaymentResourceMutationVariables> = (props) => {
-          const {data} = props ?? {};
-
-          return  editPaymentResource(data,)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type EditPaymentResourceMutationResult = NonNullable<Awaited<ReturnType<typeof editPaymentResource>>>
-    export type EditPaymentResourceMutationBody = PaymentEditRequest
-    export type EditPaymentResourceMutationError = V1UnauthorizedResponse | AuthIdentityConflictResponse | StringMutationFailureResponse | V1InternalErrorResponse
-    export type EditPaymentResourceMutationVariables = {data: PaymentEditRequest}
-
-    /**
+/**
  * @summary Edit a payment resource owned by the authenticated user
  */
-export const useEditPaymentResource = <TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | StringMutationFailureResponse | V1InternalErrorResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof editPaymentResource>>, TError,EditPaymentResourceMutationVariables, TContext>, }
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof editPaymentResource>>,
-        TError,
-        EditPaymentResourceMutationVariables,
-        TContext
-      > => {
-      return useMutation(getEditPaymentResourceMutationOptions(options), queryClient);
-    }
-    export type reorderPaymentResourcesResponse200 = {
+export const useEditPaymentResource = <
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | StringMutationFailureResponse
+    | V1InternalErrorResponse,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof editPaymentResource>>,
+      TError,
+      EditPaymentResourceMutationVariables,
+      TContext
+    >
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof editPaymentResource>>,
+  TError,
+  EditPaymentResourceMutationVariables,
+  TContext
+> => {
+  return useMutation(
+    getEditPaymentResourceMutationOptions(options),
+    queryClient,
+  )
+}
+export type reorderPaymentResourcesResponse200 = {
   data: SuccessResponse
   status: 200
 }
@@ -447,93 +601,141 @@ export type reorderPaymentResourcesResponse500 = {
   status: 500
 }
 
-export type reorderPaymentResourcesResponseSuccess = (reorderPaymentResourcesResponse200) & {
-  headers: Headers;
-};
-export type reorderPaymentResourcesResponseError = (reorderPaymentResourcesResponse401 | reorderPaymentResourcesResponse409 | reorderPaymentResourcesResponse422 | reorderPaymentResourcesResponse500) & {
-  headers: Headers;
-};
+export type reorderPaymentResourcesResponseSuccess =
+  reorderPaymentResourcesResponse200 & {
+    headers: Headers
+  }
+export type reorderPaymentResourcesResponseError = (
+  | reorderPaymentResourcesResponse401
+  | reorderPaymentResourcesResponse409
+  | reorderPaymentResourcesResponse422
+  | reorderPaymentResourcesResponse500
+) & {
+  headers: Headers
+}
 
-export type reorderPaymentResourcesResponse = (reorderPaymentResourcesResponseSuccess | reorderPaymentResourcesResponseError)
+export type reorderPaymentResourcesResponse =
+  reorderPaymentResourcesResponseSuccess | reorderPaymentResourcesResponseError
 
 export const getReorderPaymentResourcesUrl = () => {
-
-
-
-
   return `/api/payment/reorder`
 }
 
 /**
  * @summary Replace the authenticated user's payment resource order
  */
-export const reorderPaymentResources = async (paymentResourceOrderRequest: PaymentResourceOrderRequest, options?: RequestInit): Promise<reorderPaymentResourcesResponse> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Array.isArray(h)) return Object.fromEntries(h);
-    return h;
-  };
-return apiFetch<reorderPaymentResourcesResponse>(getReorderPaymentResourcesUrl(),
-  {
-    ...options,
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(paymentResourceOrderRequest)
+export const reorderPaymentResources = async (
+  paymentResourceOrderRequest: PaymentResourceOrderRequest,
+  options?: RequestInit,
+): Promise<reorderPaymentResourcesResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {}
+    if (h instanceof Headers) return Object.fromEntries(h.entries())
+    if (Array.isArray(h)) return Object.fromEntries(h)
+    return h
   }
-);}
+  return apiFetch<reorderPaymentResourcesResponse>(
+    getReorderPaymentResourcesUrl(),
+    {
+      ...options,
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getHeaders(options?.headers),
+      },
+      body: JSON.stringify(paymentResourceOrderRequest),
+    },
+  )
+}
 
+export const getReorderPaymentResourcesMutationOptions = <
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | StringMutationFailureResponse
+    | V1InternalErrorResponse,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof reorderPaymentResources>>,
+    TError,
+    ReorderPaymentResourcesMutationVariables,
+    TContext
+  >
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof reorderPaymentResources>>,
+  TError,
+  ReorderPaymentResourcesMutationVariables,
+  TContext
+> => {
+  const mutationKey = ['reorderPaymentResources']
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } }
 
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof reorderPaymentResources>>,
+    ReorderPaymentResourcesMutationVariables
+  > = (props) => {
+    const { data } = props ?? {}
 
+    return reorderPaymentResources(data)
+  }
 
+  return { mutationFn, ...mutationOptions }
+}
 
-export const getReorderPaymentResourcesMutationOptions = <TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | StringMutationFailureResponse | V1InternalErrorResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reorderPaymentResources>>, TError,ReorderPaymentResourcesMutationVariables, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof reorderPaymentResources>>, TError,ReorderPaymentResourcesMutationVariables, TContext> => {
+export type ReorderPaymentResourcesMutationResult = NonNullable<
+  Awaited<ReturnType<typeof reorderPaymentResources>>
+>
+export type ReorderPaymentResourcesMutationBody = PaymentResourceOrderRequest
+export type ReorderPaymentResourcesMutationError =
+  | V1UnauthorizedResponse
+  | AuthIdentityConflictResponse
+  | StringMutationFailureResponse
+  | V1InternalErrorResponse
+export type ReorderPaymentResourcesMutationVariables = {
+  data: PaymentResourceOrderRequest
+}
 
-const mutationKey = ['reorderPaymentResources'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reorderPaymentResources>>, ReorderPaymentResourcesMutationVariables> = (props) => {
-          const {data} = props ?? {};
-
-          return  reorderPaymentResources(data,)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type ReorderPaymentResourcesMutationResult = NonNullable<Awaited<ReturnType<typeof reorderPaymentResources>>>
-    export type ReorderPaymentResourcesMutationBody = PaymentResourceOrderRequest
-    export type ReorderPaymentResourcesMutationError = V1UnauthorizedResponse | AuthIdentityConflictResponse | StringMutationFailureResponse | V1InternalErrorResponse
-    export type ReorderPaymentResourcesMutationVariables = {data: PaymentResourceOrderRequest}
-
-    /**
+/**
  * @summary Replace the authenticated user's payment resource order
  */
-export const useReorderPaymentResources = <TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | StringMutationFailureResponse | V1InternalErrorResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reorderPaymentResources>>, TError,ReorderPaymentResourcesMutationVariables, TContext>, }
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof reorderPaymentResources>>,
-        TError,
-        ReorderPaymentResourcesMutationVariables,
-        TContext
-      > => {
-      return useMutation(getReorderPaymentResourcesMutationOptions(options), queryClient);
-    }
-    export type deletePaymentResourceResponse200 = {
+export const useReorderPaymentResources = <
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | StringMutationFailureResponse
+    | V1InternalErrorResponse,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof reorderPaymentResources>>,
+      TError,
+      ReorderPaymentResourcesMutationVariables,
+      TContext
+    >
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof reorderPaymentResources>>,
+  TError,
+  ReorderPaymentResourcesMutationVariables,
+  TContext
+> => {
+  return useMutation(
+    getReorderPaymentResourcesMutationOptions(options),
+    queryClient,
+  )
+}
+export type deletePaymentResourceResponse200 = {
   data: SuccessResponse
   status: 200
 }
@@ -558,87 +760,126 @@ export type deletePaymentResourceResponse500 = {
   status: 500
 }
 
-export type deletePaymentResourceResponseSuccess = (deletePaymentResourceResponse200) & {
-  headers: Headers;
-};
-export type deletePaymentResourceResponseError = (deletePaymentResourceResponse401 | deletePaymentResourceResponse409 | deletePaymentResourceResponse422 | deletePaymentResourceResponse500) & {
-  headers: Headers;
-};
+export type deletePaymentResourceResponseSuccess =
+  deletePaymentResourceResponse200 & {
+    headers: Headers
+  }
+export type deletePaymentResourceResponseError = (
+  | deletePaymentResourceResponse401
+  | deletePaymentResourceResponse409
+  | deletePaymentResourceResponse422
+  | deletePaymentResourceResponse500
+) & {
+  headers: Headers
+}
 
-export type deletePaymentResourceResponse = (deletePaymentResourceResponseSuccess | deletePaymentResourceResponseError)
+export type deletePaymentResourceResponse =
+  deletePaymentResourceResponseSuccess | deletePaymentResourceResponseError
 
-export const getDeletePaymentResourceUrl = (paymentId: Identifier,) => {
-
-
-
-
+export const getDeletePaymentResourceUrl = (paymentId: Identifier) => {
   return `/api/payment/deletePayment/${paymentId}`
 }
 
 /**
  * @summary Delete a payment resource owned by the authenticated user
  */
-export const deletePaymentResource = async (paymentId: Identifier, options?: RequestInit): Promise<deletePaymentResourceResponse> => {
+export const deletePaymentResource = async (
+  paymentId: Identifier,
+  options?: RequestInit,
+): Promise<deletePaymentResourceResponse> => {
+  return apiFetch<deletePaymentResourceResponse>(
+    getDeletePaymentResourceUrl(paymentId),
+    {
+      ...options,
+      method: 'DELETE',
+    },
+  )
+}
 
-  return apiFetch<deletePaymentResourceResponse>(getDeletePaymentResourceUrl(paymentId),
-  {
-    ...options,
-    method: 'DELETE'
+export const getDeletePaymentResourceMutationOptions = <
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | StringMutationFailureResponse
+    | V1InternalErrorResponse,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deletePaymentResource>>,
+    TError,
+    DeletePaymentResourceMutationVariables,
+    TContext
+  >
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deletePaymentResource>>,
+  TError,
+  DeletePaymentResourceMutationVariables,
+  TContext
+> => {
+  const mutationKey = ['deletePaymentResource']
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } }
 
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deletePaymentResource>>,
+    DeletePaymentResourceMutationVariables
+  > = (props) => {
+    const { paymentId } = props ?? {}
 
+    return deletePaymentResource(paymentId)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type DeletePaymentResourceMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deletePaymentResource>>
+>
 
+export type DeletePaymentResourceMutationError =
+  | V1UnauthorizedResponse
+  | AuthIdentityConflictResponse
+  | StringMutationFailureResponse
+  | V1InternalErrorResponse
+export type DeletePaymentResourceMutationVariables = { paymentId: Identifier }
 
-
-export const getDeletePaymentResourceMutationOptions = <TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | StringMutationFailureResponse | V1InternalErrorResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePaymentResource>>, TError,DeletePaymentResourceMutationVariables, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof deletePaymentResource>>, TError,DeletePaymentResourceMutationVariables, TContext> => {
-
-const mutationKey = ['deletePaymentResource'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deletePaymentResource>>, DeletePaymentResourceMutationVariables> = (props) => {
-          const {paymentId} = props ?? {};
-
-          return  deletePaymentResource(paymentId,)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type DeletePaymentResourceMutationResult = NonNullable<Awaited<ReturnType<typeof deletePaymentResource>>>
-
-    export type DeletePaymentResourceMutationError = V1UnauthorizedResponse | AuthIdentityConflictResponse | StringMutationFailureResponse | V1InternalErrorResponse
-    export type DeletePaymentResourceMutationVariables = {paymentId: Identifier}
-
-    /**
+/**
  * @summary Delete a payment resource owned by the authenticated user
  */
-export const useDeletePaymentResource = <TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | StringMutationFailureResponse | V1InternalErrorResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePaymentResource>>, TError,DeletePaymentResourceMutationVariables, TContext>, }
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof deletePaymentResource>>,
-        TError,
-        DeletePaymentResourceMutationVariables,
-        TContext
-      > => {
-      return useMutation(getDeletePaymentResourceMutationOptions(options), queryClient);
-    }
-    export type getPaymentTypesResponse200 = {
+export const useDeletePaymentResource = <
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | StringMutationFailureResponse
+    | V1InternalErrorResponse,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deletePaymentResource>>,
+      TError,
+      DeletePaymentResourceMutationVariables,
+      TContext
+    >
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof deletePaymentResource>>,
+  TError,
+  DeletePaymentResourceMutationVariables,
+  TContext
+> => {
+  return useMutation(
+    getDeletePaymentResourceMutationOptions(options),
+    queryClient,
+  )
+}
+export type getPaymentTypesResponse200 = {
   data: PaymentTypeListResponse
   status: 200
 }
@@ -658,112 +899,180 @@ export type getPaymentTypesResponse500 = {
   status: 500
 }
 
-export type getPaymentTypesResponseSuccess = (getPaymentTypesResponse200) & {
-  headers: Headers;
-};
-export type getPaymentTypesResponseError = (getPaymentTypesResponse401 | getPaymentTypesResponse409 | getPaymentTypesResponse500) & {
-  headers: Headers;
-};
+export type getPaymentTypesResponseSuccess = getPaymentTypesResponse200 & {
+  headers: Headers
+}
+export type getPaymentTypesResponseError = (
+  | getPaymentTypesResponse401
+  | getPaymentTypesResponse409
+  | getPaymentTypesResponse500
+) & {
+  headers: Headers
+}
 
-export type getPaymentTypesResponse = (getPaymentTypesResponseSuccess | getPaymentTypesResponseError)
+export type getPaymentTypesResponse =
+  getPaymentTypesResponseSuccess | getPaymentTypesResponseError
 
 export const getGetPaymentTypesUrl = () => {
-
-
-
-
   return `/api/payment/getPaymentType`
 }
 
 /**
  * @summary List payment type master data
  */
-export const getPaymentTypes = async ( options?: RequestInit): Promise<getPaymentTypesResponse> => {
-
-  return apiFetch<getPaymentTypesResponse>(getGetPaymentTypesUrl(),
-  {
+export const getPaymentTypes = async (
+  options?: RequestInit,
+): Promise<getPaymentTypesResponse> => {
+  return apiFetch<getPaymentTypesResponse>(getGetPaymentTypesUrl(), {
     ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGetPaymentTypesQueryKey = () => {
-    return [
-    `/api/payment/getPaymentType`
-    ] as const;
-    }
-
-
-export const getGetPaymentTypesQueryOptions = <TData = Awaited<ReturnType<typeof getPaymentTypes>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPaymentTypes>>, TError, TData>>, }
-) => {
-
-const {query: queryOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetPaymentTypesQueryKey();
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPaymentTypes>>> = ({ signal }) => getPaymentTypes({ signal });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPaymentTypes>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+    method: 'GET',
+  })
 }
 
-export type GetPaymentTypesQueryResult = NonNullable<Awaited<ReturnType<typeof getPaymentTypes>>>
-export type GetPaymentTypesQueryError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse
+export const getGetPaymentTypesQueryKey = () => {
+  return [`/api/payment/getPaymentType`] as const
+}
 
+export const getGetPaymentTypesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getPaymentTypes>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<Awaited<ReturnType<typeof getPaymentTypes>>, TError, TData>
+  >
+}) => {
+  const { query: queryOptions } = options ?? {}
 
-export function useGetPaymentTypes<TData = Awaited<ReturnType<typeof getPaymentTypes>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPaymentTypes>>, TError, TData>> & Pick<
+  const queryKey = queryOptions?.queryKey ?? getGetPaymentTypesQueryKey()
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getPaymentTypes>>> = ({
+    signal,
+  }) => getPaymentTypes({ signal })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getPaymentTypes>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetPaymentTypesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getPaymentTypes>>
+>
+export type GetPaymentTypesQueryError =
+  | V1UnauthorizedResponse
+  | AuthIdentityConflictResponse
+  | V1InternalErrorResponse
+
+export function useGetPaymentTypes<
+  TData = Awaited<ReturnType<typeof getPaymentTypes>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getPaymentTypes>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getPaymentTypes>>,
           TError,
           Awaited<ReturnType<typeof getPaymentTypes>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetPaymentTypes<TData = Awaited<ReturnType<typeof getPaymentTypes>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPaymentTypes>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+export function useGetPaymentTypes<
+  TData = Awaited<ReturnType<typeof getPaymentTypes>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getPaymentTypes>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getPaymentTypes>>,
           TError,
           Awaited<ReturnType<typeof getPaymentTypes>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetPaymentTypes<TData = Awaited<ReturnType<typeof getPaymentTypes>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPaymentTypes>>, TError, TData>>, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+export function useGetPaymentTypes<
+  TData = Awaited<ReturnType<typeof getPaymentTypes>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getPaymentTypes>>,
+        TError,
+        TData
+      >
+    >
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
 /**
  * @summary List payment type master data
  */
 
-export function useGetPaymentTypes<TData = Awaited<ReturnType<typeof getPaymentTypes>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPaymentTypes>>, TError, TData>>, }
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
+export function useGetPaymentTypes<
+  TData = Awaited<ReturnType<typeof getPaymentTypes>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getPaymentTypes>>,
+        TError,
+        TData
+      >
+    >
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+} {
   const queryOptions = getGetPaymentTypesQueryOptions(options)
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 
-  return withQueryKey(query, queryOptions.queryKey);
+  return withQueryKey(query, queryOptions.queryKey)
 }
-
-
-
-
-
-

@@ -7,7 +7,9 @@ export type PaymentSettingsFormValues = {
   paymentTypeId: string
 }
 
-export type PaymentSettingsFormErrors = Partial<Record<keyof PaymentSettingsFormValues, string>>
+export type PaymentSettingsFormErrors = Partial<
+  Record<keyof PaymentSettingsFormValues, string>
+>
 
 export function validatePaymentSettings(
   values: PaymentSettingsFormValues,
@@ -39,7 +41,12 @@ export function validatePaymentSettings(
     const day = Number(value)
     if (!value) {
       errors[key] = `${label}を入力してください。`
-    } else if (!/^\d+$/.test(value) || !Number.isSafeInteger(day) || day < 1 || day > 31) {
+    } else if (
+      !/^\d+$/.test(value) ||
+      !Number.isSafeInteger(day) ||
+      day < 1 ||
+      day > 31
+    ) {
       errors[key] = `${label}は1〜31の整数で入力してください。`
     }
   }

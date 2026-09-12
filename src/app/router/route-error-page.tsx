@@ -10,10 +10,7 @@ export function RouteErrorPage() {
 
   return (
     <main className="flex min-h-svh items-center bg-background">
-      <ErrorState
-        message={message}
-        onRetry={() => window.location.reload()}
-      />
+      <ErrorState message={message} onRetry={() => window.location.reload()} />
     </main>
   )
 }

@@ -2,19 +2,19 @@
 
 ## 採用済みの基盤
 
-| 分類 | 技術 |
-|---|---|
-| UI | React、TypeScript strict、Vite |
-| Package manager | pnpm |
-| Routing | React Router |
-| Server state | TanStack Query |
-| Validation | Zod |
-| Authentication | Firebase Authentication |
-| Components / CSS | shadcn/ui、Radix UI、Tailwind CSS |
-| Chart | Recharts |
-| Theme / notification | next-themes、Sonner |
-| API generation | OpenAPI、Orval |
-| Test | Vitest、React Testing Library、MSW、Playwright |
+| 分類                 | 技術                                           |
+| -------------------- | ---------------------------------------------- |
+| UI                   | React、TypeScript strict、Vite                 |
+| Package manager      | pnpm                                           |
+| Routing              | React Router                                   |
+| Server state         | TanStack Query                                 |
+| Validation           | Zod                                            |
+| Authentication       | Firebase Authentication                        |
+| Components / CSS     | shadcn/ui、Radix UI、Tailwind CSS              |
+| Chart                | Recharts                                       |
+| Theme / notification | next-themes、Sonner                            |
+| API generation       | OpenAPI、Orval                                 |
+| Test                 | Vitest、React Testing Library、MSW、Playwright |
 
 新しいライブラリは、実装する機能で必要になった時に選定して追加します。将来の候補を採用済みとして扱いません。
 
@@ -39,14 +39,14 @@ src/
 
 ## 状態の所有者
 
-| 状態 | 所有者 |
-|---|---|
-| APIから取得したデータ | TanStack Query |
-| ログインユーザーと認証確定状態 | Firebase Authentication / AuthProvider |
-| URLで再現する条件 | React Router Search Params |
-| そのコンポーネントだけの表示状態 | React local state |
-| デフォルトの支払い方法 | ユーザーに紐づく端末内設定（localStorage） |
-| 環境変数の検証済み設定 | `shared/config/environment` |
+| 状態                             | 所有者                                     |
+| -------------------------------- | ------------------------------------------ |
+| APIから取得したデータ            | TanStack Query                             |
+| ログインユーザーと認証確定状態   | Firebase Authentication / AuthProvider     |
+| URLで再現する条件                | React Router Search Params                 |
+| そのコンポーネントだけの表示状態 | React local state                          |
+| デフォルトの支払い方法           | ユーザーに紐づく端末内設定（localStorage） |
+| 環境変数の検証済み設定           | `shared/config/environment`                |
 
 APIデータの取得・更新・再取得はTanStack Queryで管理します。初期表示とAPI障害時のフォールバックに限り、成功レスポンスをlocalStorageへ保存します。永続キャッシュを独立した更新先やAPIの代替にはしません。
 

@@ -18,13 +18,13 @@
 
 export interface V1BudgetResponse {
   /**
-     * @minimum 1
-     * @nullable
-     */
-  monthly_budget_amount: number | null;
+   * @minimum 1
+   * @nullable
+   */
+  monthly_budget_amount: number | null
   /**
-     * @nullable
-     * @pattern ^[0-9]{4}-[0-9]{2}-01$
-     */
-  effective_from: string | null;
+   * @nullable
+   * @pattern ^[0-9]{4}-[0-9]{2}-01$
+   */
+  effective_from: string | null
 }

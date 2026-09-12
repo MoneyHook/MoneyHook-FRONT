@@ -15,8 +15,8 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { FixedListResponseMonthlyTransactionListItem } from './fixedListResponseMonthlyTransactionListItem';
+import type { FixedListResponseMonthlyTransactionListItem } from './fixedListResponseMonthlyTransactionListItem'
 
 export interface FixedListResponse {
-  monthly_transaction_list: FixedListResponseMonthlyTransactionListItem[];
+  monthly_transaction_list: FixedListResponseMonthlyTransactionListItem[]
 }

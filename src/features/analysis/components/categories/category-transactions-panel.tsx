@@ -2,7 +2,10 @@ import { ChevronRight, Funnel } from 'lucide-react'
 
 import { Button } from '@/shared/components/ui/button'
 
-import type { CategoryAnalysisItem, CategoryTransactionItem } from '../../model/analysis-categories'
+import type {
+  CategoryAnalysisItem,
+  CategoryTransactionItem,
+} from '../../model/analysis-categories'
 import { formatCurrency } from '../../model/analysis-overview'
 import { CategoryAnalysisPanel } from './category-analysis-panel'
 import { CategoryIcon } from '../category-icon'
@@ -27,7 +30,7 @@ function TransactionRow({
   return (
     <button
       aria-label={`${item.name}を編集`}
-      className="grid w-full grid-cols-[minmax(5.8rem,auto)_auto_minmax(0,1fr)_auto] items-center gap-2 px-1 py-3 text-left outline-none transition-colors hover:bg-muted/45 focus-visible:ring-3 focus-visible:ring-ring/50 sm:grid-cols-[8rem_auto_minmax(0,1fr)_auto] sm:gap-4 sm:px-2"
+      className="grid w-full grid-cols-[minmax(5.8rem,auto)_auto_minmax(0,1fr)_auto] items-center gap-2 px-1 py-3 text-left transition-colors outline-none hover:bg-muted/45 focus-visible:ring-3 focus-visible:ring-ring/50 sm:grid-cols-[8rem_auto_minmax(0,1fr)_auto] sm:gap-4 sm:px-2"
       onClick={() => onOpen(item.id)}
       type="button"
     >
@@ -68,7 +71,13 @@ function TransactionRow({
   )
 }
 
-export function CategoryTransactionsPanel({ category, onOpen }: { category: CategoryAnalysisItem; onOpen: (id: string) => void }) {
+export function CategoryTransactionsPanel({
+  category,
+  onOpen,
+}: {
+  category: CategoryAnalysisItem
+  onOpen: (id: string) => void
+}) {
   const transactions = category.transactions.slice(0, 3)
   return (
     <CategoryAnalysisPanel className="p-0">

@@ -41,7 +41,9 @@ export function cleanGeneratedImports(directory) {
     )
     for (const change of changes) {
       let source = readFileSync(change.fileName, 'utf8')
-      for (const edit of [...change.textChanges].sort((a, b) => b.span.start - a.span.start)) {
+      for (const edit of [...change.textChanges].sort(
+        (a, b) => b.span.start - a.span.start,
+      )) {
         source =
           source.slice(0, edit.span.start) +
           edit.newText +
@@ -56,5 +58,7 @@ export function cleanGeneratedImports(directory) {
 
 const scriptPath = fileURLToPath(import.meta.url)
 if (process.argv[1] && resolve(process.argv[1]) === scriptPath) {
-  cleanGeneratedImports(resolve(dirname(scriptPath), '../src/shared/api/generated/model'))
+  cleanGeneratedImports(
+    resolve(dirname(scriptPath), '../src/shared/api/generated/model'),
+  )
 }

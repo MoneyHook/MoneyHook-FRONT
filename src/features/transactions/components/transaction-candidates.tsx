@@ -11,7 +11,9 @@ const CANDIDATES_PREVIEW_COUNT = 6
 
 type TransactionCandidatesProps = {
   transactions: FrequentTransactionResponseTransactionListItem[]
-  onSelect: (transaction: FrequentTransactionResponseTransactionListItem) => void
+  onSelect: (
+    transaction: FrequentTransactionResponseTransactionListItem,
+  ) => void
   onOpenMore: () => void
 }
 
@@ -20,7 +22,12 @@ function CategoryBadge({ name }: { name: string }) {
   const Icon = presentation.icon
 
   return (
-    <span className={cn('flex size-5 shrink-0 items-center justify-center rounded-full', presentation.iconClassName)}>
+    <span
+      className={cn(
+        'flex size-5 shrink-0 items-center justify-center rounded-full',
+        presentation.iconClassName,
+      )}
+    >
       <Icon aria-hidden="true" className="size-3.5" />
     </span>
   )
@@ -31,7 +38,9 @@ export function TransactionCandidateChip({
   onSelect,
 }: {
   transaction: FrequentTransactionResponseTransactionListItem
-  onSelect: (transaction: FrequentTransactionResponseTransactionListItem) => void
+  onSelect: (
+    transaction: FrequentTransactionResponseTransactionListItem,
+  ) => void
 }) {
   return (
     <button
@@ -40,7 +49,10 @@ export function TransactionCandidateChip({
       onClick={() => onSelect(transaction)}
       type="button"
     >
-      <Badge className="h-9 gap-1.5 rounded-full px-3 text-sm font-medium group-hover:bg-muted [&>span]:shrink-0 [&>span+span]:min-w-0 [&>span+span]:truncate [&>span+span]:max-w-52" variant="outline">
+      <Badge
+        className="h-9 gap-1.5 rounded-full px-3 text-sm font-medium group-hover:bg-muted [&>span]:shrink-0 [&>span+span]:max-w-52 [&>span+span]:min-w-0 [&>span+span]:truncate"
+        variant="outline"
+      >
         <CategoryBadge name={transaction.category_name} />
         <span>{transaction.transaction_name}</span>
       </Badge>
@@ -48,15 +60,28 @@ export function TransactionCandidateChip({
   )
 }
 
-export function TransactionCandidates({ transactions, onSelect, onOpenMore }: TransactionCandidatesProps) {
+export function TransactionCandidates({
+  transactions,
+  onSelect,
+  onOpenMore,
+}: TransactionCandidatesProps) {
   const visibleTransactions = transactions.slice(0, CANDIDATES_PREVIEW_COUNT)
   const hasMoreTransactions = transactions.length > CANDIDATES_PREVIEW_COUNT
 
   return (
-    <Card aria-labelledby="transaction-candidates-title" className="block px-4 py-2 sm:px-5 sm:py-5" role="region">
+    <Card
+      aria-labelledby="transaction-candidates-title"
+      className="block px-4 py-2 sm:px-5 sm:py-5"
+      role="region"
+    >
       <div className="flex items-baseline justify-between gap-3">
         <div>
-          <h2 className="text-sm font-semibold tracking-[-0.03em] sm:text-base" id="transaction-candidates-title">よく使う項目</h2>
+          <h2
+            className="text-sm font-semibold tracking-[-0.03em] sm:text-base"
+            id="transaction-candidates-title"
+          >
+            よく使う項目
+          </h2>
         </div>
         {hasMoreTransactions ? (
           <Button

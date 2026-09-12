@@ -2,7 +2,11 @@ import { AlertCircle, LoaderCircle, WalletCards } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { toast } from 'sonner'
 
-import { Alert, AlertDescription, AlertTitle } from '@/shared/components/ui/alert'
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from '@/shared/components/ui/alert'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Skeleton } from '@/shared/components/ui/skeleton'
@@ -13,12 +17,17 @@ import { SettingsSection } from '../../components/settings-section'
 
 const saveErrorMessage = '予算を保存できませんでした。もう一度お試しください。'
 
-export function BudgetSettings({ showHeader = true }: { showHeader?: boolean }) {
+export function BudgetSettings({
+  showHeader = true,
+}: {
+  showHeader?: boolean
+}) {
   const { budgetQuery, currentMonth, saveMutation } = useBudgetSettings()
   const [editedAmount, setEditedAmount] = useState<string | null>(null)
   const [validationError, setValidationError] = useState<string | null>(null)
   const configuredAmount =
-    budgetQuery.data?.status === 200 && budgetQuery.data.data.monthly_budget_amount !== null
+    budgetQuery.data?.status === 200 &&
+    budgetQuery.data.data.monthly_budget_amount !== null
       ? String(budgetQuery.data.data.monthly_budget_amount)
       : ''
   const amount = editedAmount ?? configuredAmount
@@ -44,7 +53,11 @@ export function BudgetSettings({ showHeader = true }: { showHeader?: boolean }) 
       }
 
       const savedAmount = response.data.monthly_budget_amount
-      setEditedAmount(savedAmount === null ? String(monthlyBudgetAmount) : String(savedAmount))
+      setEditedAmount(
+        savedAmount === null
+          ? String(monthlyBudgetAmount)
+          : String(savedAmount),
+      )
       setValidationError(null)
       toast.success('予算を保存しました。')
     } catch (error) {
@@ -95,9 +108,16 @@ export function BudgetSettings({ showHeader = true }: { showHeader?: boolean }) 
       ) : null}
 
       {!budgetQuery.isPending && !budgetQuery.isError ? (
-        <form className="space-y-5" noValidate onSubmit={(event) => void handleSubmit(event)}>
+        <form
+          className="space-y-5"
+          noValidate
+          onSubmit={(event) => void handleSubmit(event)}
+        >
           <div className="max-w-md space-y-2">
-            <label className="text-sm font-medium" htmlFor="monthly-budget-amount">
+            <label
+              className="text-sm font-medium"
+              htmlFor="monthly-budget-amount"
+            >
               月額予算
             </label>
             <div className="flex items-center gap-2">
@@ -123,16 +143,28 @@ export function BudgetSettings({ showHeader = true }: { showHeader?: boolean }) 
               />
               <span className="shrink-0 text-sm font-medium">円</span>
             </div>
-            <p id="monthly-budget-description" className="text-xs text-muted-foreground">
+            <p
+              id="monthly-budget-description"
+              className="text-xs text-muted-foreground"
+            >
               今月1日から適用されます。
             </p>
             {validationError ? (
-              <p className="text-sm text-destructive" id="monthly-budget-error" role="alert">
+              <p
+                className="text-sm text-destructive"
+                id="monthly-budget-error"
+                role="alert"
+              >
                 {validationError}
               </p>
             ) : null}
           </div>
-          <Button disabled={saveMutation.isPending} size="lg" type="submit" variant="outline">
+          <Button
+            disabled={saveMutation.isPending}
+            size="lg"
+            type="submit"
+            variant="outline"
+          >
             {saveMutation.isPending ? (
               <LoaderCircle aria-hidden="true" className="animate-spin" />
             ) : null}

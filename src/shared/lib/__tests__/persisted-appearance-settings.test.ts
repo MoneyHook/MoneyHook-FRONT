@@ -23,6 +23,8 @@ describe('persisted appearance settings', () => {
     expect(localStorage.getItem(THEME_STORAGE_KEY)).toBeNull()
     expect(localStorage.getItem(ACCENT_STORAGE_KEY)).toBeNull()
     expect(localStorage.getItem(CHART_PALETTE_STORAGE_KEY)).toBeNull()
-    expect(localStorage.getItem('moneyhooks:user-cache:query:timeline')).toBe('cached')
+    expect(localStorage.getItem('moneyhooks:user-cache:query:timeline')).toBe(
+      'cached',
+    )
   })
 })

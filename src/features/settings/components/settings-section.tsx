@@ -39,7 +39,9 @@ export function SettingsSection({
               <h2 id={titleId} className="text-lg font-semibold">
                 {title}
               </h2>
-              <p className="text-sm leading-6 text-muted-foreground">{description}</p>
+              <p className="text-sm leading-6 text-muted-foreground">
+                {description}
+              </p>
             </div>
           </div>
           {action ? <div className="shrink-0">{action}</div> : null}
@@ -47,7 +49,9 @@ export function SettingsSection({
       ) : action ? (
         <div className="flex justify-end border-b pb-4">{action}</div>
       ) : null}
-      <div className={showHeader || action ? 'pt-6' : undefined}>{children}</div>
+      <div className={showHeader || action ? 'pt-6' : undefined}>
+        {children}
+      </div>
     </Card>
   )
 }

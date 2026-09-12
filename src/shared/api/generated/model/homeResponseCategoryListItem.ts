@@ -15,10 +15,10 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { HomeResponseCategoryListItemSubCategoryListItem } from './homeResponseCategoryListItemSubCategoryListItem';
+import type { HomeResponseCategoryListItemSubCategoryListItem } from './homeResponseCategoryListItemSubCategoryListItem'
 
 export type HomeResponseCategoryListItem = {
-  category_name: string;
-  category_total_amount: number;
-  sub_category_list: HomeResponseCategoryListItemSubCategoryListItem[];
-};
+  category_name: string
+  category_total_amount: number
+  sub_category_list: HomeResponseCategoryListItemSubCategoryListItem[]
+}

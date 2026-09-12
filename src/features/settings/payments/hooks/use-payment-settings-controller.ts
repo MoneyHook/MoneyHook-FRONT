@@ -34,12 +34,17 @@ export function usePaymentSettingsController() {
     useState<PaymentResourceListResponsePaymentListItem | null>(null)
   const [defaultPaymentId, setDefaultPaymentId] = useState(readDefaultPaymentId)
   const payments = useMemo(
-    () => (paymentsQuery.data?.status === 200 ? paymentsQuery.data.data.payment_list : []),
+    () =>
+      paymentsQuery.data?.status === 200
+        ? paymentsQuery.data.data.payment_list
+        : [],
     [paymentsQuery.data],
   )
   const paymentTypes = useMemo(
     () =>
-      paymentTypesQuery.data?.status === 200 ? paymentTypesQuery.data.data.payment_type_list : [],
+      paymentTypesQuery.data?.status === 200
+        ? paymentTypesQuery.data.data.payment_type_list
+        : [],
     [paymentTypesQuery.data],
   )
   const isLoading = paymentsQuery.isPending || paymentTypesQuery.isPending
@@ -62,9 +67,14 @@ export function usePaymentSettingsController() {
   }, [defaultPaymentId, payments, paymentsQuery.data])
 
   const savePayment = async (values: PaymentSettingsFormValues) => {
-    const paymentType = paymentTypes.find((type) => type.payment_type_id === values.paymentTypeId)
+    const paymentType = paymentTypes.find(
+      (type) => type.payment_type_id === values.paymentTypeId,
+    )
     const dates = paymentType?.is_payment_due_later
-      ? { closing_date: Number(values.closingDate), payment_date: Number(values.paymentDate) }
+      ? {
+          closing_date: Number(values.closingDate),
+          payment_date: Number(values.paymentDate),
+        }
       : {}
     try {
       const response =
@@ -84,9 +94,12 @@ export function usePaymentSettingsController() {
                 ...dates,
               },
             })
-      if (response.status !== 200) throw new Error('支払い方法を保存できませんでした。')
+      if (response.status !== 200)
+        throw new Error('支払い方法を保存できませんでした。')
       toast.success(
-        editor?.mode === 'edit' ? '支払い方法を更新しました。' : '支払い方法を追加しました。',
+        editor?.mode === 'edit'
+          ? '支払い方法を更新しました。'
+          : '支払い方法を追加しました。',
       )
       setEditor(null)
     } catch (error) {
@@ -97,8 +110,11 @@ export function usePaymentSettingsController() {
   const deletePayment = async () => {
     if (!paymentToDelete) return
     try {
-      const response = await deleteMutation.mutateAsync({ paymentId: paymentToDelete.payment_id })
-      if (response.status !== 200) throw new Error('支払い方法を削除できませんでした。')
+      const response = await deleteMutation.mutateAsync({
+        paymentId: paymentToDelete.payment_id,
+      })
+      if (response.status !== 200)
+        throw new Error('支払い方法を削除できませんでした。')
       if (paymentToDelete.payment_id === defaultPaymentId) {
         clearDefaultPaymentId()
         setDefaultPaymentId(null)
@@ -123,14 +139,20 @@ export function usePaymentSettingsController() {
 
   const reorderPayments = async ({ active, over }: DragEndEvent) => {
     if (!over || active.id === over.id || reorderMutation.isPending) return
-    const oldIndex = payments.findIndex((payment) => payment.payment_id === active.id)
-    const newIndex = payments.findIndex((payment) => payment.payment_id === over.id)
+    const oldIndex = payments.findIndex(
+      (payment) => payment.payment_id === active.id,
+    )
+    const newIndex = payments.findIndex(
+      (payment) => payment.payment_id === over.id,
+    )
     if (oldIndex < 0 || newIndex < 0) return
     const nextPayments = arrayMove(payments, oldIndex, newIndex)
     try {
       await reorder(nextPayments)
     } catch (error) {
-      toast.error(errorMessage(error, '支払い方法の並べ替えを保存できませんでした。'))
+      toast.error(
+        errorMessage(error, '支払い方法の並べ替えを保存できませんでした。'),
+      )
     }
   }
 

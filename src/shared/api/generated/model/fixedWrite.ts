@@ -15,22 +15,22 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { FixedWriteMonthlyTransactionSign } from './fixedWriteMonthlyTransactionSign';
-import type { Identifier } from './identifier';
+import type { FixedWriteMonthlyTransactionSign } from './fixedWriteMonthlyTransactionSign'
+import type { Identifier } from './identifier'
 
 export interface FixedWrite {
   /** @maxLength 32 */
-  monthly_transaction_name: string;
+  monthly_transaction_name: string
   /** @minimum 0 */
-  monthly_transaction_amount: number;
-  monthly_transaction_sign: FixedWriteMonthlyTransactionSign;
+  monthly_transaction_amount: number
+  monthly_transaction_sign: FixedWriteMonthlyTransactionSign
   /** Day of month; database has no CHECK constraint. */
-  monthly_transaction_date: number;
-  category_id: Identifier;
+  monthly_transaction_date: number
+  category_id: Identifier
   /** Numeric ID */
-  sub_category_id?: string;
+  sub_category_id?: string
   /** @maxLength 16 */
-  sub_category_name?: string;
+  sub_category_name?: string
   /** Numeric ID */
-  payment_id?: string;
+  payment_id?: string
 }

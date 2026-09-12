@@ -15,8 +15,8 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { PaymentResourceListResponsePaymentListItem } from './paymentResourceListResponsePaymentListItem';
+import type { PaymentResourceListResponsePaymentListItem } from './paymentResourceListResponsePaymentListItem'
 
 export interface PaymentResourceListResponse {
-  payment_list: PaymentResourceListResponsePaymentListItem[];
+  payment_list: PaymentResourceListResponsePaymentListItem[]
 }

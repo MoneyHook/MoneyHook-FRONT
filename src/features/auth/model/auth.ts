@@ -1,8 +1,5 @@
 export type AuthStatus =
-  | 'initializing'
-  | 'authenticated'
-  | 'unauthenticated'
-  | 'error'
+  'initializing' | 'authenticated' | 'unauthenticated' | 'error'
 
 export type AuthUser = {
   uid: string

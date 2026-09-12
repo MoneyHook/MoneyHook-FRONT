@@ -16,10 +16,10 @@
  * OpenAPI spec version: 0.2.0-v1
  */
 
-export type TransactionWriteTransactionSign = typeof TransactionWriteTransactionSign[keyof typeof TransactionWriteTransactionSign];
-
+export type TransactionWriteTransactionSign =
+  (typeof TransactionWriteTransactionSign)[keyof typeof TransactionWriteTransactionSign]
 
 export const TransactionWriteTransactionSign = {
   NUMBER_MINUS_1: -1,
   NUMBER_1: 1,
-} as const;
+} as const

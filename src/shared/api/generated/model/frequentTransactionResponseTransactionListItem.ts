@@ -15,15 +15,15 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { Identifier } from './identifier';
-import type { NullableIdentifier } from './nullableIdentifier';
+import type { Identifier } from './identifier'
+import type { NullableIdentifier } from './nullableIdentifier'
 
 export type FrequentTransactionResponseTransactionListItem = {
-  transaction_name: string;
-  category_id: Identifier;
-  sub_category_id: Identifier;
-  fixed_flg: boolean;
-  payment_id: NullableIdentifier | null;
-  category_name: string;
-  sub_category_name: string;
-};
+  transaction_name: string
+  category_id: Identifier
+  sub_category_id: Identifier
+  fixed_flg: boolean
+  payment_id: NullableIdentifier | null
+  category_name: string
+  sub_category_name: string
+}

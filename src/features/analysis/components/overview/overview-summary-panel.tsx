@@ -11,7 +11,9 @@ export function SummaryPanel({ data }: { data: AnalysisOverviewViewModel }) {
       <h2 className="text-sm font-semibold sm:text-lg">サマリー</h2>
       <div className="mt-3 grid grid-cols-3 divide-x sm:mt-6">
         <div className="min-w-0 pr-3 sm:pr-7">
-          <p className="text-[0.6875rem] text-muted-foreground sm:text-sm">総支出</p>
+          <p className="text-[0.6875rem] text-muted-foreground sm:text-sm">
+            総支出
+          </p>
           <p className="mt-1 truncate text-lg font-semibold tracking-[-0.035em] tabular-nums sm:text-3xl">
             {formatCurrency(data.expenseAmount)}
           </p>
@@ -20,7 +22,9 @@ export function SummaryPanel({ data }: { data: AnalysisOverviewViewModel }) {
           </p>
         </div>
         <div className="min-w-0 px-3 sm:px-7">
-          <p className="text-[0.6875rem] text-muted-foreground sm:text-sm">固定費</p>
+          <p className="text-[0.6875rem] text-muted-foreground sm:text-sm">
+            固定費
+          </p>
           <p className="mt-1 truncate text-lg font-semibold tracking-[-0.035em] tabular-nums sm:text-3xl">
             {formatCurrency(data.fixedExpenseAmount)}
           </p>
@@ -29,7 +33,9 @@ export function SummaryPanel({ data }: { data: AnalysisOverviewViewModel }) {
           </p>
         </div>
         <div className="min-w-0 pl-3 sm:pl-7">
-          <p className="text-[0.6875rem] text-muted-foreground sm:text-sm">変動費</p>
+          <p className="text-[0.6875rem] text-muted-foreground sm:text-sm">
+            変動費
+          </p>
           <p className="mt-1 truncate text-lg font-semibold tracking-[-0.035em] tabular-nums sm:text-3xl">
             {formatCurrency(data.variableExpenseAmount)}
           </p>

@@ -172,7 +172,10 @@ function registerHandlers({ empty = false, failOnce = false } = {}) {
       requests.push(request.url)
       if (shouldFail) {
         shouldFail = false
-        return HttpResponse.json({ message: '分析に失敗しました' }, { status: 500 })
+        return HttpResponse.json(
+          { message: '分析に失敗しました' },
+          { status: 500 },
+        )
       }
       return HttpResponse.json(overview(empty))
     }),
@@ -211,19 +214,27 @@ describe('AnalysisDashboard', () => {
     const requests = registerHandlers()
     renderDashboard()
 
-    expect(screen.getByRole('status', { name: '分析概要を読み込んでいます' })).toBeVisible()
+    expect(
+      screen.getByRole('status', { name: '分析概要を読み込んでいます' }),
+    ).toBeVisible()
 
     expect(await screen.findByText('¥600,000')).toBeVisible()
-    expect(document.querySelector('[data-slot="analysis-scroll-area"]')).toHaveClass(
-      'overflow-y-auto',
-      'scrollbar-hidden',
-    )
+    expect(
+      document.querySelector('[data-slot="analysis-scroll-area"]'),
+    ).toHaveClass('overflow-y-auto', 'scrollbar-hidden')
     expect(screen.getByText('カテゴリ別支出（上位5件）')).toBeVisible()
     expect(screen.getByText('固定費の内訳')).toBeVisible()
     expect(screen.getByText('支出の増減（前期間比）')).toBeVisible()
-    expect(screen.getByRole('link', { name: '概要' })).toHaveAttribute('aria-current', 'page')
-    expect(screen.getByRole('link', { name: '概要' })).toHaveClass('text-primary')
-    expect(screen.getByRole('button', { name: '表示期間を変更' })).toHaveTextContent('直近6か月')
+    expect(screen.getByRole('link', { name: '概要' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+    expect(screen.getByRole('link', { name: '概要' })).toHaveClass(
+      'text-primary',
+    )
+    expect(
+      screen.getByRole('button', { name: '表示期間を変更' }),
+    ).toHaveTextContent('直近6か月')
 
     expect(requests).toHaveLength(3)
     for (const request of requests) {
@@ -232,8 +243,14 @@ describe('AnalysisDashboard', () => {
       expect(params.get('end_date')).toBe('2026-08-31')
       expect(params.get('group_by')).toBe('month')
     }
-    expect(screen.queryByRole('status', { name: '分析概要を読み込んでいます' })).not.toBeInTheDocument()
-    expect(new URL(requests.find((request) => request.includes('/overview'))!).searchParams.get('compare')).toBe('previous_period')
+    expect(
+      screen.queryByRole('status', { name: '分析概要を読み込んでいます' }),
+    ).not.toBeInTheDocument()
+    expect(
+      new URL(
+        requests.find((request) => request.includes('/overview'))!,
+      ).searchParams.get('compare'),
+    ).toBe('previous_period')
   })
 
   it('switches tabs through the URL and fetches only the active analysis view', async () => {
@@ -245,7 +262,10 @@ describe('AnalysisDashboard', () => {
       await screen.findByRole('heading', { name: 'カテゴリ別支出' }),
     ).toBeVisible()
     expect(screen.getByRole('heading', { name: '食費の内訳' })).toBeVisible()
-    expect(screen.getByRole('link', { name: 'カテゴリ' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: 'カテゴリ' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
     expect(requests).toHaveLength(1)
     expect(requests[0]).toContain('/api/v1/analytics/categories')
 
@@ -268,7 +288,9 @@ describe('AnalysisDashboard', () => {
   it('uses the URL month range across tabs', async () => {
     const requests = registerHandlers()
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
-    renderDashboard('/app/analysis?view=overview&startMonth=2026-01&endMonth=2026-04')
+    renderDashboard(
+      '/app/analysis?view=overview&startMonth=2026-01&endMonth=2026-04',
+    )
 
     expect(await screen.findByText('¥600,000')).toBeVisible()
     const control = screen.getByRole('button', { name: '表示期間を変更' })
@@ -280,27 +302,38 @@ describe('AnalysisDashboard', () => {
     }
 
     await user.click(screen.getByRole('link', { name: 'カテゴリ' }))
-    expect(screen.getByTestId('location')).toHaveTextContent('startMonth=2026-01')
+    expect(screen.getByTestId('location')).toHaveTextContent(
+      'startMonth=2026-01',
+    )
     expect(screen.getByTestId('location')).toHaveTextContent('endMonth=2026-04')
   })
 
   it.each([
     ['すべてのカテゴリを見る', 'categories', 'カテゴリ別支出'],
     ['固定費の詳細を見る', 'fixed', '固定費サマリー'],
-  ])('preserves the range and unrelated parameters through %s', async (link, view, heading) => {
-    registerHandlers()
-    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
-    renderDashboard('/app/analysis?view=overview&startMonth=2026-01&endMonth=2026-04&source=summary')
+  ])(
+    'preserves the range and unrelated parameters through %s',
+    async (link, view, heading) => {
+      registerHandlers()
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+      renderDashboard(
+        '/app/analysis?view=overview&startMonth=2026-01&endMonth=2026-04&source=summary',
+      )
 
-    await user.click(await screen.findByRole('link', { name: link }))
+      await user.click(await screen.findByRole('link', { name: link }))
 
-    expect(await screen.findByRole('heading', { name: heading })).toBeVisible()
-    const params = new URLSearchParams(screen.getByTestId('location').textContent ?? '')
-    expect(params.get('view')).toBe(view)
-    expect(params.get('startMonth')).toBe('2026-01')
-    expect(params.get('endMonth')).toBe('2026-04')
-    expect(params.get('source')).toBe('summary')
-  })
+      expect(
+        await screen.findByRole('heading', { name: heading }),
+      ).toBeVisible()
+      const params = new URLSearchParams(
+        screen.getByTestId('location').textContent ?? '',
+      )
+      expect(params.get('view')).toBe(view)
+      expect(params.get('startMonth')).toBe('2026-01')
+      expect(params.get('endMonth')).toBe('2026-04')
+      expect(params.get('source')).toBe('summary')
+    },
+  )
 
   it('normalizes an unknown view and shows the overview', async () => {
     registerHandlers()

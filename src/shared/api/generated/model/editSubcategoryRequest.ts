@@ -15,12 +15,12 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { Identifier } from './identifier';
+import type { Identifier } from './identifier'
 
 /**
  * Runtime request-tag validation is disabled; omitted `is_enable` binds as false.
  */
 export interface EditSubcategoryRequest {
-  sub_category_id: Identifier;
-  is_enable: boolean;
+  sub_category_id: Identifier
+  is_enable: boolean
 }

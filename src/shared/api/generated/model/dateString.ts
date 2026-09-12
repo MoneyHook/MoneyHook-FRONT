@@ -16,4 +16,4 @@
  * OpenAPI spec version: 0.2.0-v1
  */
 
-export type DateString = string;
+export type DateString = string

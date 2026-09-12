@@ -24,7 +24,11 @@ function getStorage(): Storage | null {
   }
 }
 
-export function readPersistedUserData<T>(key: string, version: number, isValue: (value: unknown) => value is T): T | null {
+export function readPersistedUserData<T>(
+  key: string,
+  version: number,
+  isValue: (value: unknown) => value is T,
+): T | null {
   const storage = getStorage()
   if (!storage) {
     return null
@@ -55,14 +59,21 @@ export function readPersistedUserData<T>(key: string, version: number, isValue: 
   }
 }
 
-export function writePersistedUserData<T>(key: string, version: number, value: T): void {
+export function writePersistedUserData<T>(
+  key: string,
+  version: number,
+  value: T,
+): void {
   const storage = getStorage()
   if (!storage) {
     return
   }
 
   try {
-    storage.setItem(key, JSON.stringify({ version, value } satisfies StoredValue<T>))
+    storage.setItem(
+      key,
+      JSON.stringify({ version, value } satisfies StoredValue<T>),
+    )
   } catch {
     // Keep the in-memory query result when storage is unavailable or full.
   }
@@ -87,19 +98,29 @@ function stableSerialize(value: unknown): string {
   }
   if (value && typeof value === 'object') {
     const record = value as Record<string, unknown>
-    return `{${Object.keys(record).sort().map((key) => `${JSON.stringify(key)}:${stableSerialize(record[key])}`).join(',')}}`
+    return `{${Object.keys(record)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${stableSerialize(record[key])}`)
+      .join(',')}}`
   }
   return JSON.stringify(value)
 }
 
 function removeOldestQueryEntries(storage: Storage): void {
-  const entries = Array.from({ length: storage.length }, (_, index) => storage.key(index))
-    .filter((key): key is string => Boolean(key?.startsWith(PERSISTED_QUERY_DATA_PREFIX)))
+  const entries = Array.from({ length: storage.length }, (_, index) =>
+    storage.key(index),
+  )
+    .filter((key): key is string =>
+      Boolean(key?.startsWith(PERSISTED_QUERY_DATA_PREFIX)),
+    )
     .flatMap((key) => {
       try {
         const raw = storage.getItem(key)
         const parsed: unknown = raw ? JSON.parse(raw) : null
-        return parsed && typeof parsed === 'object' && 'accessedAt' in parsed && typeof parsed.accessedAt === 'number'
+        return parsed &&
+          typeof parsed === 'object' &&
+          'accessedAt' in parsed &&
+          typeof parsed.accessedAt === 'number'
           ? [{ accessedAt: parsed.accessedAt, key }]
           : [{ accessedAt: 0, key }]
       } catch {
@@ -108,14 +129,23 @@ function removeOldestQueryEntries(storage: Storage): void {
     })
     .sort((left, right) => right.accessedAt - left.accessedAt)
 
-  entries.slice(MAX_PERSISTED_QUERY_ENTRIES).forEach(({ key }) => storage.removeItem(key))
+  entries
+    .slice(MAX_PERSISTED_QUERY_ENTRIES)
+    .forEach(({ key }) => storage.removeItem(key))
 }
 
-export function createPersistedQueryKey(resource: string, parameters: unknown): string {
+export function createPersistedQueryKey(
+  resource: string,
+  parameters: unknown,
+): string {
   return `${PERSISTED_QUERY_DATA_PREFIX}${resource}:${stableSerialize(parameters)}`
 }
 
-export function readPersistedQueryData<T>(key: string, version: number, isValue: (value: unknown) => value is T): T | null {
+export function readPersistedQueryData<T>(
+  key: string,
+  version: number,
+  isValue: (value: unknown) => value is T,
+): T | null {
   const storage = getStorage()
   if (!storage) {
     return null
@@ -128,28 +158,50 @@ export function readPersistedQueryData<T>(key: string, version: number, isValue:
     }
     const parsed: unknown = JSON.parse(raw)
     if (
-      !parsed || typeof parsed !== 'object' || !('version' in parsed) || !('value' in parsed) ||
-      !('accessedAt' in parsed) || parsed.version !== version || !isValue(parsed.value)
+      !parsed ||
+      typeof parsed !== 'object' ||
+      !('version' in parsed) ||
+      !('value' in parsed) ||
+      !('accessedAt' in parsed) ||
+      parsed.version !== version ||
+      !isValue(parsed.value)
     ) {
       storage.removeItem(key)
       return null
     }
 
-    storage.setItem(key, JSON.stringify({ ...(parsed as StoredQueryValue<T>), accessedAt: Date.now() }))
+    storage.setItem(
+      key,
+      JSON.stringify({
+        ...(parsed as StoredQueryValue<T>),
+        accessedAt: Date.now(),
+      }),
+    )
     return (parsed as StoredQueryValue<T>).value
   } catch {
     return null
   }
 }
 
-export function writePersistedQueryData<T>(key: string, version: number, value: T): void {
+export function writePersistedQueryData<T>(
+  key: string,
+  version: number,
+  value: T,
+): void {
   const storage = getStorage()
   if (!storage) {
     return
   }
 
   try {
-    storage.setItem(key, JSON.stringify({ accessedAt: Date.now(), version, value } satisfies StoredQueryValue<T>))
+    storage.setItem(
+      key,
+      JSON.stringify({
+        accessedAt: Date.now(),
+        version,
+        value,
+      } satisfies StoredQueryValue<T>),
+    )
     removeOldestQueryEntries(storage)
   } catch {
     // Keep the in-memory query result when storage is unavailable or full.
@@ -164,7 +216,9 @@ export function clearPersistedQueryData(): void {
 
   try {
     Array.from({ length: storage.length }, (_, index) => storage.key(index))
-      .filter((key): key is string => Boolean(key?.startsWith(PERSISTED_QUERY_DATA_PREFIX)))
+      .filter((key): key is string =>
+        Boolean(key?.startsWith(PERSISTED_QUERY_DATA_PREFIX)),
+      )
       .forEach((key) => storage.removeItem(key))
   } catch {
     // Best-effort cleanup; the next API response repopulates the cache.
@@ -194,7 +248,9 @@ export function clearPersistedUserData(): void {
   }
 
   try {
-    const keys = Array.from({ length: storage.length }, (_, index) => storage.key(index))
+    const keys = Array.from({ length: storage.length }, (_, index) =>
+      storage.key(index),
+    )
     keys.forEach((key) => {
       if (key?.startsWith(PERSISTED_USER_DATA_PREFIX)) {
         storage.removeItem(key)

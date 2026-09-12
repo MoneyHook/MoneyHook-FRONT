@@ -15,16 +15,16 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { Identifier } from './identifier';
+import type { Identifier } from './identifier'
 
 export interface V1CategoryChange {
-  category_id: Identifier;
-  category_name: string;
+  category_id: Identifier
+  category_name: string
   /** @minimum 0 */
-  current_amount: number;
+  current_amount: number
   /** @minimum 0 */
-  comparison_amount: number;
-  difference_amount: number;
+  comparison_amount: number
+  difference_amount: number
   /** @nullable */
-  difference_rate: number | null;
+  difference_rate: number | null
 }

@@ -54,7 +54,9 @@ describe('MonthPicker', () => {
     fireEvent.click(screen.getByRole('button', { name: '今月を選択' }))
 
     expect(onChange).toHaveBeenCalledWith('2026-08-01')
-    expect(screen.queryByRole('button', { name: '今月を選択' })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: '今月を選択' }),
+    ).not.toBeInTheDocument()
   })
 
   it('closes with Escape and restores focus to the trigger', async () => {
@@ -63,9 +65,13 @@ describe('MonthPicker', () => {
 
     trigger.focus()
     fireEvent.click(trigger)
-    fireEvent.keyDown(screen.getByRole('button', { name: '今月を選択' }), { key: 'Escape' })
+    fireEvent.keyDown(screen.getByRole('button', { name: '今月を選択' }), {
+      key: 'Escape',
+    })
 
-    expect(screen.queryByRole('button', { name: '今月を選択' })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: '今月を選択' }),
+    ).not.toBeInTheDocument()
     await waitFor(() => expect(trigger).toHaveFocus())
   })
 })

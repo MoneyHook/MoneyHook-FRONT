@@ -64,9 +64,11 @@ type OverviewResponses = {
 }
 
 function formatDate(year: number, monthIndex: number, day: number) {
-  return [year, String(monthIndex + 1).padStart(2, '0'), String(day).padStart(2, '0')].join(
-    '-',
-  )
+  return [
+    year,
+    String(monthIndex + 1).padStart(2, '0'),
+    String(day).padStart(2, '0'),
+  ].join('-')
 }
 
 function formatJapaneseDate(value: string) {
@@ -87,7 +89,10 @@ function ratio(amount: number, total: number) {
   return total === 0 ? 0 : (amount / total) * 100
 }
 
-export function createAnalysisRangeFromMonths(startMonth: string, endMonth: string): AnalysisRange {
+export function createAnalysisRangeFromMonths(
+  startMonth: string,
+  endMonth: string,
+): AnalysisRange {
   const [startYear, startMonthIndex] = startMonth.split('-').map(Number)
   const [endYear, endMonthIndex] = endMonth.split('-').map(Number)
   const startDate = formatDate(startYear, startMonthIndex - 1, 1)
@@ -133,8 +138,12 @@ export function resolveAnalysisRange({
     isMonth(requestedEndMonth) &&
     requestedStartMonth <= requestedEndMonth &&
     requestedEndMonth <= currentMonth
-  const resolvedStartMonth = hasValidSelection ? requestedStartMonth : defaultStartMonth
-  const resolvedEndMonth = hasValidSelection ? requestedEndMonth : defaultEndMonth
+  const resolvedStartMonth = hasValidSelection
+    ? requestedStartMonth
+    : defaultStartMonth
+  const resolvedEndMonth = hasValidSelection
+    ? requestedEndMonth
+    : defaultEndMonth
 
   return {
     range: createAnalysisRangeFromMonths(resolvedStartMonth, resolvedEndMonth),
@@ -160,9 +169,10 @@ function buildBreakdown(
   const remainingAmount = sorted
     .slice(4)
     .reduce((sum, item) => sum + item.amount, 0)
-  const result = remainingAmount > 0
-    ? [...leading, { name: 'その他', amount: remainingAmount }]
-    : leading
+  const result =
+    remainingAmount > 0
+      ? [...leading, { name: 'その他', amount: remainingAmount }]
+      : leading
 
   return result.map((item) => ({
     ...item,
@@ -218,8 +228,14 @@ export function buildAnalysisOverviewViewModel({
     monthlyAverageExpense: overview.summary.monthly_average_expense,
     fixedExpenseAmount: overview.summary.fixed_expense_amount,
     variableExpenseAmount: overview.summary.variable_expense_amount,
-    fixedExpenseRatio: ratio(overview.summary.fixed_expense_amount, expenseAmount),
-    variableExpenseRatio: ratio(overview.summary.variable_expense_amount, expenseAmount),
+    fixedExpenseRatio: ratio(
+      overview.summary.fixed_expense_amount,
+      expenseAmount,
+    ),
+    variableExpenseRatio: ratio(
+      overview.summary.variable_expense_amount,
+      expenseAmount,
+    ),
     series: overview.series.map((item) => ({
       bucket: item.bucket,
       label: `${Number(item.bucket.slice(5, 7))}月`,
@@ -244,7 +260,9 @@ export function buildAnalysisOverviewViewModel({
     comparisonAmount,
     differenceAmount,
     differenceRate:
-      comparisonAmount === 0 ? null : (differenceAmount / comparisonAmount) * 100,
+      comparisonAmount === 0
+        ? null
+        : (differenceAmount / comparisonAmount) * 100,
     latestFixedDifferenceAmount: fixed.summary.difference_amount,
     latestFixedDifferenceRate: fixed.summary.difference_rate,
   }

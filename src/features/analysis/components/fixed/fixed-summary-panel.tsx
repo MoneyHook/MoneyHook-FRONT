@@ -67,7 +67,10 @@ export function FixedSummaryPanel({ data }: { data: AnalysisFixedViewModel }) {
                   : 'text-foreground',
             )}
           >
-            <DifferenceIcon aria-hidden="true" className="size-4 shrink-0 sm:size-6" />
+            <DifferenceIcon
+              aria-hidden="true"
+              className="size-4 shrink-0 sm:size-6"
+            />
             {formatSignedCurrency(data.differenceAmount)}
           </p>
           <p className="mt-1 text-[0.625rem] text-muted-foreground tabular-nums sm:text-sm">

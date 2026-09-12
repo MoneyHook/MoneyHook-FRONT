@@ -15,9 +15,9 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { Identifier } from './identifier';
-import type { TransactionWrite } from './transactionWrite';
+import type { Identifier } from './identifier'
+import type { TransactionWrite } from './transactionWrite'
 
 export type TransactionEdit = TransactionWrite & {
-  transaction_id: Identifier;
-};
+  transaction_id: Identifier
+}

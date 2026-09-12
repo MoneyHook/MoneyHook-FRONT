@@ -17,7 +17,10 @@ export const initialState: CsvImportState = {
   importedCount: 0,
 }
 
-export function csvImportReducer(state: CsvImportState, action: CsvImportAction): CsvImportState {
+export function csvImportReducer(
+  state: CsvImportState,
+  action: CsvImportAction,
+): CsvImportState {
   if (action.type === 'patch') return { ...state, ...action.patch }
   if (action.type === 'set-all')
     return {
@@ -44,13 +47,21 @@ export function csvImportReducer(state: CsvImportState, action: CsvImportAction)
       if (row.id !== action.id) return row
       const next = { ...row, ...action.patch }
       const errors = validateImportRow(next, action.categories)
-      return { ...next, errors, selected: errors.length ? false : next.selected }
+      return {
+        ...next,
+        errors,
+        selected: errors.length ? false : next.selected,
+      }
     }),
   }
 }
 
 export function headersFor(state: CsvImportState) {
   const width = Math.max(0, ...state.rows.map((row) => row.length))
-  const headerRow = state.headerRowIndex === null ? undefined : state.rows[state.headerRowIndex]
-  return Array.from({ length: width }, (_, index) => headerRow?.[index] || `列${index + 1}`)
+  const headerRow =
+    state.headerRowIndex === null ? undefined : state.rows[state.headerRowIndex]
+  return Array.from(
+    { length: width },
+    (_, index) => headerRow?.[index] || `列${index + 1}`,
+  )
 }

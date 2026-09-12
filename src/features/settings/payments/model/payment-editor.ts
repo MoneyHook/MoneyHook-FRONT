@@ -7,7 +7,9 @@ export type EditorState =
   | { mode: 'edit'; payment: PaymentResourceListResponsePaymentListItem }
   | null
 
-export const initialFormValues = (paymentTypeId = ''): PaymentSettingsFormValues => ({
+export const initialFormValues = (
+  paymentTypeId = '',
+): PaymentSettingsFormValues => ({
   closingDate: '',
   paymentDate: '',
   paymentName: '',
@@ -19,7 +21,8 @@ export function formValuesFromPayment(
 ): PaymentSettingsFormValues {
   return {
     closingDate: String(payment.closing_date),
-    paymentDate: payment.payment_date === null ? '' : String(payment.payment_date),
+    paymentDate:
+      payment.payment_date === null ? '' : String(payment.payment_date),
     paymentName: payment.payment_name,
     paymentTypeId: payment.payment_type_id,
   }

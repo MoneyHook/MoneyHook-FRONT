@@ -20,4 +20,4 @@
  * Numeric database identifier serialized as a string.
  * @pattern ^[0-9]+$
  */
-export type Identifier = string;
+export type Identifier = string

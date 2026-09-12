@@ -63,7 +63,10 @@ function PaymentTrendTooltip({
       <p className="text-muted-foreground">{visible[0].payload?.label}</p>
       <ul className="mt-1.5 space-y-1">
         {visible.map((item) => (
-          <li className="flex items-center justify-between gap-5" key={item.name}>
+          <li
+            className="flex items-center justify-between gap-5"
+            key={item.name}
+          >
             <span className="flex items-center gap-1.5">
               <span
                 aria-hidden="true"
@@ -82,7 +85,11 @@ function PaymentTrendTooltip({
   )
 }
 
-export function PaymentTrendPanel({ data }: { data: AnalysisPaymentsViewModel }) {
+export function PaymentTrendPanel({
+  data,
+}: {
+  data: AnalysisPaymentsViewModel
+}) {
   const rows = buildTrendRows(data)
 
   return (

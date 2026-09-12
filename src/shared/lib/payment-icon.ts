@@ -25,7 +25,9 @@ function normalizePaymentName(value: string, kind: BrandedPaymentKind) {
   return kind === 'bank' ? normalized.replace(/銀行|bank/g, '') : normalized
 }
 
-function getPaymentKind(paymentTypeName: string | null | undefined): PaymentKind | null {
+function getPaymentKind(
+  paymentTypeName: string | null | undefined,
+): PaymentKind | null {
   switch (normalize(paymentTypeName ?? '')) {
     case 'bank':
     case 'bankaccount':
@@ -72,35 +74,107 @@ const brandedIcons: Record<BrandedPaymentKind, BrandedIconRule[]> = {
     { aliases: ['イオン', 'AEON'], fileName: 'bank_aeon' },
     { aliases: ['auじぶん', 'じぶん'], fileName: 'bank_jibun' },
     { aliases: ['みずほ', 'Mizuho'], fileName: 'bank_mizuho' },
-    { aliases: ['三菱東京UFJ', '三菱UFJ', 'Mitsubishi UFJ', 'MUFG'], fileName: 'bank_mufg' },
+    {
+      aliases: ['三菱東京UFJ', '三菱UFJ', 'Mitsubishi UFJ', 'MUFG'],
+      fileName: 'bank_mufg',
+    },
     { aliases: ['PayPay', 'ペイペイ'], fileName: 'bank_paypay' },
     { aliases: ['楽天', 'Rakuten'], fileName: 'bank_rakuten' },
-    { aliases: ['住信SBIネット', 'SBIネット', 'Sumishin SBI Net', '住信SBI', 'SBI'], fileName: 'bank_sbi' },
-    { aliases: ['三井住友', 'Sumitomo Mitsui', 'SMBC', 'Olive', 'オリーブ'], fileName: 'bank_smbc' },
+    {
+      aliases: [
+        '住信SBIネット',
+        'SBIネット',
+        'Sumishin SBI Net',
+        '住信SBI',
+        'SBI',
+      ],
+      fileName: 'bank_sbi',
+    },
+    {
+      aliases: ['三井住友', 'Sumitomo Mitsui', 'SMBC', 'Olive', 'オリーブ'],
+      fileName: 'bank_smbc',
+    },
     { aliases: ['ソニー', 'Sony'], fileName: 'bank_sony' },
     { aliases: ['ゆうちょ', 'Japan Post'], fileName: 'bank_yucho' },
   ],
   card: [
     { aliases: ['イオンカード', 'AEON Card', 'イオン'], fileName: 'card_aeon' },
-    { aliases: ['アメリカン・エキスプレス', 'American Express', 'アメックス', 'Amex'], fileName: 'card_amex' },
-    { aliases: ['au PAY カード', 'au PAY Card', 'au PAY', 'au WALLET クレジットカード', 'auカード', 'auwallet'], fileName: 'card_au_pay' },
+    {
+      aliases: [
+        'アメリカン・エキスプレス',
+        'American Express',
+        'アメックス',
+        'Amex',
+      ],
+      fileName: 'card_amex',
+    },
+    {
+      aliases: [
+        'au PAY カード',
+        'au PAY Card',
+        'au PAY',
+        'au WALLET クレジットカード',
+        'auカード',
+        'auwallet',
+      ],
+      fileName: 'card_au_pay',
+    },
     { aliases: ['dカード', 'd Card', 'dcard'], fileName: 'card_d' },
-    { aliases: ['エポスカード', 'EPOS Card', 'エポス', 'EPOS'], fileName: 'card_epos' },
+    {
+      aliases: ['エポスカード', 'EPOS Card', 'エポス', 'EPOS'],
+      fileName: 'card_epos',
+    },
     { aliases: ['JCBカード', 'JCB Card', 'JCB'], fileName: 'card_jcb' },
-    { aliases: ['PayPayカード', 'PayPay Card', 'PayPay', 'ペイペイ'], fileName: 'card_paypay' },
-    { aliases: ['楽天カード', 'Rakuten Card', '楽天'], fileName: 'card_rakuten' },
-    { aliases: ['セゾンカード', 'SAISON CARD', 'クレディセゾン', 'セゾン', 'Saison'], fileName: 'card_saison' },
-    { aliases: ['三井住友カード', 'Sumitomo Mitsui Card', 'SMBCカード', '三井住友', 'SMBC', 'Oliveフレキシブルペイ', 'Olive', 'オリーブ'], fileName: 'card_smbc' },
+    {
+      aliases: ['PayPayカード', 'PayPay Card', 'PayPay', 'ペイペイ'],
+      fileName: 'card_paypay',
+    },
+    {
+      aliases: ['楽天カード', 'Rakuten Card', '楽天'],
+      fileName: 'card_rakuten',
+    },
+    {
+      aliases: [
+        'セゾンカード',
+        'SAISON CARD',
+        'クレディセゾン',
+        'セゾン',
+        'Saison',
+      ],
+      fileName: 'card_saison',
+    },
+    {
+      aliases: [
+        '三井住友カード',
+        'Sumitomo Mitsui Card',
+        'SMBCカード',
+        '三井住友',
+        'SMBC',
+        'Oliveフレキシブルペイ',
+        'Olive',
+        'オリーブ',
+      ],
+      fileName: 'card_smbc',
+    },
   ],
   qr: [
     { aliases: ['イオンペイ', 'AEON Pay', 'AEONPAY'], fileName: 'qr_aeon_pay' },
-    { aliases: ['au PAY', 'auペイ', 'aupay', 'エーユーペイ'], fileName: 'qr_au_pay' },
+    {
+      aliases: ['au PAY', 'auペイ', 'aupay', 'エーユーペイ'],
+      fileName: 'qr_au_pay',
+    },
     { aliases: ['d払い', 'd Barai', 'dbarai'], fileName: 'qr_dbarai' },
     { aliases: ['ファミペイ', 'FamiPay', 'Fami Pay'], fileName: 'qr_famipay' },
-    { aliases: ['J-Coin Pay', 'J Coin Pay', 'Jコインペイ', 'jcoinpay', 'jcoin'], fileName: 'qr_jcoin' },
+    {
+      aliases: ['J-Coin Pay', 'J Coin Pay', 'Jコインペイ', 'jcoinpay', 'jcoin'],
+      fileName: 'qr_jcoin',
+    },
     { aliases: ['メルペイ', 'Merpay', 'Mer Pay'], fileName: 'qr_merpay' },
     { aliases: ['PayPay', 'Pay Pay', 'ペイペイ'], fileName: 'qr_paypay' },
-    { aliases: ['楽天ペイ', 'Rakuten Pay', '楽天Pay', 'rakutenpay'], fileName: 'qr_rakuten_pay' },
+    {
+      aliases: ['楽天ペイ', 'Rakuten Pay', '楽天Pay', 'rakutenpay'],
+      fileName: 'qr_rakuten_pay',
+    },
   ],
 }
 
@@ -116,19 +190,28 @@ function getBrandedIconFileName(kind: BrandedPaymentKind, paymentName: string) {
   const normalizedPaymentName = normalizePaymentName(paymentName, kind)
 
   return brandedIcons[kind]
-    .flatMap((rule) => rule.aliases.map((alias) => ({ alias: normalizePaymentName(alias, kind), fileName: rule.fileName })))
+    .flatMap((rule) =>
+      rule.aliases.map((alias) => ({
+        alias: normalizePaymentName(alias, kind),
+        fileName: rule.fileName,
+      })),
+    )
     .sort((left, right) => right.alias.length - left.alias.length)
     .find(({ alias }) => normalizedPaymentName.includes(alias))?.fileName
 }
 
 /** Returns a decorative payment icon URL, or null when the payment type is unavailable. */
-export function getPaymentIconSource({ paymentName, paymentTypeName }: PaymentIconInput) {
+export function getPaymentIconSource({
+  paymentName,
+  paymentTypeName,
+}: PaymentIconInput) {
   const kind = getPaymentKind(paymentTypeName)
   if (!kind) return null
 
-  const fileName = kind === 'cash' || kind === 'transfer'
-    ? genericIcons[kind]
-    : getBrandedIconFileName(kind, paymentName) ?? genericIcons[kind]
+  const fileName =
+    kind === 'cash' || kind === 'transfer'
+      ? genericIcons[kind]
+      : (getBrandedIconFileName(kind, paymentName) ?? genericIcons[kind])
 
   return iconPath(fileName)
 }

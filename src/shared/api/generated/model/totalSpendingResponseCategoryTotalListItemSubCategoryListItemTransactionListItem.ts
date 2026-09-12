@@ -15,10 +15,11 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { Identifier } from './identifier';
+import type { Identifier } from './identifier'
 
-export type TotalSpendingResponseCategoryTotalListItemSubCategoryListItemTransactionListItem = {
-  transaction_id: Identifier;
-  transaction_name: string;
-  transaction_amount: number;
-};
+export type TotalSpendingResponseCategoryTotalListItemSubCategoryListItemTransactionListItem =
+  {
+    transaction_id: Identifier
+    transaction_name: string
+    transaction_amount: number
+  }

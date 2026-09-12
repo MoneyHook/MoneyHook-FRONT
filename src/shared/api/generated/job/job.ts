@@ -15,28 +15,23 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import {
-  useMutation
-} from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query'
 import type {
   MutationFunction,
   QueryClient,
   UseMutationOptions,
-  UseMutationResult
-} from '@tanstack/react-query';
+  UseMutationResult,
+} from '@tanstack/react-query'
 
 import type {
   AuthIdentityConflictResponse,
   ErrorResponse,
   ProcessDailyJob200,
   V1InternalErrorResponse,
-  V1UnauthorizedResponse
-} from '../model';
+  V1UnauthorizedResponse,
+} from '../model'
 
-import { apiFetch } from '../../http-client';
-
-
-
+import { apiFetch } from '../../http-client'
 
 export type processDailyJobResponse200 = {
   data: ProcessDailyJob200
@@ -68,20 +63,23 @@ export type processDailyJobResponse500 = {
   status: 500
 }
 
-export type processDailyJobResponseSuccess = (processDailyJobResponse200) & {
-  headers: Headers;
-};
-export type processDailyJobResponseError = (processDailyJobResponse401 | processDailyJobResponse403 | processDailyJobResponse409 | processDailyJobResponse422 | processDailyJobResponse500) & {
-  headers: Headers;
-};
+export type processDailyJobResponseSuccess = processDailyJobResponse200 & {
+  headers: Headers
+}
+export type processDailyJobResponseError = (
+  | processDailyJobResponse401
+  | processDailyJobResponse403
+  | processDailyJobResponse409
+  | processDailyJobResponse422
+  | processDailyJobResponse500
+) & {
+  headers: Headers
+}
 
-export type processDailyJobResponse = (processDailyJobResponseSuccess | processDailyJobResponseError)
+export type processDailyJobResponse =
+  processDailyJobResponseSuccess | processDailyJobResponseError
 
 export const getProcessDailyJobUrl = () => {
-
-
-
-
   return `/api/job/daily`
 }
 
@@ -90,69 +88,106 @@ export const getProcessDailyJobUrl = () => {
  * whose configured day is greater than or equal to today are also materialized.
  * @summary Materialize recurring transactions due today
  */
-export const processDailyJob = async (processDailyJobBody?: Blob, options?: RequestInit): Promise<processDailyJobResponse> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Array.isArray(h)) return Object.fromEntries(h);
-    return h;
-  };
-return apiFetch<processDailyJobResponse>(getProcessDailyJobUrl(),
-  {
+export const processDailyJob = async (
+  processDailyJobBody?: Blob,
+  options?: RequestInit,
+): Promise<processDailyJobResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {}
+    if (h instanceof Headers) return Object.fromEntries(h.entries())
+    if (Array.isArray(h)) return Object.fromEntries(h)
+    return h
+  }
+  return apiFetch<processDailyJobResponse>(getProcessDailyJobUrl(), {
     ...options,
     method: 'POST',
-    headers: { 'Content-Type': 'application/octet-stream', ...getHeaders(options?.headers) },
-    body: processDailyJobBody
+    headers: {
+      'Content-Type': 'application/octet-stream',
+      ...getHeaders(options?.headers),
+    },
+    body: processDailyJobBody,
+  })
+}
+
+export const getProcessDailyJobMutationOptions = <
+  TError =
+    | V1UnauthorizedResponse
+    | ErrorResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof processDailyJob>>,
+    TError,
+    ProcessDailyJobMutationVariables,
+    TContext
+  >
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof processDailyJob>>,
+  TError,
+  ProcessDailyJobMutationVariables,
+  TContext
+> => {
+  const mutationKey = ['processDailyJob']
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof processDailyJob>>,
+    ProcessDailyJobMutationVariables
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return processDailyJob(data)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type ProcessDailyJobMutationResult = NonNullable<
+  Awaited<ReturnType<typeof processDailyJob>>
+>
+export type ProcessDailyJobMutationBody = Blob | undefined
+export type ProcessDailyJobMutationError =
+  | V1UnauthorizedResponse
+  | ErrorResponse
+  | AuthIdentityConflictResponse
+  | V1InternalErrorResponse
+export type ProcessDailyJobMutationVariables = { data?: Blob }
 
-
-
-export const getProcessDailyJobMutationOptions = <TError = V1UnauthorizedResponse | ErrorResponse | AuthIdentityConflictResponse | V1InternalErrorResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof processDailyJob>>, TError,ProcessDailyJobMutationVariables, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof processDailyJob>>, TError,ProcessDailyJobMutationVariables, TContext> => {
-
-const mutationKey = ['processDailyJob'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof processDailyJob>>, ProcessDailyJobMutationVariables> = (props) => {
-          const {data} = props ?? {};
-
-          return  processDailyJob(data,)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type ProcessDailyJobMutationResult = NonNullable<Awaited<ReturnType<typeof processDailyJob>>>
-    export type ProcessDailyJobMutationBody = Blob | undefined
-    export type ProcessDailyJobMutationError = V1UnauthorizedResponse | ErrorResponse | AuthIdentityConflictResponse | V1InternalErrorResponse
-    export type ProcessDailyJobMutationVariables = {data?: Blob}
-
-    /**
+/**
  * @summary Materialize recurring transactions due today
  */
-export const useProcessDailyJob = <TError = V1UnauthorizedResponse | ErrorResponse | AuthIdentityConflictResponse | V1InternalErrorResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof processDailyJob>>, TError,ProcessDailyJobMutationVariables, TContext>, }
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof processDailyJob>>,
-        TError,
-        ProcessDailyJobMutationVariables,
-        TContext
-      > => {
-      return useMutation(getProcessDailyJobMutationOptions(options), queryClient);
-    }
+export const useProcessDailyJob = <
+  TError =
+    | V1UnauthorizedResponse
+    | ErrorResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof processDailyJob>>,
+      TError,
+      ProcessDailyJobMutationVariables,
+      TContext
+    >
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof processDailyJob>>,
+  TError,
+  ProcessDailyJobMutationVariables,
+  TContext
+> => {
+  return useMutation(getProcessDailyJobMutationOptions(options), queryClient)
+}

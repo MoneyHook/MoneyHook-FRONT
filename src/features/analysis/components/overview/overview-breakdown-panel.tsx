@@ -52,7 +52,10 @@ function BreakdownChart({
       </div>
       <ul className="min-w-0 space-y-1.5 sm:space-y-2.5">
         {items.map((item, index) => (
-          <li className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-1.5 text-[0.625rem] sm:gap-x-2 sm:text-xs" key={item.name}>
+          <li
+            className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-1.5 text-[0.625rem] sm:gap-x-2 sm:text-xs"
+            key={item.name}
+          >
             <span
               aria-hidden="true"
               className="mt-0.5 size-2 shrink-0 rounded-full sm:size-2.5"
@@ -102,7 +105,10 @@ export function BreakdownPanel({
         to={linkTo}
       >
         {linkLabel}
-        <ArrowRight aria-hidden="true" className="size-4 text-muted-foreground" />
+        <ArrowRight
+          aria-hidden="true"
+          className="size-4 text-muted-foreground"
+        />
       </Link>
     </AnalysisPanel>
   )

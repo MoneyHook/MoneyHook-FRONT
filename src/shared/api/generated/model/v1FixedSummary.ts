@@ -18,21 +18,21 @@
 
 export interface V1FixedSummary {
   /** @minimum 0 */
-  expense_amount: number;
+  expense_amount: number
   /** @minimum 0 */
-  monthly_average: number;
+  monthly_average: number
   /** @minimum 0 */
-  annualized_amount: number;
+  annualized_amount: number
   /**
-     * @minimum 0
-     * @maximum 100
-     */
-  total_expense_ratio: number;
+   * @minimum 0
+   * @maximum 100
+   */
+  total_expense_ratio: number
   /** @minimum 0 */
-  latest_bucket_amount: number;
+  latest_bucket_amount: number
   /** @minimum 0 */
-  previous_bucket_amount: number;
-  difference_amount: number;
+  previous_bucket_amount: number
+  difference_amount: number
   /** @nullable */
-  difference_rate: number | null;
+  difference_rate: number | null
 }

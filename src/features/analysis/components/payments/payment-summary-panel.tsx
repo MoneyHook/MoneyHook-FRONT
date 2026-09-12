@@ -44,7 +44,11 @@ function PaymentDonut({ data }: { data: AnalysisPaymentsViewModel }) {
   )
 }
 
-export function PaymentSummaryPanel({ data }: { data: AnalysisPaymentsViewModel }) {
+export function PaymentSummaryPanel({
+  data,
+}: {
+  data: AnalysisPaymentsViewModel
+}) {
   return (
     <AnalysisPanel>
       <h2 className="text-base font-semibold sm:text-lg">支払い方法サマリー</h2>
@@ -73,11 +77,14 @@ export function PaymentSummaryPanel({ data }: { data: AnalysisPaymentsViewModel 
         </ul>
       </div>
       <a
-        className="mt-4 flex min-h-11 items-center justify-between rounded-xl border px-4 text-sm font-medium outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+        className="mt-4 flex min-h-11 items-center justify-between rounded-xl border px-4 text-sm font-medium transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
         href="#payment-details"
       >
         支払い方法の取引一覧を見る
-        <ChevronRight aria-hidden="true" className="size-4 text-muted-foreground" />
+        <ChevronRight
+          aria-hidden="true"
+          className="size-4 text-muted-foreground"
+        />
       </a>
     </AnalysisPanel>
   )
