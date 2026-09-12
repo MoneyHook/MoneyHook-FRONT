@@ -15,14 +15,14 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { V1AnalysisRange } from './v1AnalysisRange';
-import type { V1ExpenseSeriesItem } from './v1ExpenseSeriesItem';
-import type { V1FixedCategory } from './v1FixedCategory';
-import type { V1FixedSummary } from './v1FixedSummary';
+import type { V1AnalysisRange } from './v1AnalysisRange'
+import type { V1ExpenseSeriesItem } from './v1ExpenseSeriesItem'
+import type { V1FixedCategory } from './v1FixedCategory'
+import type { V1FixedSummary } from './v1FixedSummary'
 
 export interface V1FixedResponse {
-  range: V1AnalysisRange;
-  summary: V1FixedSummary;
-  series: V1ExpenseSeriesItem[];
-  category_list: V1FixedCategory[];
+  range: V1AnalysisRange
+  summary: V1FixedSummary
+  series: V1ExpenseSeriesItem[]
+  category_list: V1FixedCategory[]
 }

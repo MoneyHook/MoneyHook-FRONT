@@ -18,7 +18,10 @@ function overview(
   series: V1OverviewResponse['series'],
 ): V1OverviewResponse {
   return {
-    range: { start_date: series[0]?.bucket ?? '2026-08-01', end_date: '2026-08-31' },
+    range: {
+      start_date: series[0]?.bucket ?? '2026-08-01',
+      end_date: '2026-08-31',
+    },
     summary: {
       expense_amount: expenseAmount,
       income_amount: 0,

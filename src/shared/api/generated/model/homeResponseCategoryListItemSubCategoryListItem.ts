@@ -17,6 +17,6 @@
  */
 
 export type HomeResponseCategoryListItemSubCategoryListItem = {
-  sub_category_name: string;
-  sub_category_total_amount: number;
-};
+  sub_category_name: string
+  sub_category_total_amount: number
+}

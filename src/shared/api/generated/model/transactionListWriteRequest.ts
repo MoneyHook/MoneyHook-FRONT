@@ -15,9 +15,9 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { TransactionWrite } from './transactionWrite';
+import type { TransactionWrite } from './transactionWrite'
 
 export interface TransactionListWriteRequest {
   /** @minItems 1 */
-  transaction_list: TransactionWrite[];
+  transaction_list: TransactionWrite[]
 }

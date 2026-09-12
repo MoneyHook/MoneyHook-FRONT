@@ -13,5 +13,4 @@ describe('analysis chart colors', () => {
       'var(--muted-foreground)',
     ])
   })
-
 })

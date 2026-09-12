@@ -15,8 +15,8 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { MonthlySpendingResponseMonthlyTotalAmountListItem } from './monthlySpendingResponseMonthlyTotalAmountListItem';
+import type { MonthlySpendingResponseMonthlyTotalAmountListItem } from './monthlySpendingResponseMonthlyTotalAmountListItem'
 
 export interface MonthlySpendingResponse {
-  monthly_total_amount_list: MonthlySpendingResponseMonthlyTotalAmountListItem[];
+  monthly_total_amount_list: MonthlySpendingResponseMonthlyTotalAmountListItem[]
 }

@@ -23,7 +23,9 @@ vi.mock('@/shared/config/environment', () => ({
   getEnvironment: () => ({ apiBaseUrl: 'http://api.test' }),
 }))
 vi.mock('@/shared/lib/firebase', () => ({
-  getFirebaseAuth: () => ({ currentUser: { getIdToken: async () => 'test-token' } }),
+  getFirebaseAuth: () => ({
+    currentUser: { getIdToken: async () => 'test-token' },
+  }),
 }))
 
 beforeEach(() => {
@@ -33,7 +35,10 @@ beforeEach(() => {
       HttpResponse.json({ transaction: {} }, { status: 201 }),
     ),
     http.patch('http://api.test/api/v1/transactions/42', () =>
-      HttpResponse.json({ transaction: {}, previous_transaction_date: '2026-08-28' }),
+      HttpResponse.json({
+        transaction: {},
+        previous_transaction_date: '2026-08-28',
+      }),
     ),
     http.delete(
       'http://api.test/api/v1/transactions/42',
@@ -51,7 +56,10 @@ describe('transaction mutation cache refresh', () => {
         getGetTimelineDataQueryKey({ month: '2026-08-01' }),
         getGetTimelineDataQueryKey({ month: '2026-09-01' }),
         ['/api/transaction/getHome', { month: '2026-09-01' }],
-        ['/api/v1/analytics/overview', { start_date: '2026-04-01', end_date: '2026-09-30' }],
+        [
+          '/api/v1/analytics/overview',
+          { start_date: '2026-04-01', end_date: '2026-09-30' },
+        ],
         ['/api/v1/analytics/categories'],
         ['/api/v1/analytics/fixed'],
         ['/api/v1/analytics/payments'],
@@ -62,11 +70,15 @@ describe('transaction mutation cache refresh', () => {
       const detailKey = getGetV1TransactionQueryKey('42')
       for (const queryKey of [...dependentKeys, paymentKey, detailKey])
         queryClient.setQueryData(queryKey, { cached: true })
-      const persistedKey = createPersistedQueryKey('home-overview', { month: '2026-09-01' })
+      const persistedKey = createPersistedQueryKey('home-overview', {
+        month: '2026-09-01',
+      })
       writePersistedQueryData(persistedKey, 1, { amount: 100 })
       const { result } = renderHook(() => useTransactionFormMutations(), {
         wrapper: ({ children }: { children: ReactNode }) => (
-          <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+          <QueryClientProvider client={queryClient}>
+            {children}
+          </QueryClientProvider>
         ),
       })
       const values = {
@@ -88,12 +100,14 @@ describe('transaction mutation cache refresh', () => {
         readPersistedQueryData(
           persistedKey,
           1,
-          (value): value is object => typeof value === 'object' && value !== null,
+          (value): value is object =>
+            typeof value === 'object' && value !== null,
         ),
       ).toBeNull()
       if (operation === 'update')
         expect(queryClient.getQueryState(detailKey)?.isInvalidated).toBe(true)
-      if (operation === 'remove') expect(queryClient.getQueryData(detailKey)).toBeUndefined()
+      if (operation === 'remove')
+        expect(queryClient.getQueryData(detailKey)).toBeUndefined()
     },
   )
 })

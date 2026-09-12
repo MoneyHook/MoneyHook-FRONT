@@ -10,15 +10,12 @@ export function useAnalysisFixedController(range: AnalysisRange) {
   const [searchParams, setSearchParams] = useSearchParams()
   const rawCategoryKey = searchParams.getAll('fixedCategory').join(',')
   const fixed = useAnalysisFixed(range)
-  const selectedCategoryIds = useMemo(
-    () => {
-      const rawCategoryIds = rawCategoryKey ? rawCategoryKey.split(',') : []
-      return fixed.data
-        ? normalizeFixedCategorySelection(fixed.data.categories, rawCategoryIds)
-        : []
-    },
-    [fixed.data, rawCategoryKey],
-  )
+  const selectedCategoryIds = useMemo(() => {
+    const rawCategoryIds = rawCategoryKey ? rawCategoryKey.split(',') : []
+    return fixed.data
+      ? normalizeFixedCategorySelection(fixed.data.categories, rawCategoryIds)
+      : []
+  }, [fixed.data, rawCategoryKey])
 
   useEffect(() => {
     const next = new URLSearchParams(searchParams)
@@ -84,8 +81,8 @@ export function useAnalysisFixedController(range: AnalysisRange) {
   const selectedCategories = (fixed.data?.categories ?? []).filter((category) =>
     selected.has(category.id),
   )
-  const selectedTransactions = (fixed.data?.transactions ?? []).filter((transaction) =>
-    selected.has(transaction.categoryId),
+  const selectedTransactions = (fixed.data?.transactions ?? []).filter(
+    (transaction) => selected.has(transaction.categoryId),
   )
 
   return {

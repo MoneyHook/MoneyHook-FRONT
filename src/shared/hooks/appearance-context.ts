@@ -7,7 +7,13 @@ export {
 } from '@/shared/lib/persisted-appearance-settings'
 
 export const THEME_MODES = ['light', 'dark', 'system'] as const
-export const ACCENT_COLORS = ['blue', 'green', 'violet', 'rose', 'black'] as const
+export const ACCENT_COLORS = [
+  'blue',
+  'green',
+  'violet',
+  'rose',
+  'black',
+] as const
 export const CHART_PALETTES = ['default', 'colorful', 'monochrome'] as const
 
 export type ThemeMode = (typeof THEME_MODES)[number]
@@ -45,9 +51,9 @@ export type AppearanceContextValue = AppearanceSettings & {
   setChartPalette: (chartPalette: ChartPalette) => void
 }
 
-export const AppearanceContext = createContext<AppearanceContextValue | undefined>(
-  undefined,
-)
+export const AppearanceContext = createContext<
+  AppearanceContextValue | undefined
+>(undefined)
 
 export function useAppearance(): AppearanceContextValue {
   const context = useContext(AppearanceContext)

@@ -15,10 +15,10 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { DateString } from './dateString';
-import type { V1TransactionResource } from './v1TransactionResource';
+import type { DateString } from './dateString'
+import type { V1TransactionResource } from './v1TransactionResource'
 
 export interface V1TransactionUpdateResponse {
-  transaction: V1TransactionResource;
-  previous_transaction_date: DateString;
+  transaction: V1TransactionResource
+  previous_transaction_date: DateString
 }

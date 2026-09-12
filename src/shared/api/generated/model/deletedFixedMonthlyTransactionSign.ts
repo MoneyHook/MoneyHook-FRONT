@@ -16,10 +16,10 @@
  * OpenAPI spec version: 0.2.0-v1
  */
 
-export type DeletedFixedMonthlyTransactionSign = typeof DeletedFixedMonthlyTransactionSign[keyof typeof DeletedFixedMonthlyTransactionSign];
-
+export type DeletedFixedMonthlyTransactionSign =
+  (typeof DeletedFixedMonthlyTransactionSign)[keyof typeof DeletedFixedMonthlyTransactionSign]
 
 export const DeletedFixedMonthlyTransactionSign = {
   NUMBER_MINUS_1: -1,
   NUMBER_1: 1,
-} as const;
+} as const

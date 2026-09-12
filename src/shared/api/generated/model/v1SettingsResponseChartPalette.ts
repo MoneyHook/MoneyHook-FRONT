@@ -16,11 +16,11 @@
  * OpenAPI spec version: 0.2.0-v1
  */
 
-export type V1SettingsResponseChartPalette = typeof V1SettingsResponseChartPalette[keyof typeof V1SettingsResponseChartPalette];
-
+export type V1SettingsResponseChartPalette =
+  (typeof V1SettingsResponseChartPalette)[keyof typeof V1SettingsResponseChartPalette]
 
 export const V1SettingsResponseChartPalette = {
   default: 'default',
   colorful: 'colorful',
   monochrome: 'monochrome',
-} as const;
+} as const

@@ -3,7 +3,11 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MonthPicker } from '@/shared/components/month-picker'
 import { Button } from '@/shared/components/ui/button'
-import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/shared/components/ui/popover'
 import {
   Tooltip as AppTooltip,
   TooltipContent,
@@ -15,7 +19,10 @@ import {
   getCurrentAnalysisMonth,
   type AnalysisRangeSelection,
 } from '../../model/analysis-overview'
-import { analysisViews, type AnalysisView } from '../../model/analysis-navigation'
+import {
+  analysisViews,
+  type AnalysisView,
+} from '../../model/analysis-navigation'
 
 export function AnalysisHeader({
   view,
@@ -62,7 +69,11 @@ export function AnalysisHeader({
               {selection.range.label}
             </TooltipContent>
           </AppTooltip>
-          <PopoverContent align="end" className="w-[calc(100vw-2rem)] max-w-80 p-3 sm:p-4" sideOffset={8}>
+          <PopoverContent
+            align="end"
+            className="w-[calc(100vw-2rem)] max-w-80 p-3 sm:p-4"
+            sideOffset={8}
+          >
             <p className="text-sm font-semibold">表示期間</p>
             <div className="mt-3 grid gap-3 border-t pt-3">
               <MonthPicker
@@ -71,7 +82,9 @@ export function AnalysisHeader({
                 maxMonth={selection.endMonth}
                 monthInput={selection.startMonth}
                 monthLabel={`開始: ${formatJapaneseMonth(selection.startMonth)}`}
-                onChange={(month) => onRangeChange(month.slice(0, 7), selection.endMonth)}
+                onChange={(month) =>
+                  onRangeChange(month.slice(0, 7), selection.endMonth)
+                }
                 showCalendarIcon
               />
               <MonthPicker
@@ -81,7 +94,9 @@ export function AnalysisHeader({
                 minMonth={selection.startMonth}
                 monthInput={selection.endMonth}
                 monthLabel={`終了: ${formatJapaneseMonth(selection.endMonth)}`}
-                onChange={(month) => onRangeChange(selection.startMonth, month.slice(0, 7))}
+                onChange={(month) =>
+                  onRangeChange(selection.startMonth, month.slice(0, 7))
+                }
                 showCalendarIcon
               />
             </div>

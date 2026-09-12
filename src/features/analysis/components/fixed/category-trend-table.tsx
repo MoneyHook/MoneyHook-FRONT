@@ -18,7 +18,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu'
-import type { AnalysisFixedViewModel, FixedCategoryItem } from '../../model/analysis-fixed'
+import type {
+  AnalysisFixedViewModel,
+  FixedCategoryItem,
+} from '../../model/analysis-fixed'
 import { formatCurrency } from '../../model/analysis-overview'
 import { AnalysisPanel } from './fixed-analysis-panel'
 import { CategoryIcon } from '../category-icon'
@@ -46,8 +49,7 @@ function CategorySelector({
     onChange(
       categories
         .filter(
-          (category) =>
-            selected.has(category.id) || category.id === categoryId,
+          (category) => selected.has(category.id) || category.id === categoryId,
         )
         .map((category) => category.id),
     )
@@ -74,7 +76,9 @@ function CategorySelector({
           onSelect={() => onChange(categories.map((category) => category.id))}
         >
           すべて選択
-          {allSelected ? <span className="ml-auto text-success">選択中</span> : null}
+          {allSelected ? (
+            <span className="ml-auto text-success">選択中</span>
+          ) : null}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         {categories.map((category) => {
@@ -125,11 +129,11 @@ export function CategoryTrendTable({
         />
       </div>
       <div className="border-t">
-        <Table className="min-w-208 w-full border-collapse text-xs tabular-nums sm:text-sm">
+        <Table className="w-full min-w-208 border-collapse text-xs tabular-nums sm:text-sm">
           <TableCaption className="sr-only">
             選択した固定費カテゴリの月平均、月別支出、年間換算
           </TableCaption>
-          <TableHeader className="text-muted-foreground bg-card">
+          <TableHeader className="bg-card text-muted-foreground">
             <TableRow>
               <TableHead className="sticky left-0 z-10 min-w-36 bg-card px-4 py-3 text-left font-medium sm:px-6">
                 カテゴリ
@@ -153,11 +157,14 @@ export function CategoryTrendTable({
           <TableBody className="divide-y">
             {categories.map((category) => {
               const byBucket = new Map(
-                category.series.map((item) => [item.bucket, item.expenseAmount]),
+                category.series.map((item) => [
+                  item.bucket,
+                  item.expenseAmount,
+                ]),
               )
               return (
                 <TableRow
-                  className="transition-colors bg-card"
+                  className="bg-card transition-colors"
                   key={category.id}
                 >
                   <TableHead
@@ -173,7 +180,10 @@ export function CategoryTrendTable({
                     {formatCurrency(category.monthlyAverage)}
                   </TableCell>
                   {data.series.map((item) => (
-                    <TableCell className="px-3 py-3 text-right" key={item.bucket}>
+                    <TableCell
+                      className="px-3 py-3 text-right"
+                      key={item.bucket}
+                    >
                       {formatCurrency(byBucket.get(item.bucket) ?? 0)}
                     </TableCell>
                   ))}

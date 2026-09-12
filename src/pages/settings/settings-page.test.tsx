@@ -1,11 +1,21 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AppearanceProvider } from '@/app/providers/appearance-provider'
-import { DEFAULT_PAYMENT_STORAGE_KEY, readDefaultPaymentId, writeDefaultPaymentId } from '@/shared/lib/default-payment'
+import {
+  DEFAULT_PAYMENT_STORAGE_KEY,
+  readDefaultPaymentId,
+  writeDefaultPaymentId,
+} from '@/shared/lib/default-payment'
 import { server } from '@/test/msw/server'
 
 const authState = vi.hoisted(() => ({
@@ -65,7 +75,9 @@ function registerAppearanceSettingsHandlers() {
   }
 
   server.use(
-    http.get('http://api.test/api/v1/settings', () => HttpResponse.json(settings)),
+    http.get('http://api.test/api/v1/settings', () =>
+      HttpResponse.json(settings),
+    ),
     http.patch('http://api.test/api/v1/settings', async ({ request }) => {
       const patch = (await request.json()) as Partial<typeof settings>
       settings = { ...settings, ...patch }
@@ -197,56 +209,94 @@ function registerPaymentHandlers({
   server.use(
     http.get('http://api.test/api/payment/getPayment', () => {
       if (getError) {
-        return HttpResponse.json({ message: '支払い方法の取得に失敗しました' }, { status: 500 })
+        return HttpResponse.json(
+          { message: '支払い方法の取得に失敗しました' },
+          { status: 500 },
+        )
       }
       return HttpResponse.json({ payment_list: payments })
     }),
     http.get('http://api.test/api/payment/getPaymentType', () =>
       HttpResponse.json({
         payment_type_list: [
-          { is_payment_due_later: false, payment_type_id: '1', payment_type_name: '現金' },
-          { is_payment_due_later: true, payment_type_id: '2', payment_type_name: 'カード' },
-          { is_payment_due_later: false, payment_type_id: '3', payment_type_name: 'QRペイ' },
+          {
+            is_payment_due_later: false,
+            payment_type_id: '1',
+            payment_type_name: '現金',
+          },
+          {
+            is_payment_due_later: true,
+            payment_type_id: '2',
+            payment_type_name: 'カード',
+          },
+          {
+            is_payment_due_later: false,
+            payment_type_id: '3',
+            payment_type_name: 'QRペイ',
+          },
         ],
       }),
     ),
     http.post('http://api.test/api/payment/addPayment', async ({ request }) => {
       const body = (await request.json()) as PaymentRequest
       addRequests.push(body)
-      payments = [...payments, {
-        closing_date: body.closing_date ?? 31,
-        payment_date: body.payment_date ?? null,
-        payment_id: String(payments.length + 22),
-        payment_name: body.payment_name,
-        payment_type_id: body.payment_type_id,
-      }]
+      payments = [
+        ...payments,
+        {
+          closing_date: body.closing_date ?? 31,
+          payment_date: body.payment_date ?? null,
+          payment_id: String(payments.length + 22),
+          payment_name: body.payment_name,
+          payment_type_id: body.payment_type_id,
+        },
+      ]
       return HttpResponse.json({ success: true })
     }),
-    http.patch('http://api.test/api/payment/editPayment', async ({ request }) => {
-      const body = (await request.json()) as PaymentRequest & { payment_id: string }
-      editRequests.push(body)
-      payments = payments.map((payment) => payment.payment_id === body.payment_id ? {
-        closing_date: body.closing_date ?? 31,
-        payment_date: body.payment_date ?? null,
-        payment_id: payment.payment_id,
-        payment_name: body.payment_name,
-        payment_type_id: body.payment_type_id,
-      } : payment)
-      return HttpResponse.json({ success: true })
-    }),
+    http.patch(
+      'http://api.test/api/payment/editPayment',
+      async ({ request }) => {
+        const body = (await request.json()) as PaymentRequest & {
+          payment_id: string
+        }
+        editRequests.push(body)
+        payments = payments.map((payment) =>
+          payment.payment_id === body.payment_id
+            ? {
+                closing_date: body.closing_date ?? 31,
+                payment_date: body.payment_date ?? null,
+                payment_id: payment.payment_id,
+                payment_name: body.payment_name,
+                payment_type_id: body.payment_type_id,
+              }
+            : payment,
+        )
+        return HttpResponse.json({ success: true })
+      },
+    ),
     http.put('http://api.test/api/payment/reorder', async ({ request }) => {
       const body = (await request.json()) as PaymentOrderRequest
       reorderRequests.push(body)
-      payments = body.payment_ids.map((paymentId) => payments.find((payment) => payment.payment_id === paymentId)!).filter(Boolean)
+      payments = body.payment_ids
+        .map((paymentId) =>
+          payments.find((payment) => payment.payment_id === paymentId)!,
+        )
+        .filter(Boolean)
       return HttpResponse.json({ success: true })
     }),
-    http.delete('http://api.test/api/payment/deletePayment/:paymentId', ({ params }) => {
-      if (deleteError) {
-        return HttpResponse.json('関連する取引があるため削除できません', { status: 422 })
-      }
-      payments = payments.filter((payment) => payment.payment_id !== params.paymentId)
-      return HttpResponse.json({ success: true })
-    }),
+    http.delete(
+      'http://api.test/api/payment/deletePayment/:paymentId',
+      ({ params }) => {
+        if (deleteError) {
+          return HttpResponse.json('関連する取引があるため削除できません', {
+            status: 422,
+          })
+        }
+        payments = payments.filter(
+          (payment) => payment.payment_id !== params.paymentId,
+        )
+        return HttpResponse.json({ success: true })
+      },
+    ),
   )
 
   return { addRequests, editRequests, reorderRequests }
@@ -298,66 +348,114 @@ function registerRecurringTransactionHandlers({
     {
       category_id: '22',
       category_name: '住居',
-      sub_category_list: [{ enable: true, sub_category_id: '220', sub_category_name: '家賃' }],
+      sub_category_list: [
+        { enable: true, sub_category_id: '220', sub_category_name: '家賃' },
+      ],
     },
     {
       category_id: '15',
       category_name: '健康',
-      sub_category_list: [{ enable: true, sub_category_id: '150', sub_category_name: 'ジム・フィットネス' }],
+      sub_category_list: [
+        {
+          enable: true,
+          sub_category_id: '150',
+          sub_category_name: 'ジム・フィットネス',
+        },
+      ],
     },
   ]
 
   server.use(
     http.get('http://api.test/api/fixed/getFixed', () => {
-      if (getError) return HttpResponse.json({ message: '自動入力を取得できません' }, { status: 500 })
+      if (getError)
+        return HttpResponse.json(
+          { message: '自動入力を取得できません' },
+          { status: 500 },
+        )
       return HttpResponse.json({ monthly_transaction_list: active })
     }),
     http.get('http://api.test/api/fixed/getDeletedFixed', () => {
-      if (getError) return HttpResponse.json({ message: '自動入力を取得できません' }, { status: 500 })
+      if (getError)
+        return HttpResponse.json(
+          { message: '自動入力を取得できません' },
+          { status: 500 },
+        )
       return HttpResponse.json(paused)
     }),
-    http.get('http://api.test/api/category/getCategoryWithSubCategoryList', () =>
-      HttpResponse.json({ category_list: categories }),
+    http.get(
+      'http://api.test/api/category/getCategoryWithSubCategoryList',
+      () => HttpResponse.json({ category_list: categories }),
     ),
     http.post('http://api.test/api/fixed/addFixed', async ({ request }) => {
       const body = (await request.json()) as RecurringRequest
       addRequests.push(body)
       const rule = body.monthly_transaction
-      const category = categories.find((item) => item.category_id === rule.category_id)
-      const subcategory = category?.sub_category_list.find((item) => item.sub_category_id === rule.sub_category_id)
-      active = [...active, {
-        ...rule,
-        category_name: category?.category_name ?? '未分類',
-        monthly_transaction_id: '102',
-        payment_id: rule.payment_id || null,
-        sub_category_name: subcategory?.sub_category_name ?? '未分類',
-      }]
+      const category = categories.find(
+        (item) => item.category_id === rule.category_id,
+      )
+      const subcategory = category?.sub_category_list.find(
+        (item) => item.sub_category_id === rule.sub_category_id,
+      )
+      active = [
+        ...active,
+        {
+          ...rule,
+          category_name: category?.category_name ?? '未分類',
+          monthly_transaction_id: '102',
+          payment_id: rule.payment_id || null,
+          sub_category_name: subcategory?.sub_category_name ?? '未分類',
+        },
+      ]
       return HttpResponse.json({ success: true })
     }),
     http.patch('http://api.test/api/fixed/editFixed', async ({ request }) => {
       const body = (await request.json()) as RecurringRequest
       editRequests.push(body)
       const rule = body.monthly_transaction
-      const previous = [...active, ...paused].find((item) => item.monthly_transaction_id === rule.monthly_transaction_id)
-      const category = categories.find((item) => item.category_id === rule.category_id)
-      const subcategory = category?.sub_category_list.find((item) => item.sub_category_id === rule.sub_category_id)
+      const previous = [...active, ...paused].find(
+        (item) => item.monthly_transaction_id === rule.monthly_transaction_id,
+      )
+      const category = categories.find(
+        (item) => item.category_id === rule.category_id,
+      )
+      const subcategory = category?.sub_category_list.find(
+        (item) => item.sub_category_id === rule.sub_category_id,
+      )
       const updated: RecurringRule = {
         ...rule,
-        category_name: category?.category_name ?? previous?.category_name ?? '未分類',
+        category_name:
+          category?.category_name ?? previous?.category_name ?? '未分類',
         monthly_transaction_id: rule.monthly_transaction_id ?? '',
         payment_id: rule.payment_id || null,
-        sub_category_name: subcategory?.sub_category_name ?? previous?.sub_category_name ?? '未分類',
+        sub_category_name:
+          subcategory?.sub_category_name ??
+          previous?.sub_category_name ??
+          '未分類',
       }
-      active = active.filter((item) => item.monthly_transaction_id !== updated.monthly_transaction_id)
-      paused = paused.filter((item) => item.monthly_transaction_id !== updated.monthly_transaction_id)
+      active = active.filter(
+        (item) =>
+          item.monthly_transaction_id !== updated.monthly_transaction_id,
+      )
+      paused = paused.filter(
+        (item) =>
+          item.monthly_transaction_id !== updated.monthly_transaction_id,
+      )
       if (rule.include_flg) active = [...active, updated]
       else paused = [...paused, updated]
       return HttpResponse.json({ success: true })
     }),
     http.delete('http://api.test/api/fixed/deleteFixed/:id', ({ params }) => {
-      if (deleteError) return HttpResponse.json({ message: '自動入力を削除できません' }, { status: 422 })
-      active = active.filter((item) => item.monthly_transaction_id !== params.id)
-      paused = paused.filter((item) => item.monthly_transaction_id !== params.id)
+      if (deleteError)
+        return HttpResponse.json(
+          { message: '自動入力を削除できません' },
+          { status: 422 },
+        )
+      active = active.filter(
+        (item) => item.monthly_transaction_id !== params.id,
+      )
+      paused = paused.filter(
+        (item) => item.monthly_transaction_id !== params.id,
+      )
       return HttpResponse.json({ success: true })
     }),
   )
@@ -366,12 +464,7 @@ function registerRecurringTransactionHandlers({
 }
 
 type SettingsTestPage =
-  | 'account'
-  | 'appearance'
-  | 'budget'
-  | 'payments'
-  | 'recurring'
-  | 'summary'
+  'account' | 'appearance' | 'budget' | 'payments' | 'recurring' | 'summary'
 
 function renderSettingsPage(page: SettingsTestPage = 'summary') {
   const Page = {
@@ -393,7 +486,7 @@ function renderSettingsPage(page: SettingsTestPage = 'summary') {
     <QueryClientProvider client={queryClient}>
       <MemoryRouter>
         <AppearanceProvider>
-            <Page />
+          <Page />
         </AppearanceProvider>
       </MemoryRouter>
     </QueryClientProvider>,
@@ -424,7 +517,9 @@ describe('SettingsPage', () => {
   it('shows the signed-in account and supports logging out', () => {
     renderSettingsPage('account')
 
-    expect(screen.getByRole('heading', { name: 'アカウント' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'アカウント' }),
+    ).toBeInTheDocument()
     expect(screen.getByText('MoneyHooksユーザー')).toBeInTheDocument()
     expect(screen.getByText('user@example.com')).toBeInTheDocument()
 
@@ -436,13 +531,27 @@ describe('SettingsPage', () => {
   it('shows compact settings summary cards that link to each detail page', () => {
     renderSettingsPage()
 
-    expect(screen.getByRole('link', { name: 'アカウントの設定を開く' })).toHaveAttribute('href', '/app/settings/account')
-    expect(screen.getByRole('link', { name: '予算の設定を開く' })).toHaveAttribute('href', '/app/settings/budget')
-    expect(screen.getByRole('link', { name: '支払い方法の設定を開く' })).toHaveAttribute('href', '/app/settings/payments')
-    expect(screen.getByRole('link', { name: '収支の自動入力の設定を開く' })).toHaveAttribute('href', '/app/settings/recurring-transactions')
-    expect(screen.getByRole('link', { name: '表示の設定を開く' })).toHaveAttribute('href', '/app/settings/appearance')
-    expect(screen.queryByRole('link', { name: 'データインポートの設定を開く' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: '管理する' })).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: 'アカウントの設定を開く' }),
+    ).toHaveAttribute('href', '/app/settings/account')
+    expect(
+      screen.getByRole('link', { name: '予算の設定を開く' }),
+    ).toHaveAttribute('href', '/app/settings/budget')
+    expect(
+      screen.getByRole('link', { name: '支払い方法の設定を開く' }),
+    ).toHaveAttribute('href', '/app/settings/payments')
+    expect(
+      screen.getByRole('link', { name: '収支の自動入力の設定を開く' }),
+    ).toHaveAttribute('href', '/app/settings/recurring-transactions')
+    expect(
+      screen.getByRole('link', { name: '表示の設定を開く' }),
+    ).toHaveAttribute('href', '/app/settings/appearance')
+    expect(
+      screen.queryByRole('link', { name: 'データインポートの設定を開く' }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: '管理する' }),
+    ).not.toBeInTheDocument()
   })
 
   it('shows only static menu content without fetching summary data', async () => {
@@ -465,7 +574,13 @@ describe('SettingsPage', () => {
       '指定日に毎月の収入・支出を自動登録します。',
       'テーマやアクセントカラー、グラフの配色を設定します。',
     ]
-    const titles = ['アカウント', '予算', '支払い方法', '収支の自動入力', '表示']
+    const titles = [
+      'アカウント',
+      '予算',
+      '支払い方法',
+      '収支の自動入力',
+      '表示',
+    ]
     const expectStaticMenu = () => {
       const links = within(screen.getByRole('list')).getAllByRole('link')
       expect(links).toHaveLength(5)
@@ -476,7 +591,9 @@ describe('SettingsPage', () => {
 
     expectStaticMenu()
     // Wait for the shared appearance request to complete before checking requests.
-    await waitFor(() => expect(document.documentElement.dataset.accent).toBe('blue'))
+    await waitFor(() =>
+      expect(document.documentElement.dataset.accent).toBe('blue'),
+    )
     expectStaticMenu()
     expect(summaryRequest).not.toHaveBeenCalled()
   })
@@ -485,7 +602,9 @@ describe('SettingsPage', () => {
     renderSettingsPage('appearance')
 
     const selectedAccent = screen.getByRole('radio', { name: /^ブルー/ })
-    expect(selectedAccent.nextElementSibling).toHaveClass('peer-checked:border-foreground')
+    expect(selectedAccent.nextElementSibling).toHaveClass(
+      'peer-checked:border-foreground',
+    )
   })
 
   it('shows an error toast when logging out fails', async () => {
@@ -513,9 +632,17 @@ describe('SettingsPage', () => {
   it('lets the user select each available accent color', async () => {
     renderSettingsPage('appearance')
 
-    const accentLabels = ['ブルー', 'グリーン', 'バイオレット', 'ローズ', 'ブラック']
+    const accentLabels = [
+      'ブルー',
+      'グリーン',
+      'バイオレット',
+      'ローズ',
+      'ブラック',
+    ]
     for (const label of accentLabels) {
-      expect(screen.getByRole('radio', { name: new RegExp(`^${label}`) })).toBeInTheDocument()
+      expect(
+        screen.getByRole('radio', { name: new RegExp(`^${label}`) }),
+      ).toBeInTheDocument()
     }
 
     fireEvent.click(screen.getByRole('radio', { name: /^ブルー/ }))
@@ -529,7 +656,9 @@ describe('SettingsPage', () => {
     renderSettingsPage('appearance')
 
     for (const label of ['標準', 'カラフル', 'モノトーン']) {
-      expect(screen.getByRole('radio', { name: new RegExp(`^${label}`) })).toBeInTheDocument()
+      expect(
+        screen.getByRole('radio', { name: new RegExp(`^${label}`) }),
+      ).toBeInTheDocument()
     }
 
     fireEvent.click(screen.getByRole('radio', { name: /^カラフル/ }))
@@ -542,7 +671,9 @@ describe('SettingsPage', () => {
   it('loads the existing monthly budget into the form', async () => {
     renderSettingsPage('budget')
 
-    expect(await screen.findByRole('spinbutton', { name: '月額予算' })).toHaveValue(300_000)
+    expect(
+      await screen.findByRole('spinbutton', { name: '月額予算' }),
+    ).toHaveValue(300_000)
   })
 
   it('leaves the amount empty when no budget is configured', async () => {
@@ -550,7 +681,9 @@ describe('SettingsPage', () => {
     renderSettingsPage('budget')
 
     const input = await screen.findByRole('spinbutton', { name: '月額予算' })
-    await waitFor(() => expect(screen.getByText('今月1日から適用されます。')).toBeVisible())
+    await waitFor(() =>
+      expect(screen.getByText('今月1日から適用されます。')).toBeVisible(),
+    )
     expect(input).toHaveValue(null)
   })
 
@@ -614,15 +747,21 @@ describe('SettingsPage', () => {
     renderSettingsPage('payments')
 
     expect(await screen.findByText('楽天カード')).toBeVisible()
-    expect(screen.getByText('カード ・ 締め日 31日 / 支払日 27日')).toBeVisible()
-    expect(document.querySelector('img[src="/payment-icons/card_rakuten.svg"]')).not.toBeNull()
+    expect(
+      screen.getByText('カード ・ 締め日 31日 / 支払日 27日'),
+    ).toBeVisible()
+    expect(
+      document.querySelector('img[src="/payment-icons/card_rakuten.svg"]'),
+    ).not.toBeNull()
     expect(screen.getAllByText('現金')).toHaveLength(2)
   })
 
   it('stores and clears the default payment method locally', async () => {
     renderSettingsPage('payments')
 
-    const select = await screen.findByRole('combobox', { name: 'デフォルトの支払い方法' })
+    const select = await screen.findByRole('combobox', {
+      name: 'デフォルトの支払い方法',
+    })
     fireEvent.click(select)
     fireEvent.click(await screen.findByRole('option', { name: '楽天カード' }))
     expect(readDefaultPaymentId()).toBe('20')
@@ -638,11 +777,15 @@ describe('SettingsPage', () => {
 
     await screen.findByText('支払い方法がありません')
     fireEvent.click(screen.getByRole('button', { name: '支払い方法を追加' }))
-    fireEvent.change(screen.getByRole('textbox', { name: '支払い方法名' }), { target: { value: '交通系IC' } })
+    fireEvent.change(screen.getByRole('textbox', { name: '支払い方法名' }), {
+      target: { value: '交通系IC' },
+    })
     fireEvent.click(screen.getByRole('button', { name: '追加する' }))
 
     await waitFor(() => {
-      expect(addRequests).toEqual([{ payment_name: '交通系IC', payment_type_id: '1' }])
+      expect(addRequests).toEqual([
+        { payment_name: '交通系IC', payment_type_id: '1' },
+      ])
       expect(toastSuccess).toHaveBeenCalledWith('支払い方法を追加しました。')
     })
   })
@@ -653,8 +796,12 @@ describe('SettingsPage', () => {
 
     await screen.findByText('支払い方法がありません')
     fireEvent.click(screen.getByRole('button', { name: '支払い方法を追加' }))
-    expect(screen.getByRole('dialog', { name: '支払い方法を追加' })).toBeVisible()
-    fireEvent.change(screen.getByRole('textbox', { name: '支払い方法名' }), { target: { value: '新しいカード' } })
+    expect(
+      screen.getByRole('dialog', { name: '支払い方法を追加' }),
+    ).toBeVisible()
+    fireEvent.change(screen.getByRole('textbox', { name: '支払い方法名' }), {
+      target: { value: '新しいカード' },
+    })
     fireEvent.click(screen.getByRole('radio', { name: 'カード' }))
     fireEvent.click(screen.getByRole('button', { name: '追加する' }))
 
@@ -662,17 +809,23 @@ describe('SettingsPage', () => {
     expect(screen.getByText('支払日を入力してください。')).toBeVisible()
     expect(addRequests).toHaveLength(0)
 
-    fireEvent.change(screen.getByRole('spinbutton', { name: '締め日' }), { target: { value: '31' } })
-    fireEvent.change(screen.getByRole('spinbutton', { name: '支払日' }), { target: { value: '27' } })
+    fireEvent.change(screen.getByRole('spinbutton', { name: '締め日' }), {
+      target: { value: '31' },
+    })
+    fireEvent.change(screen.getByRole('spinbutton', { name: '支払日' }), {
+      target: { value: '27' },
+    })
     fireEvent.click(screen.getByRole('button', { name: '追加する' }))
 
     await waitFor(() => {
-      expect(addRequests).toEqual([{
-        closing_date: 31,
-        payment_date: 27,
-        payment_name: '新しいカード',
-        payment_type_id: '2',
-      }])
+      expect(addRequests).toEqual([
+        {
+          closing_date: 31,
+          payment_date: 27,
+          payment_name: '新しいカード',
+          payment_type_id: '2',
+        },
+      ])
     })
   })
 
@@ -682,32 +835,44 @@ describe('SettingsPage', () => {
 
     await screen.findByText('楽天カード')
     fireEvent.click(screen.getByRole('button', { name: '楽天カードを編集' }))
-    fireEvent.change(screen.getByRole('textbox', { name: '支払い方法名' }), { target: { value: 'メインカード' } })
+    fireEvent.change(screen.getByRole('textbox', { name: '支払い方法名' }), {
+      target: { value: 'メインカード' },
+    })
     fireEvent.click(screen.getByRole('button', { name: '保存する' }))
 
     await waitFor(() => {
-      expect(editRequests).toEqual([{
-        closing_date: 31,
-        payment_date: 27,
-        payment_id: '20',
-        payment_name: 'メインカード',
-        payment_type_id: '2',
-      }])
+      expect(editRequests).toEqual([
+        {
+          closing_date: 31,
+          payment_date: 27,
+          payment_id: '20',
+          payment_name: 'メインカード',
+          payment_type_id: '2',
+        },
+      ])
     })
     expect(await screen.findByText('メインカード')).toBeVisible()
 
     fireEvent.click(screen.getByRole('button', { name: 'メインカードを削除' }))
     expect(screen.getByRole('alertdialog')).toBeVisible()
-    expect(screen.getByText('「メインカード」を削除します。この操作は取り消せません。')).toBeVisible()
+    expect(
+      screen.getByText(
+        '「メインカード」を削除します。この操作は取り消せません。',
+      ),
+    ).toBeVisible()
     fireEvent.click(screen.getByRole('button', { name: '削除する' }))
-    await waitFor(() => expect(screen.queryByText('メインカード')).not.toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.queryByText('メインカード')).not.toBeInTheDocument(),
+    )
   })
 
   it('clears the default payment method after deleting it', async () => {
     writeDefaultPaymentId('20')
     renderSettingsPage('payments')
 
-    fireEvent.click(await screen.findByRole('button', { name: '楽天カードを削除' }))
+    fireEvent.click(
+      await screen.findByRole('button', { name: '楽天カードを削除' }),
+    )
     fireEvent.click(screen.getByRole('button', { name: '削除する' }))
 
     await waitFor(() => expect(readDefaultPaymentId()).toBeNull())
@@ -718,7 +883,12 @@ describe('SettingsPage', () => {
     renderSettingsPage('payments')
 
     expect(await screen.findByText('支払い方法を読み込めません')).toBeVisible()
-    expect(within(screen.getByRole('region', { name: '支払い方法' })).getByRole('button', { name: 'もう一度試す' })).toBeEnabled()
+    expect(
+      within(screen.getByRole('region', { name: '支払い方法' })).getByRole(
+        'button',
+        { name: 'もう一度試す' },
+      ),
+    ).toBeEnabled()
   })
 
   it('keeps the payment method and shows the API error when deletion is rejected', async () => {
@@ -730,7 +900,9 @@ describe('SettingsPage', () => {
     fireEvent.click(screen.getByRole('button', { name: '削除する' }))
 
     await waitFor(() => {
-      expect(toastError).toHaveBeenCalledWith('関連する取引があるため削除できません')
+      expect(toastError).toHaveBeenCalledWith(
+        '関連する取引があるため削除できません',
+      )
     })
     expect(screen.getByText('楽天カード')).toBeVisible()
   })
@@ -739,7 +911,9 @@ describe('SettingsPage', () => {
     renderSettingsPage('recurring')
 
     expect(await screen.findByText('家賃')).toBeVisible()
-    expect(screen.getByText(/毎月27日 ・ 住居 ・ 家賃 ・ 楽天カード/)).toBeVisible()
+    expect(
+      screen.getByText(/毎月27日 ・ 住居 ・ 家賃 ・ 楽天カード/),
+    ).toBeVisible()
     expect(screen.getByText('停止中')).toBeVisible()
     expect(screen.getByText('ジム')).toBeVisible()
     expect(screen.getByRole('button', { name: '家賃を停止' })).toBeEnabled()
@@ -756,26 +930,40 @@ describe('SettingsPage', () => {
   })
 
   it('shows the shadcn empty state when there are no recurring transactions', async () => {
-    registerRecurringTransactionHandlers({ initialActive: [], initialPaused: [] })
+    registerRecurringTransactionHandlers({
+      initialActive: [],
+      initialPaused: [],
+    })
     renderSettingsPage('recurring')
 
     const emptyTitle = await screen.findByText('有効な自動入力はありません。')
 
     expect(emptyTitle.closest('[data-slot="empty"]')).toBeInTheDocument()
-    expect(screen.getByText('毎月の収入・支出を指定日に自動登録できます。')).toBeVisible()
+    expect(
+      screen.getByText('毎月の収入・支出を指定日に自動登録できます。'),
+    ).toBeVisible()
     expect(screen.queryByText('停止中')).not.toBeInTheDocument()
   })
 
   it('creates a recurring transaction after validating and selecting its category', async () => {
-    const { addRequests } = registerRecurringTransactionHandlers({ initialActive: [], initialPaused: [] })
+    const { addRequests } = registerRecurringTransactionHandlers({
+      initialActive: [],
+      initialPaused: [],
+    })
     renderSettingsPage('recurring')
 
     await screen.findByText('有効な自動入力はありません。')
     fireEvent.click(screen.getByRole('button', { name: '自動入力を追加' }))
     expect(screen.getByRole('dialog', { name: '自動入力を追加' })).toBeVisible()
-    fireEvent.change(screen.getByRole('textbox', { name: '取引名' }), { target: { value: '家賃' } })
-    fireEvent.change(screen.getByRole('textbox', { name: '金額' }), { target: { value: '78550' } })
-    fireEvent.change(screen.getByRole('spinbutton', { name: '毎月の入力日' }), { target: { value: '27' } })
+    fireEvent.change(screen.getByRole('textbox', { name: '取引名' }), {
+      target: { value: '家賃' },
+    })
+    fireEvent.change(screen.getByRole('textbox', { name: '金額' }), {
+      target: { value: '78550' },
+    })
+    fireEvent.change(screen.getByRole('spinbutton', { name: '毎月の入力日' }), {
+      target: { value: '27' },
+    })
     fireEvent.click(screen.getByRole('combobox', { name: 'カテゴリ' }))
     fireEvent.click(await screen.findByRole('option', { name: '住居' }))
     fireEvent.click(screen.getByRole('combobox', { name: 'サブカテゴリ' }))
@@ -783,17 +971,19 @@ describe('SettingsPage', () => {
     fireEvent.click(screen.getByRole('button', { name: '追加する' }))
 
     await waitFor(() => {
-      expect(addRequests).toEqual([{
-        monthly_transaction: {
-          category_id: '22',
-          monthly_transaction_amount: 78_550,
-          monthly_transaction_date: 27,
-          monthly_transaction_name: '家賃',
-          monthly_transaction_sign: -1,
-          payment_id: '',
-          sub_category_id: '220',
+      expect(addRequests).toEqual([
+        {
+          monthly_transaction: {
+            category_id: '22',
+            monthly_transaction_amount: 78_550,
+            monthly_transaction_date: 27,
+            monthly_transaction_name: '家賃',
+            monthly_transaction_sign: -1,
+            payment_id: '',
+            sub_category_id: '220',
+          },
         },
-      }])
+      ])
     })
   })
 
@@ -803,16 +993,28 @@ describe('SettingsPage', () => {
 
     await screen.findByText('家賃')
     fireEvent.click(screen.getByRole('button', { name: '家賃を停止' }))
-    await waitFor(() => expect(editRequests[0]?.monthly_transaction.include_flg).toBe(false))
-    expect(await screen.findByRole('button', { name: '家賃を再開' })).toBeEnabled()
+    await waitFor(() =>
+      expect(editRequests[0]?.monthly_transaction.include_flg).toBe(false),
+    )
+    expect(
+      await screen.findByRole('button', { name: '家賃を再開' }),
+    ).toBeEnabled()
 
     fireEvent.click(screen.getByRole('button', { name: '家賃を再開' }))
-    await waitFor(() => expect(editRequests[1]?.monthly_transaction.include_flg).toBe(true))
+    await waitFor(() =>
+      expect(editRequests[1]?.monthly_transaction.include_flg).toBe(true),
+    )
 
-    fireEvent.click(await screen.findByRole('button', { name: '家賃を完全に削除' }))
+    fireEvent.click(
+      await screen.findByRole('button', { name: '家賃を完全に削除' }),
+    )
     expect(screen.getByRole('alertdialog')).toBeVisible()
     fireEvent.click(screen.getByRole('button', { name: '完全に削除する' }))
-    await waitFor(() => expect(screen.queryByRole('button', { name: '家賃を完全に削除' })).not.toBeInTheDocument())
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('button', { name: '家賃を完全に削除' }),
+      ).not.toBeInTheDocument(),
+    )
   })
 
   it('edits a paused recurring transaction without resuming it', async () => {
@@ -821,7 +1023,9 @@ describe('SettingsPage', () => {
 
     await screen.findByText('ジム')
     fireEvent.click(screen.getByRole('button', { name: 'ジムを編集' }))
-    fireEvent.change(screen.getByRole('textbox', { name: '取引名' }), { target: { value: '新しいジム' } })
+    fireEvent.change(screen.getByRole('textbox', { name: '取引名' }), {
+      target: { value: '新しいジム' },
+    })
     fireEvent.click(screen.getByRole('button', { name: '保存する' }))
 
     await waitFor(() => {
@@ -832,7 +1036,9 @@ describe('SettingsPage', () => {
         monthly_transaction_name: '新しいジム',
       })
     })
-    expect(await screen.findByRole('button', { name: '新しいジムを再開' })).toBeEnabled()
+    expect(
+      await screen.findByRole('button', { name: '新しいジムを再開' }),
+    ).toBeEnabled()
   })
 
   it('shows a retryable error when recurring transactions cannot load', async () => {

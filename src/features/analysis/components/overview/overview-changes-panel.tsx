@@ -15,7 +15,11 @@ function ChangeList({
   direction: 'increase' | 'decrease'
 }) {
   if (items.length === 0) {
-    return <p className="py-5 text-center text-xs text-muted-foreground">該当する項目はありません</p>
+    return (
+      <p className="py-5 text-center text-xs text-muted-foreground">
+        該当する項目はありません
+      </p>
+    )
   }
 
   return (
@@ -36,7 +40,12 @@ function ChangeList({
             />
           </span>
           <span className="text-right tabular-nums">
-            <span className={cn('block font-semibold', direction === 'increase' ? 'text-expense' : 'text-success')}>
+            <span
+              className={cn(
+                'block font-semibold',
+                direction === 'increase' ? 'text-expense' : 'text-success',
+              )}
+            >
               {formatSignedCurrency(item.amount)}
             </span>
             <span className="block text-[0.625rem] text-muted-foreground">
@@ -52,14 +61,20 @@ function ChangeList({
 export function ChangesPanel({ data }: { data: AnalysisOverviewViewModel }) {
   return (
     <AnalysisPanel>
-      <h2 className="text-sm font-semibold sm:text-lg">支出の増減（前期間比）</h2>
+      <h2 className="text-sm font-semibold sm:text-lg">
+        支出の増減（前期間比）
+      </h2>
       <div className="mt-4 grid gap-4 min-[400px]:grid-cols-2 min-[400px]:divide-x sm:mt-5 sm:gap-5">
         <div className="min-[400px]:pr-3 sm:pr-6">
-          <p className="mb-3 text-xs font-medium text-muted-foreground">増加したカテゴリ</p>
+          <p className="mb-3 text-xs font-medium text-muted-foreground">
+            増加したカテゴリ
+          </p>
           <ChangeList direction="increase" items={data.increases} />
         </div>
         <div className="min-[400px]:pl-3 sm:pl-6">
-          <p className="mb-3 text-xs font-medium text-muted-foreground">減少したカテゴリ</p>
+          <p className="mb-3 text-xs font-medium text-muted-foreground">
+            減少したカテゴリ
+          </p>
           <ChangeList direction="decrease" items={data.decreases} />
         </div>
       </div>

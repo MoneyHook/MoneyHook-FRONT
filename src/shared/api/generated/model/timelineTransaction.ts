@@ -15,24 +15,24 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { DateString } from './dateString';
-import type { Identifier } from './identifier';
-import type { NullableIdentifier } from './nullableIdentifier';
-import type { TimelineTransactionTransactionSign } from './timelineTransactionTransactionSign';
+import type { DateString } from './dateString'
+import type { Identifier } from './identifier'
+import type { NullableIdentifier } from './nullableIdentifier'
+import type { TimelineTransactionTransactionSign } from './timelineTransactionTransactionSign'
 
 export interface TimelineTransaction {
-  transaction_id: Identifier;
-  transaction_name: string;
+  transaction_id: Identifier
+  transaction_name: string
   /** @minimum 0 */
-  transaction_amount: number;
-  transaction_sign: TimelineTransactionTransactionSign;
-  transaction_date: DateString;
-  category_id: Identifier;
-  category_name: string;
-  sub_category_id: Identifier;
-  sub_category_name: string;
-  fixed_flg: boolean;
-  payment_id: NullableIdentifier | null;
+  transaction_amount: number
+  transaction_sign: TimelineTransactionTransactionSign
+  transaction_date: DateString
+  category_id: Identifier
+  category_name: string
+  sub_category_id: Identifier
+  sub_category_name: string
+  fixed_flg: boolean
+  payment_id: NullableIdentifier | null
   /** @nullable */
-  payment_name: string | null;
+  payment_name: string | null
 }

@@ -6,7 +6,10 @@ const optionalUrl = z.preprocess(
 )
 
 const environmentSchema = z.object({
-  VITE_API_BASE_URL: z.string().url().transform((value) => value.replace(/\/$/, '')),
+  VITE_API_BASE_URL: z
+    .string()
+    .url()
+    .transform((value) => value.replace(/\/$/, '')),
   VITE_FIREBASE_API_KEY: z.string().min(1),
   VITE_FIREBASE_AUTH_DOMAIN: z.string().min(1),
   VITE_FIREBASE_PROJECT_ID: z.string().min(1),

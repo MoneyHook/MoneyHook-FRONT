@@ -15,17 +15,17 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { DateString } from './dateString';
-import type { Identifier } from './identifier';
+import type { DateString } from './dateString'
+import type { Identifier } from './identifier'
 
 export type PaymentGroupResponsePaymentListItemTransactionListItem = {
-  transaction_id: Identifier;
-  transaction_name: string;
-  transaction_amount: number;
-  transaction_date: DateString;
-  category_id: Identifier;
-  category_name: string;
-  sub_category_id: Identifier;
-  sub_category_name: string;
-  fixed_flg: boolean;
-};
+  transaction_id: Identifier
+  transaction_name: string
+  transaction_amount: number
+  transaction_date: DateString
+  category_id: Identifier
+  category_name: string
+  sub_category_id: Identifier
+  sub_category_name: string
+  fixed_flg: boolean
+}

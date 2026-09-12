@@ -15,12 +15,12 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { GroupedTransaction } from './groupedTransaction';
-import type { Identifier } from './identifier';
+import type { GroupedTransaction } from './groupedTransaction'
+import type { Identifier } from './identifier'
 
 export type MonthlyFixedResponseMonthlyFixedListItem = {
-  category_id: Identifier;
-  category_name: string;
-  total_category_amount: number;
-  transaction_list: GroupedTransaction[];
-};
+  category_id: Identifier
+  category_name: string
+  total_category_amount: number
+  transaction_list: GroupedTransaction[]
+}

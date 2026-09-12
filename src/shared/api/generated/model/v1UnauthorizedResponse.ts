@@ -15,9 +15,9 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { V1ErrorResponse } from './v1ErrorResponse';
+import type { V1ErrorResponse } from './v1ErrorResponse'
 
 /**
  * Missing, expired, invalid, or non-Google Firebase Bearer token
  */
-export type V1UnauthorizedResponse = V1ErrorResponse;
+export type V1UnauthorizedResponse = V1ErrorResponse

@@ -15,8 +15,8 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { TransactionEdit } from './transactionEdit';
+import type { TransactionEdit } from './transactionEdit'
 
 export interface TransactionEditEnvelope {
-  transaction: TransactionEdit;
+  transaction: TransactionEdit
 }

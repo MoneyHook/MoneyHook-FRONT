@@ -34,7 +34,9 @@ export function SortablePaymentRow({
     transition,
     isDragging,
   } = useSortable({ id: payment.payment_id })
-  const type = paymentTypes.find((item) => item.payment_type_id === payment.payment_type_id)
+  const type = paymentTypes.find(
+    (item) => item.payment_type_id === payment.payment_type_id,
+  )
   const iconSource = getPaymentIconSource({
     paymentName: payment.payment_name,
     paymentTypeName: type?.payment_type_name,

@@ -15,8 +15,8 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { Identifier } from './identifier';
+import type { Identifier } from './identifier'
 
 export interface PaymentResourceOrderRequest {
-  payment_ids: Identifier[];
+  payment_ids: Identifier[]
 }

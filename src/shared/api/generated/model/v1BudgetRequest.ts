@@ -18,10 +18,10 @@
 
 export interface V1BudgetRequest {
   /** @minimum 1 */
-  monthly_budget_amount: number;
+  monthly_budget_amount: number
   /**
-     * First day of the month from which this budget becomes effective.
-     * @pattern ^[0-9]{4}-[0-9]{2}-01$
-     */
-  effective_from: string;
+   * First day of the month from which this budget becomes effective.
+   * @pattern ^[0-9]{4}-[0-9]{2}-01$
+   */
+  effective_from: string
 }

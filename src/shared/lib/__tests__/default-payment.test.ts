@@ -23,7 +23,10 @@ describe('default payment', () => {
   })
 
   it('discards an invalid stored value', () => {
-    localStorage.setItem(DEFAULT_PAYMENT_STORAGE_KEY, JSON.stringify({ version: 1, value: '' }))
+    localStorage.setItem(
+      DEFAULT_PAYMENT_STORAGE_KEY,
+      JSON.stringify({ version: 1, value: '' }),
+    )
 
     expect(readDefaultPaymentId()).toBeNull()
     expect(localStorage.getItem(DEFAULT_PAYMENT_STORAGE_KEY)).toBeNull()

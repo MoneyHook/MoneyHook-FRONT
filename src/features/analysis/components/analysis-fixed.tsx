@@ -56,7 +56,10 @@ export function AnalysisFixedContent({ range }: { range: AnalysisRange }) {
         onCategoryChange={setCategories}
         selectedCategoryIds={selectedCategoryIds}
       />
-      <TransactionsPanel items={selectedTransactions} onOpen={openTransaction} />
+      <TransactionsPanel
+        items={selectedTransactions}
+        onOpen={openTransaction}
+      />
     </div>
   )
 }

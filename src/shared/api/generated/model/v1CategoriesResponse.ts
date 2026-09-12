@@ -15,12 +15,12 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { V1AnalysisRange } from './v1AnalysisRange';
-import type { V1CategoryAnalysis } from './v1CategoryAnalysis';
+import type { V1AnalysisRange } from './v1AnalysisRange'
+import type { V1CategoryAnalysis } from './v1CategoryAnalysis'
 
 export interface V1CategoriesResponse {
-  range: V1AnalysisRange;
+  range: V1AnalysisRange
   /** @minimum 0 */
-  total_expense_amount: number;
-  category_list: V1CategoryAnalysis[];
+  total_expense_amount: number
+  category_list: V1CategoryAnalysis[]
 }

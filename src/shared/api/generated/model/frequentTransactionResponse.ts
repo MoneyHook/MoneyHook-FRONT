@@ -15,8 +15,8 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { FrequentTransactionResponseTransactionListItem } from './frequentTransactionResponseTransactionListItem';
+import type { FrequentTransactionResponseTransactionListItem } from './frequentTransactionResponseTransactionListItem'
 
 export interface FrequentTransactionResponse {
-  transaction_list: FrequentTransactionResponseTransactionListItem[];
+  transaction_list: FrequentTransactionResponseTransactionListItem[]
 }

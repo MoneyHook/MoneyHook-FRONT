@@ -13,14 +13,20 @@ import {
 } from '@/shared/components/ui/alert-dialog'
 import { Button } from '@/shared/components/ui/button'
 import { Skeleton } from '@/shared/components/ui/skeleton'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/components/ui/tooltip'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/shared/components/ui/tooltip'
 import { cn } from '@/shared/lib/utils'
 
 import { useTransactionFormController } from '../hooks/use-transaction-form-controller'
 import { TransactionFormFields } from './transaction-form/transaction-form-fields'
 import { TransactionSelectionSheets } from './transaction-form/transaction-selection-sheets'
 
-export function TransactionFormView({ transactionId }: { transactionId?: string } = {}) {
+export function TransactionFormView({
+  transactionId,
+}: { transactionId?: string } = {}) {
   const controller = useTransactionFormController(transactionId)
   const {
     isLoading,
@@ -63,7 +69,12 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
     return (
       <section className="mx-auto w-full max-w-2xl px-4 py-5 sm:px-6">
         <header className="flex items-center justify-between">
-          <Button aria-label="前の画面へ戻る" onClick={goBack} size="icon-lg" variant="ghost">
+          <Button
+            aria-label="前の画面へ戻る"
+            onClick={goBack}
+            size="icon-lg"
+            variant="ghost"
+          >
             <X aria-hidden="true" className="size-7" />
           </Button>
           <h1
@@ -94,7 +105,7 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
   return (
     <section
       aria-labelledby="transaction-page-title"
-      className="motion-route-enter mx-auto flex h-dvh w-full max-w-2xl flex-col overflow-hidden px-4 pt-3 sm:block sm:h-auto sm:overflow-visible sm:px-6 sm:pb-10 sm:pt-7"
+      className="motion-route-enter mx-auto flex h-dvh w-full max-w-2xl flex-col overflow-hidden px-4 pt-3 sm:block sm:h-auto sm:overflow-visible sm:px-6 sm:pt-7 sm:pb-10"
     >
       <div className="shrink-0">
         <header className="flex items-center justify-between gap-2 sm:gap-3">
@@ -140,7 +151,9 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
                     <Upload aria-hidden="true" className="size-5" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="bottom">CSV取引をインポート</TooltipContent>
+                <TooltipContent side="bottom">
+                  CSV取引をインポート
+                </TooltipContent>
               </Tooltip>
             )}
           </div>
@@ -160,7 +173,7 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
               <button
                 aria-selected={isSelected}
                 className={cn(
-                  'min-h-10 rounded-xl px-3 text-sm font-semibold outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-12 sm:px-4 sm:text-base',
+                  'min-h-10 rounded-xl px-3 text-sm font-semibold transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-12 sm:px-4 sm:text-base',
                   isSelected
                     ? item.sign === -1
                       ? 'bg-card text-expense shadow-sm'
@@ -206,7 +219,9 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
           size="lg"
           type="submit"
         >
-          {isSaving ? <LoaderCircle aria-hidden="true" className="animate-spin" /> : null}
+          {isSaving ? (
+            <LoaderCircle aria-hidden="true" className="animate-spin" />
+          ) : null}
           保存
         </Button>
       </div>
@@ -234,12 +249,15 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
             <AlertDialogHeader>
               <AlertDialogTitle>この取引を削除しますか？</AlertDialogTitle>
               <AlertDialogDescription>
-                「{transaction.transaction_name}」 {transaction.amount.toLocaleString('ja-JP')}
+                「{transaction.transaction_name}」{' '}
+                {transaction.amount.toLocaleString('ja-JP')}
                 円の取引を削除します。この操作は取り消せません。
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel disabled={isDeleting}>キャンセル</AlertDialogCancel>
+              <AlertDialogCancel disabled={isDeleting}>
+                キャンセル
+              </AlertDialogCancel>
               <AlertDialogAction
                 disabled={isDeleting}
                 onClick={(event) => {
@@ -248,7 +266,10 @@ export function TransactionFormView({ transactionId }: { transactionId?: string 
                 }}
               >
                 {isDeleting ? (
-                  <LoaderCircle aria-hidden="true" className="mr-1.5 size-4 animate-spin" />
+                  <LoaderCircle
+                    aria-hidden="true"
+                    className="mr-1.5 size-4 animate-spin"
+                  />
                 ) : null}
                 削除する
               </AlertDialogAction>

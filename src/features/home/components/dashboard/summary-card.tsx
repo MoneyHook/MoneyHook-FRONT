@@ -1,7 +1,23 @@
-import { ArrowDownRight, ArrowUpRight, CalendarDays, WalletCards, type LucideIcon } from 'lucide-react'
-import { PolarAngleAxis, RadialBar, RadialBarChart, ResponsiveContainer } from 'recharts'
+import {
+  ArrowDownRight,
+  ArrowUpRight,
+  CalendarDays,
+  WalletCards,
+  type LucideIcon,
+} from 'lucide-react'
+import {
+  PolarAngleAxis,
+  RadialBar,
+  RadialBarChart,
+  ResponsiveContainer,
+} from 'recharts'
 import { cn } from '@/shared/lib/utils'
-import { formatCurrency, formatPercent, formatSignedCurrency, type HomeDashboardViewModel } from '../../model/home-dashboard'
+import {
+  formatCurrency,
+  formatPercent,
+  formatSignedCurrency,
+  type HomeDashboardViewModel,
+} from '../../model/home-dashboard'
 import { DashboardCard } from './dashboard-card'
 
 function Metric({
@@ -30,8 +46,12 @@ function Metric({
         <Icon aria-hidden="true" className="size-3.5 sm:size-4.5" />
       </span>
       <div className="min-w-0">
-        <p className="truncate text-[0.625rem] text-muted-foreground sm:text-sm">{label}</p>
-        <p className="truncate text-sm font-semibold tabular-nums sm:mt-0.5 sm:text-lg">{value}</p>
+        <p className="truncate text-[0.625rem] text-muted-foreground sm:text-sm">
+          {label}
+        </p>
+        <p className="truncate text-sm font-semibold tabular-nums sm:mt-0.5 sm:text-lg">
+          {value}
+        </p>
         <p
           className={cn(
             'text-[0.625rem] font-medium tabular-nums sm:mt-0.5 sm:text-xs',
@@ -48,8 +68,11 @@ function Metric({
 function BudgetRing({ budgetRatio }: { budgetRatio: number | null }) {
   const isConfigured = budgetRatio !== null
   const progress = isConfigured ? Math.min(Math.max(budgetRatio, 0), 100) : 0
-  const ringColor = isConfigured && budgetRatio > 100 ? 'var(--expense)' : 'var(--success)'
-  const label = isConfigured ? `予算比 ${formatPercent(budgetRatio)}` : '予算比は未設定です'
+  const ringColor =
+    isConfigured && budgetRatio > 100 ? 'var(--expense)' : 'var(--success)'
+  const label = isConfigured
+    ? `予算比 ${formatPercent(budgetRatio)}`
+    : '予算比は未設定です'
 
   return (
     <div aria-label={label} className="relative size-20 shrink-0 sm:size-36">
@@ -82,7 +105,9 @@ function BudgetRing({ budgetRatio }: { budgetRatio: number | null }) {
         <span className="text-xs font-semibold tabular-nums sm:text-sm">
           {isConfigured ? formatPercent(budgetRatio) : '未設定'}
         </span>
-        <span className="text-[0.625rem] text-muted-foreground sm:mt-0.5 sm:text-xs">予算比</span>
+        <span className="text-[0.625rem] text-muted-foreground sm:mt-0.5 sm:text-xs">
+          予算比
+        </span>
       </div>
     </div>
   )
@@ -113,7 +138,11 @@ export function SummaryCard({ data }: { data: HomeDashboardViewModel }) {
             <span className="text-muted-foreground">前月比</span>
             <span>{formatSignedCurrency(data.differenceAmount)}</span>
             <span>
-              ({data.differenceRate === null ? '—' : formatPercent(Math.abs(data.differenceRate))})
+              (
+              {data.differenceRate === null
+                ? '—'
+                : formatPercent(Math.abs(data.differenceRate))}
+              )
             </span>
             {data.differenceAmount !== 0 ? (
               data.differenceAmount > 0 ? (

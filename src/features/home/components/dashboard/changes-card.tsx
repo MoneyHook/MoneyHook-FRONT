@@ -1,6 +1,11 @@
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react'
 import { cn } from '@/shared/lib/utils'
-import { formatCurrency, formatSignedCurrency, type CategoryChange, type HomeDashboardViewModel } from '../../model/home-dashboard'
+import {
+  formatCurrency,
+  formatSignedCurrency,
+  type CategoryChange,
+  type HomeDashboardViewModel,
+} from '../../model/home-dashboard'
 import { DashboardCard } from './dashboard-card'
 
 function ChangePanel({
@@ -13,7 +18,12 @@ function ChangePanel({
   const isIncrease = direction === 'increase'
   const Icon = isIncrease ? ArrowUpRight : ArrowDownRight
   return (
-    <div className={cn('rounded-xl p-2 sm:p-4', isIncrease ? 'bg-expense/6' : 'bg-chart-2/6')}>
+    <div
+      className={cn(
+        'rounded-xl p-2 sm:p-4',
+        isIncrease ? 'bg-expense/6' : 'bg-chart-2/6',
+      )}
+    >
       <p className="flex items-center gap-1 text-[0.625rem] font-semibold sm:gap-2 sm:text-sm">
         <Icon
           aria-hidden="true"

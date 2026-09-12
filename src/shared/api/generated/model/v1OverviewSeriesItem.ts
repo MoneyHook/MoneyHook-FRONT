@@ -15,17 +15,17 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { DateString } from './dateString';
+import type { DateString } from './dateString'
 
 export interface V1OverviewSeriesItem {
-  bucket: DateString;
+  bucket: DateString
   /** @minimum 0 */
-  expense_amount: number;
+  expense_amount: number
   /** @minimum 0 */
-  income_amount: number;
-  net_amount: number;
+  income_amount: number
+  net_amount: number
   /** @minimum 0 */
-  fixed_expense_amount: number;
+  fixed_expense_amount: number
   /** @minimum 0 */
-  variable_expense_amount: number;
+  variable_expense_amount: number
 }

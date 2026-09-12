@@ -15,6 +15,6 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { V1TransactionResource } from './v1TransactionResource';
+import type { V1TransactionResource } from './v1TransactionResource'
 
-export type V1AnalyticsTransactionResource = V1TransactionResource;
+export type V1AnalyticsTransactionResource = V1TransactionResource

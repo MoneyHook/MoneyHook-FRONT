@@ -15,38 +15,47 @@ import type { Filter } from '../types'
 
 import { useCsvImportApi } from '../api/use-csv-import-api'
 import { useCsvImportDuplicateCheck } from '../api/use-csv-import-duplicate-check'
-import { csvImportReducer, headersFor, initialState } from '../model/csv-import-state'
+import {
+  csvImportReducer,
+  headersFor,
+  initialState,
+} from '../model/csv-import-state'
 import { useCsvFileParser } from './use-csv-file-parser'
 
 export function useCsvImportController(onImported: () => Promise<void>) {
   const [state, dispatch] = useReducer(csvImportReducer, initialState)
   const [filter, setFilter] = useState<Filter>('all')
-  const blocker = useBlocker(state.step !== 'complete' && !state.importing && Boolean(state.file))
+  const blocker = useBlocker(
+    state.step !== 'complete' && !state.importing && Boolean(state.file),
+  )
   useBeforeUnload((event) => {
     if (state.step !== 'complete' && state.file) event.preventDefault()
   })
 
-  const { categories, payments, frequentTransactions, mutation } = useCsvImportApi({
-    onImported,
-    onSuccess: () =>
-      dispatch({
-        type: 'patch',
-        patch: {
-          importing: false,
-          step: 'complete',
-          importedCount: state.previewRows.filter((row) => row.selected && !row.errors.length)
-            .length,
-        },
-      }),
-    onError: () =>
-      dispatch({
-        type: 'patch',
-        patch: {
-          importing: false,
-          error: '取引を登録できませんでした。内容を確認して、もう一度お試しください。',
-        },
-      }),
-  })
+  const { categories, payments, frequentTransactions, mutation } =
+    useCsvImportApi({
+      onImported,
+      onSuccess: () =>
+        dispatch({
+          type: 'patch',
+          patch: {
+            importing: false,
+            step: 'complete',
+            importedCount: state.previewRows.filter(
+              (row) => row.selected && !row.errors.length,
+            ).length,
+          },
+        }),
+      onError: () =>
+        dispatch({
+          type: 'patch',
+          patch: {
+            importing: false,
+            error:
+              '取引を登録できませんでした。内容を確認して、もう一度お試しください。',
+          },
+        }),
+    })
   const duplicateCheck = useCsvImportDuplicateCheck(state.previewRows)
   const parseFile = useCsvFileParser(dispatch, state.encoding)
   const headers = useMemo(() => headersFor(state), [state])
@@ -66,28 +75,48 @@ export function useCsvImportController(onImported: () => Promise<void>) {
   )
   const selected = state.previewRows.filter((row) => row.selected).length
   const errors = state.previewRows.filter((row) => row.errors.length).length
-  const selectedErrors = state.previewRows.filter((row) => row.selected && row.errors.length).length
+  const selectedErrors = state.previewRows.filter(
+    (row) => row.selected && row.errors.length,
+  ).length
   const duplicateCandidates = useMemo(
-    () => duplicateCandidatesByRowId({
-      rows: state.previewRows,
-      sign: state.defaults.sign ?? 'expense',
-      transactions: duplicateCheck.transactions,
-    }),
+    () =>
+      duplicateCandidatesByRowId({
+        rows: state.previewRows,
+        sign: state.defaults.sign ?? 'expense',
+        transactions: duplicateCheck.transactions,
+      }),
     [duplicateCheck.transactions, state.defaults.sign, state.previewRows],
   )
   const canPreview = Boolean(
     dataRows.length <= MAX_ROWS &&
-      state.defaults.sign &&
-      state.mapping.date !== null &&
-      state.mapping.name !== null &&
-      state.mapping.amount !== null,
+    state.defaults.sign &&
+    state.mapping.date !== null &&
+    state.mapping.name !== null &&
+    state.mapping.amount !== null,
   )
 
   const submit = useCallback(() => {
-    if (!selected || selectedErrors || duplicateCheck.isChecking || state.importing || !state.defaults.sign) return
+    if (
+      !selected ||
+      selectedErrors ||
+      duplicateCheck.isChecking ||
+      state.importing ||
+      !state.defaults.sign
+    )
+      return
     dispatch({ type: 'patch', patch: { importing: true, error: null } })
-    mutation.mutate(toTransactionList(state.previewRows, { sign: state.defaults.sign }))
-  }, [duplicateCheck.isChecking, mutation, selected, selectedErrors, state.defaults.sign, state.importing, state.previewRows])
+    mutation.mutate(
+      toTransactionList(state.previewRows, { sign: state.defaults.sign }),
+    )
+  }, [
+    duplicateCheck.isChecking,
+    mutation,
+    selected,
+    selectedErrors,
+    state.defaults.sign,
+    state.importing,
+    state.previewRows,
+  ])
 
   const changeHeaderRow = useCallback(
     (headerRowIndex: number | null) => {
@@ -100,7 +129,10 @@ export function useCsvImportController(onImported: () => Promise<void>) {
           headerRowIndex,
           mapping: { date: null, name: null, amount: null },
           previewRows: [],
-          error: dataRowCount > MAX_ROWS ? 'データ行数は10,000行以下にしてください。' : null,
+          error:
+            dataRowCount > MAX_ROWS
+              ? 'データ行数は10,000行以下にしてください。'
+              : null,
         },
       })
     },
@@ -148,7 +180,10 @@ export function useCsvImportController(onImported: () => Promise<void>) {
         patch: { mapping: { ...state.mapping, [field]: value }, error: null },
       }),
     changeSign: (sign: ImportSign) =>
-      dispatch({ type: 'patch', patch: { defaults: { ...state.defaults, sign } } }),
+      dispatch({
+        type: 'patch',
+        patch: { defaults: { ...state.defaults, sign } },
+      }),
     dispatch,
     duplicateCandidates,
     duplicateCount: duplicateCandidates.size,

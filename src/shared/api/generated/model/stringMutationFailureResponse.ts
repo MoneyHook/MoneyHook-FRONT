@@ -19,4 +19,4 @@
 /**
  * JSON bind failure (`error`) or database mutation failure (localized plain JSON string)
  */
-export type StringMutationFailureResponse = string;
+export type StringMutationFailureResponse = string

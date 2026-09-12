@@ -7,10 +7,18 @@ export const MAX_COLUMNS = 100
 export const MAX_ROWS = 10_000
 
 export type Encoding = 'auto' | 'utf-8' | 'shift-jis'
-export type DateFormat = 'auto' | 'yyyy/mm/dd' | 'yyyy-mm-dd' | 'yyyymmdd' | 'japanese'
+export type DateFormat =
+  'auto' | 'yyyy/mm/dd' | 'yyyy-mm-dd' | 'yyyymmdd' | 'japanese'
 export type ImportSign = 'expense' | 'income'
-export type Mapping = { date: number | null; name: number | null; amount: number | null }
-export type ImportRowError = { field: 'date' | 'name' | 'amount' | 'category' | 'subcategory'; message: string }
+export type Mapping = {
+  date: number | null
+  name: number | null
+  amount: number | null
+}
+export type ImportRowError = {
+  field: 'date' | 'name' | 'amount' | 'category' | 'subcategory'
+  message: string
+}
 
 export type ImportRow = {
   id: number
@@ -41,22 +49,31 @@ export function isBlankCsvRow(row: string[]) {
 
 export function displayColumnName(headers: string[], index: number) {
   const value = headers[index] || `列${index + 1}`
-  return headers.filter((header) => header === value).length > 1 ? `${value}（${index + 1}列目）` : value
+  return headers.filter((header) => header === value).length > 1
+    ? `${value}（${index + 1}列目）`
+    : value
 }
 
 export function inferHeaderRow(rows: string[][]) {
   const candidates = rows.slice(0, 20)
   const match = candidates.findIndex((row, index) => {
     if (row.length < 2 || isBlankCsvRow(row)) return false
-    const next = candidates.slice(index + 1, index + 4).filter((candidate) => !isBlankCsvRow(candidate))
-    return next.length > 0 && next.some((candidate) => candidate.length === row.length)
+    const next = candidates
+      .slice(index + 1, index + 4)
+      .filter((candidate) => !isBlankCsvRow(candidate))
+    return (
+      next.length > 0 &&
+      next.some((candidate) => candidate.length === row.length)
+    )
   })
   return match >= 0 ? match : null
 }
 
 function calendarDate(year: number, month: number, day: number) {
   const candidate = new Date(year, month - 1, day)
-  return candidate.getFullYear() === year && candidate.getMonth() === month - 1 && candidate.getDate() === day
+  return candidate.getFullYear() === year &&
+    candidate.getMonth() === month - 1 &&
+    candidate.getDate() === day
     ? `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     : null
 }
@@ -69,26 +86,45 @@ export function normalizeDate(value: string, format: DateFormat) {
     ['yyyymmdd', /^(\d{4})(\d{2})(\d{2})$/],
     ['japanese', /^(\d{4})年(\d{1,2})月(\d{1,2})日$/],
   ]
-  const matched = patterns.find(([kind, pattern]) => (format === 'auto' || format === kind) && pattern.test(source))
+  const matched = patterns.find(
+    ([kind, pattern]) =>
+      (format === 'auto' || format === kind) && pattern.test(source),
+  )
   if (!matched) return null
   const groups = matched[1].exec(source)
-  return groups ? calendarDate(Number(groups[1]), Number(groups[2]), Number(groups[3])) : null
+  return groups
+    ? calendarDate(Number(groups[1]), Number(groups[2]), Number(groups[3]))
+    : null
 }
 
 export function normalizeAmount(value: string) {
   const source = value.trim().replace(/[\s\u3000,，¥￥]/g, '')
   if (!/^\d+$/.test(source)) return null
   const amount = Number(source)
-  return Number.isSafeInteger(amount) && amount >= 1 && amount <= 9_999_999 ? String(amount) : null
+  return Number.isSafeInteger(amount) && amount >= 1 && amount <= 9_999_999
+    ? String(amount)
+    : null
 }
 
 export function importMonths(rows: ImportRow[]) {
-  return [...new Set(rows
-    .filter((row) => /^\d{4}-\d{2}-\d{2}$/.test(row.date) && Boolean(normalizeAmount(row.amount)))
-    .map((row) => `${row.date.slice(0, 7)}-01`))]
+  return [
+    ...new Set(
+      rows
+        .filter(
+          (row) =>
+            /^\d{4}-\d{2}-\d{2}$/.test(row.date) &&
+            Boolean(normalizeAmount(row.amount)),
+        )
+        .map((row) => `${row.date.slice(0, 7)}-01`),
+    ),
+  ]
 }
 
-export function duplicateCandidatesByRowId({ rows, transactions, sign }: {
+export function duplicateCandidatesByRowId({
+  rows,
+  transactions,
+  sign,
+}: {
   rows: ImportRow[]
   transactions: TimelineTransaction[]
   sign: ImportSign
@@ -102,43 +138,99 @@ export function duplicateCandidatesByRowId({ rows, transactions, sign }: {
     candidatesByKey.set(key, [...(candidatesByKey.get(key) ?? []), transaction])
   })
 
-  return new Map(rows.flatMap((row) => {
-    const amount = normalizeAmount(row.amount)
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(row.date) || !amount) return []
-    const candidates = candidatesByKey.get(`${row.date}:${amount}`) ?? []
-    return candidates.length ? [[row.id, candidates] as const] : []
-  }))
+  return new Map(
+    rows.flatMap((row) => {
+      const amount = normalizeAmount(row.amount)
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(row.date) || !amount) return []
+      const candidates = candidatesByKey.get(`${row.date}:${amount}`) ?? []
+      return candidates.length ? [[row.id, candidates] as const] : []
+    }),
+  )
 }
 
-export function validateImportRow(row: Omit<ImportRow, 'errors'>, categories: Array<{ category_id: string; category_name: string; sub_category_list?: Array<{ sub_category_id: string; sub_category_name: string; enable: boolean }> }>) {
+export function validateImportRow(
+  row: Omit<ImportRow, 'errors'>,
+  categories: Array<{
+    category_id: string
+    category_name: string
+    sub_category_list?: Array<{
+      sub_category_id: string
+      sub_category_name: string
+      enable: boolean
+    }>
+  }>,
+) {
   const errors: ImportRowError[] = []
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(row.date)) errors.push({ field: 'date', message: '日付を読み取れません。' })
-  if (row.name.trim().length < 1 || row.name.trim().length > 32) errors.push({ field: 'name', message: '取引名は1〜32文字で入力してください。' })
-  if (!normalizeAmount(row.amount)) errors.push({ field: 'amount', message: '金額は1〜9,999,999円の整数で入力してください。' })
-  const category = categories.find((item) => item.category_id === row.categoryId)
-  if (!category) errors.push({ field: 'category', message: 'カテゴリを選択してください。' })
-  if (!category?.sub_category_list?.some((item) => item.enable && item.sub_category_id === row.subcategoryId)) {
-    errors.push({ field: 'subcategory', message: 'サブカテゴリを選択してください。' })
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(row.date))
+    errors.push({ field: 'date', message: '日付を読み取れません。' })
+  if (row.name.trim().length < 1 || row.name.trim().length > 32)
+    errors.push({
+      field: 'name',
+      message: '取引名は1〜32文字で入力してください。',
+    })
+  if (!normalizeAmount(row.amount))
+    errors.push({
+      field: 'amount',
+      message: '金額は1〜9,999,999円の整数で入力してください。',
+    })
+  const category = categories.find(
+    (item) => item.category_id === row.categoryId,
+  )
+  if (!category)
+    errors.push({ field: 'category', message: 'カテゴリを選択してください。' })
+  if (
+    !category?.sub_category_list?.some(
+      (item) => item.enable && item.sub_category_id === row.subcategoryId,
+    )
+  ) {
+    errors.push({
+      field: 'subcategory',
+      message: 'サブカテゴリを選択してください。',
+    })
   }
   return errors
 }
 
-export function createImportRows({ rows, headerRowIndex, mapping, defaults, dateFormat, categories, frequentTransactions = [] }: {
+export function createImportRows({
+  rows,
+  headerRowIndex,
+  mapping,
+  defaults,
+  dateFormat,
+  categories,
+  frequentTransactions = [],
+}: {
   rows: string[][]
   headerRowIndex: number | null
   mapping: Mapping
   defaults: Partial<ImportDefaults>
   dateFormat: DateFormat
-  categories: Array<{ category_id: string; category_name: string; sub_category_list?: Array<{ sub_category_id: string; sub_category_name: string; enable: boolean }> }>
+  categories: Array<{
+    category_id: string
+    category_name: string
+    sub_category_list?: Array<{
+      sub_category_id: string
+      sub_category_name: string
+      enable: boolean
+    }>
+  }>
   frequentTransactions?: FrequentTransactionResponseTransactionListItem[]
 }) {
-  if (mapping.date === null || mapping.name === null || mapping.amount === null) return []
+  if (mapping.date === null || mapping.name === null || mapping.amount === null)
+    return []
   const frequentTransactionsByName = new Map(
-    frequentTransactions.map((transaction) => [transaction.transaction_name.trim(), transaction]),
+    frequentTransactions.map((transaction) => [
+      transaction.transaction_name.trim(),
+      transaction,
+    ]),
   )
   return rows
     .map((source, index) => ({ source, index }))
-    .filter(({ source, index }) => (headerRowIndex === null || index > headerRowIndex) && !isBlankCsvRow(source))
+    .filter(
+      ({ source, index }) =>
+        (headerRowIndex === null || index > headerRowIndex) &&
+        !isBlankCsvRow(source),
+    )
     .map(({ source, index }, id) => {
       const name = source[mapping.name!] ?? ''
       const frequentTransaction = frequentTransactionsByName.get(name.trim())
@@ -148,9 +240,14 @@ export function createImportRows({ rows, headerRowIndex, mapping, defaults, date
         source,
         date: normalizeDate(source[mapping.date!] ?? '', dateFormat) ?? '',
         name,
-        amount: normalizeAmount(source[mapping.amount!] ?? '') ?? (source[mapping.amount!] ?? ''),
-        categoryId: frequentTransaction?.category_id ?? defaults.categoryId ?? '',
-        subcategoryId: frequentTransaction?.sub_category_id ?? defaults.subcategoryId ?? '',
+        amount:
+          normalizeAmount(source[mapping.amount!] ?? '') ??
+          source[mapping.amount!] ??
+          '',
+        categoryId:
+          frequentTransaction?.category_id ?? defaults.categoryId ?? '',
+        subcategoryId:
+          frequentTransaction?.sub_category_id ?? defaults.subcategoryId ?? '',
         paymentId: frequentTransaction?.payment_id ?? defaults.paymentId ?? '',
         selected: true,
       }
@@ -159,13 +256,28 @@ export function createImportRows({ rows, headerRowIndex, mapping, defaults, date
     })
 }
 
-export function applyBulkEditToImportRows({ rows, rowIds, categoryId, subcategoryId, paymentId, categories }: {
+export function applyBulkEditToImportRows({
+  rows,
+  rowIds,
+  categoryId,
+  subcategoryId,
+  paymentId,
+  categories,
+}: {
   rows: ImportRow[]
   rowIds: Set<number>
   categoryId: string
   subcategoryId: string
   paymentId: string
-  categories: Array<{ category_id: string; category_name: string; sub_category_list?: Array<{ sub_category_id: string; sub_category_name: string; enable: boolean }> }>
+  categories: Array<{
+    category_id: string
+    category_name: string
+    sub_category_list?: Array<{
+      sub_category_id: string
+      sub_category_name: string
+      enable: boolean
+    }>
+  }>
 }) {
   return rows.map((row) => {
     if (!rowIds.has(row.id)) return row
@@ -179,17 +291,22 @@ export function applyBulkEditToImportRows({ rows, rowIds, categoryId, subcategor
   })
 }
 
-export function toTransactionList(rows: ImportRow[], defaults: Pick<ImportDefaults, 'sign'>): TransactionListWriteRequest {
+export function toTransactionList(
+  rows: ImportRow[],
+  defaults: Pick<ImportDefaults, 'sign'>,
+): TransactionListWriteRequest {
   return {
-    transaction_list: rows.filter((row) => row.selected && row.errors.length === 0).map((row) => ({
-      transaction_date: row.date,
-      transaction_amount: Number(normalizeAmount(row.amount)),
-      transaction_sign: defaults.sign === 'expense' ? -1 : 1,
-      transaction_name: row.name,
-      category_id: row.categoryId,
-      sub_category_id: row.subcategoryId,
-      fixed_flg: false,
-      ...(row.paymentId ? { payment_id: row.paymentId } : {}),
-    })),
+    transaction_list: rows
+      .filter((row) => row.selected && row.errors.length === 0)
+      .map((row) => ({
+        transaction_date: row.date,
+        transaction_amount: Number(normalizeAmount(row.amount)),
+        transaction_sign: defaults.sign === 'expense' ? -1 : 1,
+        transaction_name: row.name,
+        category_id: row.categoryId,
+        sub_category_id: row.subcategoryId,
+        fixed_flg: false,
+        ...(row.paymentId ? { payment_id: row.paymentId } : {}),
+      })),
   }
 }

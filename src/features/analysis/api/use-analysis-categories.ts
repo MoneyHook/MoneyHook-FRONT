@@ -2,7 +2,10 @@ import { useEffect } from 'react'
 
 import type { V1CategoriesResponse } from '@/shared/api/generated/model'
 import { useGetV1AnalyticsCategories } from '@/shared/api/generated/transaction/transaction'
-import { usePersistedQueryData, usePersistedQueryRefresh } from '@/shared/hooks/use-persisted-query-data'
+import {
+  usePersistedQueryData,
+  usePersistedQueryRefresh,
+} from '@/shared/hooks/use-persisted-query-data'
 
 import {
   buildAnalysisCategoriesViewModel,
@@ -11,7 +14,11 @@ import {
 import type { AnalysisRange } from '../model/analysis-overview'
 
 function isCategoriesResponse(value: unknown): value is V1CategoriesResponse {
-  return Boolean(value) && typeof value === 'object' && Array.isArray((value as V1CategoriesResponse).category_list)
+  return (
+    Boolean(value) &&
+    typeof value === 'object' &&
+    Array.isArray((value as V1CategoriesResponse).category_list)
+  )
 }
 
 export function useAnalysisCategories(
@@ -23,8 +30,14 @@ export function useAnalysisCategories(
     end_date: range.endDate,
     group_by: group,
   }
-  const cache = usePersistedQueryData({ isValue: isCategoriesResponse, parameters, resource: 'analysis-categories' })
-  const query = useGetV1AnalyticsCategories(parameters, { query: cache.queryOptions })
+  const cache = usePersistedQueryData({
+    isValue: isCategoriesResponse,
+    parameters,
+    resource: 'analysis-categories',
+  })
+  const query = useGetV1AnalyticsCategories(parameters, {
+    query: cache.queryOptions,
+  })
   usePersistedQueryRefresh(query.refetch)
   useEffect(() => {
     cache.persist(query.data)

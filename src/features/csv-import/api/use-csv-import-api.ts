@@ -22,14 +22,20 @@ export function useCsvImportApi({
 }) {
   const categoriesQuery = useGetCategoryWithSubCategoryList()
   const paymentsQuery = useGetPaymentResources()
-  const frequentTransactionsQuery = useGetFrequentTransactionNames({ limit: 100 })
+  const frequentTransactionsQuery = useGetFrequentTransactionNames({
+    limit: 100,
+  })
   const categories = useMemo<Categories>(
     () =>
-      categoriesQuery.data?.status === 200 ? (categoriesQuery.data.data.category_list ?? []) : [],
+      categoriesQuery.data?.status === 200
+        ? (categoriesQuery.data.data.category_list ?? [])
+        : [],
     [categoriesQuery.data],
   )
   const payments =
-    paymentsQuery.data?.status === 200 ? (paymentsQuery.data.data.payment_list ?? []) : []
+    paymentsQuery.data?.status === 200
+      ? (paymentsQuery.data.data.payment_list ?? [])
+      : []
   const frequentTransactions = useMemo(
     () =>
       frequentTransactionsQuery.data?.status === 200
@@ -38,7 +44,8 @@ export function useCsvImportApi({
     [frequentTransactionsQuery.data],
   )
   const mutation = useMutation({
-    mutationFn: (request: ReturnType<typeof toTransactionList>) => addTransactionList(request),
+    mutationFn: (request: ReturnType<typeof toTransactionList>) =>
+      addTransactionList(request),
     onSuccess: async () => {
       await onImported()
       onSuccess()

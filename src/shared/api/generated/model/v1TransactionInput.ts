@@ -15,28 +15,28 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { DateString } from './dateString';
-import type { Identifier } from './identifier';
-import type { NullableIdentifier } from './nullableIdentifier';
-import type { V1NullableTime } from './v1NullableTime';
-import type { V1TransactionInputSign } from './v1TransactionInputSign';
+import type { DateString } from './dateString'
+import type { Identifier } from './identifier'
+import type { NullableIdentifier } from './nullableIdentifier'
+import type { V1NullableTime } from './v1NullableTime'
+import type { V1TransactionInputSign } from './v1TransactionInputSign'
 
 export interface V1TransactionInput {
-  transaction_date: DateString;
-  transaction_time?: V1NullableTime | null;
+  transaction_date: DateString
+  transaction_time?: V1NullableTime | null
   /**
-     * @minLength 1
-     * @maxLength 32
-     */
-  transaction_name: string;
+   * @minLength 1
+   * @maxLength 32
+   */
+  transaction_name: string
   /**
-     * @minimum 1
-     * @maximum 9999999
-     */
-  amount: number;
-  sign: V1TransactionInputSign;
-  category_id: Identifier;
-  sub_category_id: Identifier;
-  fixed_flg: boolean;
-  payment_id?: NullableIdentifier | null;
+   * @minimum 1
+   * @maximum 9999999
+   */
+  amount: number
+  sign: V1TransactionInputSign
+  category_id: Identifier
+  sub_category_id: Identifier
+  fixed_flg: boolean
+  payment_id?: NullableIdentifier | null
 }

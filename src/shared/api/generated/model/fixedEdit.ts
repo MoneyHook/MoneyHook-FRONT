@@ -15,10 +15,10 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { FixedWrite } from './fixedWrite';
-import type { Identifier } from './identifier';
+import type { FixedWrite } from './fixedWrite'
+import type { Identifier } from './identifier'
 
 export type FixedEdit = FixedWrite & {
-  monthly_transaction_id: Identifier;
-  include_flg: boolean;
-};
+  monthly_transaction_id: Identifier
+  include_flg: boolean
+}

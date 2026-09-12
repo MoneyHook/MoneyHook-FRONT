@@ -15,9 +15,9 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { Identifier } from './identifier';
+import type { Identifier } from './identifier'
 
 export interface Category {
-  category_id: Identifier;
-  category_name: string;
+  category_id: Identifier
+  category_name: string
 }

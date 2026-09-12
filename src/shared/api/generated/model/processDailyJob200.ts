@@ -16,10 +16,10 @@
  * OpenAPI spec version: 0.2.0-v1
  */
 
-export type ProcessDailyJob200 = typeof ProcessDailyJob200[keyof typeof ProcessDailyJob200];
-
+export type ProcessDailyJob200 =
+  (typeof ProcessDailyJob200)[keyof typeof ProcessDailyJob200]
 
 export const ProcessDailyJob200 = {
   Success_Jobs: 'Success Jobs',
   'Today_is_Nothing,_Success_Jobs': 'Today is Nothing, Success Jobs',
-} as const;
+} as const

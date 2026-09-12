@@ -168,8 +168,6 @@ describe('analysis fixed model', () => {
     expect(model.categories).toEqual([])
     expect(model.transactions).toEqual([])
     expect(model.differenceRate).toBeNull()
-    expect(normalizeFixedCategorySelection(model.categories, ['1'])).toEqual(
-      [],
-    )
+    expect(normalizeFixedCategorySelection(model.categories, ['1'])).toEqual([])
   })
 })

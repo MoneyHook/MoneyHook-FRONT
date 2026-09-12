@@ -52,10 +52,16 @@ function isCalendarDate(value: string) {
   }
 
   const [year, month, day] = value.split('-').map(Number)
-  return new Date(year, month - 1, day).getFullYear() === year && new Date(year, month - 1, day).getMonth() === month - 1 && new Date(year, month - 1, day).getDate() === day
+  return (
+    new Date(year, month - 1, day).getFullYear() === year &&
+    new Date(year, month - 1, day).getMonth() === month - 1 &&
+    new Date(year, month - 1, day).getDate() === day
+  )
 }
 
-export function validateNewTransaction(values: NewTransactionFormValues): NewTransactionErrors {
+export function validateNewTransaction(
+  values: NewTransactionFormValues,
+): NewTransactionErrors {
   const errors: NewTransactionErrors = {}
   const amount = Number(values.amount)
   const transactionNameLength = values.transactionName.trim().length
@@ -63,7 +69,12 @@ export function validateNewTransaction(values: NewTransactionFormValues): NewTra
   if (!isCalendarDate(values.transactionDate)) {
     errors.transactionDate = '日付を選択してください。'
   }
-  if (!/^\d+$/.test(values.amount) || !Number.isSafeInteger(amount) || amount < 1 || amount > 9_999_999) {
+  if (
+    !/^\d+$/.test(values.amount) ||
+    !Number.isSafeInteger(amount) ||
+    amount < 1 ||
+    amount > 9_999_999
+  ) {
     errors.amount = '金額は1〜9,999,999円の整数で入力してください。'
   }
   if (transactionNameLength < 1 || transactionNameLength > 32) {

@@ -15,24 +15,24 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { Identifier } from './identifier';
-import type { V1ExpenseSeriesItem } from './v1ExpenseSeriesItem';
-import type { V1TransactionResource } from './v1TransactionResource';
+import type { Identifier } from './identifier'
+import type { V1ExpenseSeriesItem } from './v1ExpenseSeriesItem'
+import type { V1TransactionResource } from './v1TransactionResource'
 
 export interface V1FixedCategory {
-  category_id: Identifier;
-  category_name: string;
+  category_id: Identifier
+  category_name: string
   /** @minimum 0 */
-  expense_amount: number;
+  expense_amount: number
   /**
-     * @minimum 0
-     * @maximum 100
-     */
-  ratio: number;
+   * @minimum 0
+   * @maximum 100
+   */
+  ratio: number
   /** @minimum 0 */
-  monthly_average: number;
+  monthly_average: number
   /** @minimum 0 */
-  annualized_amount: number;
-  series: V1ExpenseSeriesItem[];
-  transaction_list: V1TransactionResource[];
+  annualized_amount: number
+  series: V1ExpenseSeriesItem[]
+  transaction_list: V1TransactionResource[]
 }

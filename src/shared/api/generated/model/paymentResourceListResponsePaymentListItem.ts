@@ -15,14 +15,14 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { Identifier } from './identifier';
+import type { Identifier } from './identifier'
 
 export type PaymentResourceListResponsePaymentListItem = {
-  payment_id: Identifier;
-  payment_name: string;
-  payment_type_id: Identifier;
+  payment_id: Identifier
+  payment_name: string
+  payment_type_id: Identifier
   /** @nullable */
-  payment_date: number | null;
+  payment_date: number | null
   /** Returned as 31 when the database value is null/zero. */
-  closing_date: number;
-};
+  closing_date: number
+}

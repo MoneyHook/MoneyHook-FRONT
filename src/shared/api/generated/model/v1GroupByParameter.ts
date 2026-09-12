@@ -16,11 +16,11 @@
  * OpenAPI spec version: 0.2.0-v1
  */
 
-export type V1GroupByParameter = typeof V1GroupByParameter[keyof typeof V1GroupByParameter];
-
+export type V1GroupByParameter =
+  (typeof V1GroupByParameter)[keyof typeof V1GroupByParameter]
 
 export const V1GroupByParameter = {
   day: 'day',
   week: 'week',
   month: 'month',
-} as const;
+} as const

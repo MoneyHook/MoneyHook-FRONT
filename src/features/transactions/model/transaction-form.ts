@@ -8,7 +8,11 @@ export function getReturnTo(state: unknown, fallback: string) {
   }
 
   const value = (state as TransactionNavigationState).returnTo
-  if (typeof value !== 'string' || !value.startsWith('/app/') || value.includes('\\')) {
+  if (
+    typeof value !== 'string' ||
+    !value.startsWith('/app/') ||
+    value.includes('\\')
+  ) {
     return fallback
   }
 
@@ -31,7 +35,9 @@ export function parseCalendarDate(value: string) {
   const day = Number(dayString)
   const date = new Date(year, month - 1, day)
 
-  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day
+  return date.getFullYear() === year &&
+    date.getMonth() === month - 1 &&
+    date.getDate() === day
     ? date
     : undefined
 }

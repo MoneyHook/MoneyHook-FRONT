@@ -15,10 +15,7 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import {
-  useMutation,
-  useQuery
-} from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query'
 import type {
   DataTag,
   DefinedInitialDataOptions,
@@ -31,8 +28,8 @@ import type {
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
-  UseQueryResult
-} from '@tanstack/react-query';
+  UseQueryResult,
+} from '@tanstack/react-query'
 
 import type {
   AuthIdentityConflictResponse,
@@ -41,28 +38,28 @@ import type {
   V1SettingsPatchRequest,
   V1SettingsResponse,
   V1UnauthorizedResponse,
-  V1ValidationErrorResponse
-} from '../model';
+  V1ValidationErrorResponse,
+} from '../model'
 
-import { apiFetch } from '../../http-client';
+import { apiFetch } from '../../http-client'
 
-
-
-
-const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKey: K } => {
-  const result = { queryKey } as T & { queryKey: K };
+const withQueryKey = <T extends object, K>(
+  query: T,
+  queryKey: K,
+): T & { queryKey: K } => {
+  const result = { queryKey } as T & { queryKey: K }
   for (const key of Object.keys(query)) {
     // The explicit queryKey always wins, matching the previous
     // `{ ...query, queryKey }` spread where it was set last.
-    if (key === 'queryKey') continue;
+    if (key === 'queryKey') continue
     Object.defineProperty(result, key, {
       enumerable: true,
       configurable: true,
       get: () => (query as Record<string, unknown>)[key],
-    });
+    })
   }
-  return result;
-};
+  return result
+}
 
 export type getV1SettingsResponse200 = {
   data: V1SettingsResponse
@@ -84,114 +81,165 @@ export type getV1SettingsResponse500 = {
   status: 500
 }
 
-export type getV1SettingsResponseSuccess = (getV1SettingsResponse200) & {
-  headers: Headers;
-};
-export type getV1SettingsResponseError = (getV1SettingsResponse401 | getV1SettingsResponse409 | getV1SettingsResponse500) & {
-  headers: Headers;
-};
+export type getV1SettingsResponseSuccess = getV1SettingsResponse200 & {
+  headers: Headers
+}
+export type getV1SettingsResponseError = (
+  getV1SettingsResponse401 | getV1SettingsResponse409 | getV1SettingsResponse500
+) & {
+  headers: Headers
+}
 
-export type getV1SettingsResponse = (getV1SettingsResponseSuccess | getV1SettingsResponseError)
+export type getV1SettingsResponse =
+  getV1SettingsResponseSuccess | getV1SettingsResponseError
 
 export const getGetV1SettingsUrl = () => {
-
-
-
-
   return `/api/v1/settings`
 }
 
 /**
  * @summary Get the authenticated user's display settings
  */
-export const getV1Settings = async ( options?: RequestInit): Promise<getV1SettingsResponse> => {
-
-  return apiFetch<getV1SettingsResponse>(getGetV1SettingsUrl(),
-  {
+export const getV1Settings = async (
+  options?: RequestInit,
+): Promise<getV1SettingsResponse> => {
+  return apiFetch<getV1SettingsResponse>(getGetV1SettingsUrl(), {
     ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGetV1SettingsQueryKey = () => {
-    return [
-    `/api/v1/settings`
-    ] as const;
-    }
-
-
-export const getGetV1SettingsQueryOptions = <TData = Awaited<ReturnType<typeof getV1Settings>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getV1Settings>>, TError, TData>>, }
-) => {
-
-const {query: queryOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetV1SettingsQueryKey();
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getV1Settings>>> = ({ signal }) => getV1Settings({ signal });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getV1Settings>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+    method: 'GET',
+  })
 }
 
-export type GetV1SettingsQueryResult = NonNullable<Awaited<ReturnType<typeof getV1Settings>>>
-export type GetV1SettingsQueryError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse
+export const getGetV1SettingsQueryKey = () => {
+  return [`/api/v1/settings`] as const
+}
 
+export const getGetV1SettingsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getV1Settings>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<Awaited<ReturnType<typeof getV1Settings>>, TError, TData>
+  >
+}) => {
+  const { query: queryOptions } = options ?? {}
 
-export function useGetV1Settings<TData = Awaited<ReturnType<typeof getV1Settings>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getV1Settings>>, TError, TData>> & Pick<
+  const queryKey = queryOptions?.queryKey ?? getGetV1SettingsQueryKey()
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getV1Settings>>> = ({
+    signal,
+  }) => getV1Settings({ signal })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getV1Settings>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetV1SettingsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getV1Settings>>
+>
+export type GetV1SettingsQueryError =
+  | V1UnauthorizedResponse
+  | AuthIdentityConflictResponse
+  | V1InternalErrorResponse
+
+export function useGetV1Settings<
+  TData = Awaited<ReturnType<typeof getV1Settings>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getV1Settings>>, TError, TData>
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getV1Settings>>,
           TError,
           Awaited<ReturnType<typeof getV1Settings>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetV1Settings<TData = Awaited<ReturnType<typeof getV1Settings>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getV1Settings>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+export function useGetV1Settings<
+  TData = Awaited<ReturnType<typeof getV1Settings>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getV1Settings>>, TError, TData>
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getV1Settings>>,
           TError,
           Awaited<ReturnType<typeof getV1Settings>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetV1Settings<TData = Awaited<ReturnType<typeof getV1Settings>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getV1Settings>>, TError, TData>>, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+export function useGetV1Settings<
+  TData = Awaited<ReturnType<typeof getV1Settings>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getV1Settings>>, TError, TData>
+    >
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
 /**
  * @summary Get the authenticated user's display settings
  */
 
-export function useGetV1Settings<TData = Awaited<ReturnType<typeof getV1Settings>>, TError = V1UnauthorizedResponse | AuthIdentityConflictResponse | V1InternalErrorResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getV1Settings>>, TError, TData>>, }
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
+export function useGetV1Settings<
+  TData = Awaited<ReturnType<typeof getV1Settings>>,
+  TError =
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getV1Settings>>, TError, TData>
+    >
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+} {
   const queryOptions = getGetV1SettingsQueryOptions(options)
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 
-  return withQueryKey(query, queryOptions.queryKey);
+  return withQueryKey(query, queryOptions.queryKey)
 }
-
-
-
-
-
 
 export type patchV1SettingsResponse200 = {
   data: V1SettingsResponse
@@ -223,89 +271,132 @@ export type patchV1SettingsResponse500 = {
   status: 500
 }
 
-export type patchV1SettingsResponseSuccess = (patchV1SettingsResponse200) & {
-  headers: Headers;
-};
-export type patchV1SettingsResponseError = (patchV1SettingsResponse400 | patchV1SettingsResponse401 | patchV1SettingsResponse409 | patchV1SettingsResponse422 | patchV1SettingsResponse500) & {
-  headers: Headers;
-};
+export type patchV1SettingsResponseSuccess = patchV1SettingsResponse200 & {
+  headers: Headers
+}
+export type patchV1SettingsResponseError = (
+  | patchV1SettingsResponse400
+  | patchV1SettingsResponse401
+  | patchV1SettingsResponse409
+  | patchV1SettingsResponse422
+  | patchV1SettingsResponse500
+) & {
+  headers: Headers
+}
 
-export type patchV1SettingsResponse = (patchV1SettingsResponseSuccess | patchV1SettingsResponseError)
+export type patchV1SettingsResponse =
+  patchV1SettingsResponseSuccess | patchV1SettingsResponseError
 
 export const getPatchV1SettingsUrl = () => {
-
-
-
-
   return `/api/v1/settings`
 }
 
 /**
  * @summary Partially update the authenticated user's display settings
  */
-export const patchV1Settings = async (v1SettingsPatchRequest: V1SettingsPatchRequest, options?: RequestInit): Promise<patchV1SettingsResponse> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Array.isArray(h)) return Object.fromEntries(h);
-    return h;
-  };
-return apiFetch<patchV1SettingsResponse>(getPatchV1SettingsUrl(),
-  {
+export const patchV1Settings = async (
+  v1SettingsPatchRequest: V1SettingsPatchRequest,
+  options?: RequestInit,
+): Promise<patchV1SettingsResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {}
+    if (h instanceof Headers) return Object.fromEntries(h.entries())
+    if (Array.isArray(h)) return Object.fromEntries(h)
+    return h
+  }
+  return apiFetch<patchV1SettingsResponse>(getPatchV1SettingsUrl(), {
     ...options,
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(v1SettingsPatchRequest)
+    headers: {
+      'Content-Type': 'application/json',
+      ...getHeaders(options?.headers),
+    },
+    body: JSON.stringify(v1SettingsPatchRequest),
+  })
+}
+
+export const getPatchV1SettingsMutationOptions = <
+  TError =
+    | V1BadRequestResponse
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1ValidationErrorResponse
+    | V1InternalErrorResponse,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof patchV1Settings>>,
+    TError,
+    PatchV1SettingsMutationVariables,
+    TContext
+  >
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof patchV1Settings>>,
+  TError,
+  PatchV1SettingsMutationVariables,
+  TContext
+> => {
+  const mutationKey = ['patchV1Settings']
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof patchV1Settings>>,
+    PatchV1SettingsMutationVariables
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return patchV1Settings(data)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type PatchV1SettingsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof patchV1Settings>>
+>
+export type PatchV1SettingsMutationBody = V1SettingsPatchRequest
+export type PatchV1SettingsMutationError =
+  | V1BadRequestResponse
+  | V1UnauthorizedResponse
+  | AuthIdentityConflictResponse
+  | V1ValidationErrorResponse
+  | V1InternalErrorResponse
+export type PatchV1SettingsMutationVariables = { data: V1SettingsPatchRequest }
 
-
-
-export const getPatchV1SettingsMutationOptions = <TError = V1BadRequestResponse | V1UnauthorizedResponse | AuthIdentityConflictResponse | V1ValidationErrorResponse | V1InternalErrorResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchV1Settings>>, TError,PatchV1SettingsMutationVariables, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof patchV1Settings>>, TError,PatchV1SettingsMutationVariables, TContext> => {
-
-const mutationKey = ['patchV1Settings'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchV1Settings>>, PatchV1SettingsMutationVariables> = (props) => {
-          const {data} = props ?? {};
-
-          return  patchV1Settings(data,)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PatchV1SettingsMutationResult = NonNullable<Awaited<ReturnType<typeof patchV1Settings>>>
-    export type PatchV1SettingsMutationBody = V1SettingsPatchRequest
-    export type PatchV1SettingsMutationError = V1BadRequestResponse | V1UnauthorizedResponse | AuthIdentityConflictResponse | V1ValidationErrorResponse | V1InternalErrorResponse
-    export type PatchV1SettingsMutationVariables = {data: V1SettingsPatchRequest}
-
-    /**
+/**
  * @summary Partially update the authenticated user's display settings
  */
-export const usePatchV1Settings = <TError = V1BadRequestResponse | V1UnauthorizedResponse | AuthIdentityConflictResponse | V1ValidationErrorResponse | V1InternalErrorResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchV1Settings>>, TError,PatchV1SettingsMutationVariables, TContext>, }
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof patchV1Settings>>,
-        TError,
-        PatchV1SettingsMutationVariables,
-        TContext
-      > => {
-      return useMutation(getPatchV1SettingsMutationOptions(options), queryClient);
-    }
+export const usePatchV1Settings = <
+  TError =
+    | V1BadRequestResponse
+    | V1UnauthorizedResponse
+    | AuthIdentityConflictResponse
+    | V1ValidationErrorResponse
+    | V1InternalErrorResponse,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof patchV1Settings>>,
+      TError,
+      PatchV1SettingsMutationVariables,
+      TContext
+    >
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof patchV1Settings>>,
+  TError,
+  PatchV1SettingsMutationVariables,
+  TContext
+> => {
+  return useMutation(getPatchV1SettingsMutationOptions(options), queryClient)
+}

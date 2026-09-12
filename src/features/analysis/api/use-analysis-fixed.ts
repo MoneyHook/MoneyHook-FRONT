@@ -2,13 +2,20 @@ import { useEffect } from 'react'
 
 import type { V1FixedResponse } from '@/shared/api/generated/model'
 import { useGetV1AnalyticsFixed } from '@/shared/api/generated/transaction/transaction'
-import { usePersistedQueryData, usePersistedQueryRefresh } from '@/shared/hooks/use-persisted-query-data'
+import {
+  usePersistedQueryData,
+  usePersistedQueryRefresh,
+} from '@/shared/hooks/use-persisted-query-data'
 
 import { buildAnalysisFixedViewModel } from '../model/analysis-fixed'
 import type { AnalysisRange } from '../model/analysis-overview'
 
 function isFixedResponse(value: unknown): value is V1FixedResponse {
-  return Boolean(value) && typeof value === 'object' && Array.isArray((value as V1FixedResponse).category_list)
+  return (
+    Boolean(value) &&
+    typeof value === 'object' &&
+    Array.isArray((value as V1FixedResponse).category_list)
+  )
 }
 
 export function useAnalysisFixed(range: AnalysisRange) {
@@ -17,8 +24,14 @@ export function useAnalysisFixed(range: AnalysisRange) {
     end_date: range.endDate,
     group_by: 'month' as const,
   }
-  const cache = usePersistedQueryData({ isValue: isFixedResponse, parameters, resource: 'analysis-fixed' })
-  const query = useGetV1AnalyticsFixed(parameters, { query: cache.queryOptions })
+  const cache = usePersistedQueryData({
+    isValue: isFixedResponse,
+    parameters,
+    resource: 'analysis-fixed',
+  })
+  const query = useGetV1AnalyticsFixed(parameters, {
+    query: cache.queryOptions,
+  })
   usePersistedQueryRefresh(query.refetch)
   useEffect(() => {
     cache.persist(query.data)

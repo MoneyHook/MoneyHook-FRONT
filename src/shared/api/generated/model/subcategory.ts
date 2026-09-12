@@ -15,9 +15,9 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { Identifier } from './identifier';
+import type { Identifier } from './identifier'
 
 export interface Subcategory {
-  sub_category_id: Identifier;
-  sub_category_name: string;
+  sub_category_id: Identifier
+  sub_category_name: string
 }

@@ -127,7 +127,11 @@ function LocationProbe() {
     <>
       <output data-testid="pathname">{location.pathname}</output>
       <output data-testid="location">{location.search}</output>
-      <output data-testid="return-to">{String((location.state as { returnTo?: unknown } | null)?.returnTo ?? '')}</output>
+      <output data-testid="return-to">
+        {String(
+          (location.state as { returnTo?: unknown } | null)?.returnTo ?? '',
+        )}
+      </output>
     </>
   )
 }
@@ -192,7 +196,9 @@ describe('AnalysisCategoriesContent', () => {
     ).toBeVisible()
     expect(screen.getByRole('heading', { name: '食費の内訳' })).toBeVisible()
     expect(screen.getByRole('heading', { name: '食費の推移' })).toBeVisible()
-    expect(screen.getByRole('heading', { name: '食費の取引一覧' })).toBeVisible()
+    expect(
+      screen.getByRole('heading', { name: '食費の取引一覧' }),
+    ).toBeVisible()
     expect(screen.getByText('ランチ')).toBeVisible()
     expect(
       screen
@@ -215,14 +221,20 @@ describe('AnalysisCategoriesContent', () => {
       }),
     )
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
-    renderCategories('/app/analysis?view=categories&metric=ratio&month=2026-08-01')
+    renderCategories(
+      '/app/analysis?view=categories&metric=ratio&month=2026-08-01',
+    )
     await screen.findByRole('heading', { name: 'カテゴリ別支出' })
 
     await waitFor(() => {
       expect(screen.getByTestId('location')).not.toHaveTextContent('metric=')
     })
-    expect(screen.queryByRole('button', { name: '金額' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: '割合' })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: '金額' }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: '割合' }),
+    ).not.toBeInTheDocument()
     expect(screen.getByTestId('location')).toHaveTextContent('month=2026-08-01')
 
     await user.click(
@@ -243,8 +255,7 @@ describe('AnalysisCategoriesContent', () => {
     await waitFor(() => {
       expect(
         requests.some(
-          (request) =>
-            new URL(request).searchParams.get('group_by') === 'week',
+          (request) => new URL(request).searchParams.get('group_by') === 'week',
         ),
       ).toBe(true)
     })
@@ -264,7 +275,9 @@ describe('AnalysisCategoriesContent', () => {
       await screen.findByRole('heading', { name: '食費の内訳' }),
     ).toBeVisible()
     await waitFor(() => {
-      expect(screen.getByTestId('location')).toHaveTextContent('view=categories')
+      expect(screen.getByTestId('location')).toHaveTextContent(
+        'view=categories',
+      )
       expect(screen.getByTestId('location')).not.toHaveTextContent('metric=')
       expect(screen.getByTestId('location')).not.toHaveTextContent('group=')
       expect(screen.getByTestId('location')).not.toHaveTextContent('list=')
@@ -299,15 +312,18 @@ describe('AnalysisCategoriesContent', () => {
         HttpResponse.json(categoryResponse()),
       ),
     )
-    const returnTo = '/app/analysis?view=categories&category=1&group=week&list=all&month=2026-08-01#category-summary'
+    const returnTo =
+      '/app/analysis?view=categories&category=1&group=week&list=all&month=2026-08-01#category-summary'
     renderCategories(returnTo)
 
     await screen.findByRole('button', { name: 'ランチを編集' })
-    await userEvent.setup({ advanceTimers: vi.advanceTimersByTime }).click(
-      screen.getByRole('button', { name: 'ランチを編集' }),
-    )
+    await userEvent
+      .setup({ advanceTimers: vi.advanceTimersByTime })
+      .click(screen.getByRole('button', { name: 'ランチを編集' }))
 
-    expect(screen.getByTestId('pathname')).toHaveTextContent('/app/transactions/1/edit')
+    expect(screen.getByTestId('pathname')).toHaveTextContent(
+      '/app/transactions/1/edit',
+    )
     expect(screen.getByTestId('return-to').textContent).toBe(returnTo)
   })
 })

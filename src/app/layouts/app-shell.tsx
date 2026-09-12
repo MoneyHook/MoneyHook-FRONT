@@ -13,7 +13,11 @@ import { toast } from 'sonner'
 
 import { useAuth } from '@/features/auth'
 import { Brand } from '@/shared/components/brand'
-import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar'
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from '@/shared/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -78,7 +82,11 @@ function SidebarAccountMenu() {
         >
           <Avatar>
             {user?.photoURL ? (
-              <AvatarImage alt="" referrerPolicy="no-referrer" src={user.photoURL} />
+              <AvatarImage
+                alt=""
+                referrerPolicy="no-referrer"
+                src={user.photoURL}
+              />
             ) : null}
             <AvatarFallback>{initial}</AvatarFallback>
           </Avatar>
@@ -112,7 +120,8 @@ function SidebarAccountMenu() {
 
 function DesktopSidebar({ pathname }: { pathname: string }) {
   const { state, toggleSidebar } = useSidebar()
-  const sidebarToggleLabel = state === 'expanded' ? 'サイドバーを閉じる' : 'サイドバーを開く'
+  const sidebarToggleLabel =
+    state === 'expanded' ? 'サイドバーを閉じる' : 'サイドバーを開く'
 
   return (
     <Sidebar collapsible="icon">
@@ -175,7 +184,7 @@ function MobileNavigation({ pathname }: { pathname: string }) {
   return (
     <nav
       aria-label="メインナビゲーション"
-      className="fixed inset-x-0 bottom-0 z-30 border-t bg-surface-elevated/95 px-2 pb-[max(0.35rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur md:hidden"
+      className="fixed inset-x-0 bottom-0 z-30 border-t bg-surface-elevated/95 px-2 pt-1 pb-[max(0.35rem,env(safe-area-inset-bottom))] backdrop-blur md:hidden"
     >
       <ul className="grid grid-cols-5">
         {mobileNavigationItems.map((item) => {
@@ -209,7 +218,10 @@ function MobileNavigation({ pathname }: { pathname: string }) {
                       : 'size-5',
                   )}
                 >
-                  <Icon aria-hidden="true" className={isAddAction ? 'size-6' : 'size-5'} />
+                  <Icon
+                    aria-hidden="true"
+                    className={isAddAction ? 'size-6' : 'size-5'}
+                  />
                 </span>
                 <span>{item.label}</span>
               </NavLink>
@@ -230,7 +242,7 @@ export function AppShell() {
   return (
     <SidebarProvider>
       <a
-        className="fixed left-4 top-4 z-50 -translate-y-20 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-transform focus:translate-y-0"
+        className="fixed top-4 left-4 z-50 -translate-y-20 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-transform focus:translate-y-0"
         href="#main-content"
       >
         本文へ移動
@@ -239,7 +251,9 @@ export function AppShell() {
       <DesktopSidebar pathname={location.pathname} />
       <SidebarInset id="main-content" tabIndex={-1}>
         <Outlet />
-        {!isTransactionComposer ? <MobileNavigation pathname={location.pathname} /> : null}
+        {!isTransactionComposer ? (
+          <MobileNavigation pathname={location.pathname} />
+        ) : null}
       </SidebarInset>
     </SidebarProvider>
   )

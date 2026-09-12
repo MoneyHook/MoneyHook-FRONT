@@ -10,7 +10,8 @@ const ignoredFragments = [
 const rules = [
   {
     name: 'primitive color value',
-    pattern: /#[\da-f]{3,8}\b|\b(?:rgb|rgba|hsl|hsla|oklch|oklab|lab|lch|color-mix)\s*\(/i,
+    pattern:
+      /#[\da-f]{3,8}\b|\b(?:rgb|rgba|hsl|hsla|oklch|oklab|lab|lch|color-mix)\s*\(/i,
   },
   {
     name: 'Tailwind palette color',

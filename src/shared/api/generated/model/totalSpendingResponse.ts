@@ -15,9 +15,9 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { TotalSpendingResponseCategoryTotalListItem } from './totalSpendingResponseCategoryTotalListItem';
+import type { TotalSpendingResponseCategoryTotalListItem } from './totalSpendingResponseCategoryTotalListItem'
 
 export interface TotalSpendingResponse {
-  total_spending: number;
-  category_total_list: TotalSpendingResponseCategoryTotalListItem[];
+  total_spending: number
+  category_total_list: TotalSpendingResponseCategoryTotalListItem[]
 }

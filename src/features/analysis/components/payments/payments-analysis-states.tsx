@@ -21,7 +21,10 @@ export function EmptyPayments() {
   return (
     <div className="space-y-3 sm:space-y-4">
       <AnalysisPanel className="flex min-h-64 flex-col items-center justify-center text-center">
-        <WalletCards aria-hidden="true" className="size-8 text-muted-foreground" />
+        <WalletCards
+          aria-hidden="true"
+          className="size-8 text-muted-foreground"
+        />
         <h2 className="mt-4 font-semibold">この期間の支出はありません</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           支払い方法を設定して支出を記録すると、方法別の傾向を確認できます。

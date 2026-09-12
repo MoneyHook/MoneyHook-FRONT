@@ -73,9 +73,11 @@ type DashboardResponses = {
 }
 
 function formatDate(year: number, monthIndex: number, day: number) {
-  return [year, String(monthIndex + 1).padStart(2, '0'), String(day).padStart(2, '0')].join(
-    '-',
-  )
+  return [
+    year,
+    String(monthIndex + 1).padStart(2, '0'),
+    String(day).padStart(2, '0'),
+  ].join('-')
 }
 
 function daysInMonth(year: number, monthIndex: number) {
@@ -92,19 +94,29 @@ export function normalizeMonthParam(value: string | null, now = new Date()) {
     return `${currentMonthInput}-01`
   }
 
-  return value.slice(0, 7) > currentMonthInput ? `${currentMonthInput}-01` : value
+  return value.slice(0, 7) > currentMonthInput
+    ? `${currentMonthInput}-01`
+    : value
 }
 
-export function createMonthContext(value: string | null, now = new Date()): MonthContext {
+export function createMonthContext(
+  value: string | null,
+  now = new Date(),
+): MonthContext {
   const month = normalizeMonthParam(value, now)
   const year = Number(month.slice(0, 4))
   const monthIndex = Number(month.slice(5, 7)) - 1
   const selectedDays = daysInMonth(year, monthIndex)
   const currentMonthInput = monthInputFromDate(now)
   const isCurrentMonth = month.slice(0, 7) === currentMonthInput
-  const elapsedDays = isCurrentMonth ? Math.min(now.getDate(), selectedDays) : selectedDays
+  const elapsedDays = isCurrentMonth
+    ? Math.min(now.getDate(), selectedDays)
+    : selectedDays
   const previousDate = new Date(year, monthIndex - 1, 1)
-  const previousDays = daysInMonth(previousDate.getFullYear(), previousDate.getMonth())
+  const previousDays = daysInMonth(
+    previousDate.getFullYear(),
+    previousDate.getMonth(),
+  )
 
   return {
     month,
@@ -113,8 +125,16 @@ export function createMonthContext(value: string | null, now = new Date()): Mont
     currentMonthInput,
     startDate: formatDate(year, monthIndex, 1),
     endDate: formatDate(year, monthIndex, selectedDays),
-    previousMonth: formatDate(previousDate.getFullYear(), previousDate.getMonth(), 1),
-    previousStartDate: formatDate(previousDate.getFullYear(), previousDate.getMonth(), 1),
+    previousMonth: formatDate(
+      previousDate.getFullYear(),
+      previousDate.getMonth(),
+      1,
+    ),
+    previousStartDate: formatDate(
+      previousDate.getFullYear(),
+      previousDate.getMonth(),
+      1,
+    ),
     previousEndDate: formatDate(
       previousDate.getFullYear(),
       previousDate.getMonth(),
@@ -132,7 +152,10 @@ function cumulativeSeries(
   visibleThrough: number,
 ) {
   const amounts = new Map(
-    series.map((item) => [Number(item.bucket.slice(8, 10)), item.expense_amount]),
+    series.map((item) => [
+      Number(item.bucket.slice(8, 10)),
+      item.expense_amount,
+    ]),
   )
   const cumulative = new Map<number, number>()
   let total = 0
@@ -171,9 +194,14 @@ export function buildHomeDashboardViewModel({
   const previousExpenseAmount = previousOverview.summary.expense_amount
   const differenceAmount = expenseAmount - previousExpenseAmount
   const differenceRate =
-    previousExpenseAmount === 0 ? null : (differenceAmount / previousExpenseAmount) * 100
+    previousExpenseAmount === 0
+      ? null
+      : (differenceAmount / previousExpenseAmount) * 100
 
-  const currentSeries = cumulativeSeries(currentOverview.series, month.elapsedDays)
+  const currentSeries = cumulativeSeries(
+    currentOverview.series,
+    month.elapsedDays,
+  )
   const previousDays = Number(month.previousEndDate.slice(8, 10))
   const previousSeries = cumulativeSeries(previousOverview.series, previousDays)
   const pace = Array.from(
@@ -183,20 +211,24 @@ export function buildHomeDashboardViewModel({
       return {
         day,
         label: `${day}日`,
-        current: day <= month.elapsedDays ? (currentSeries.get(day) ?? 0) : null,
-        previous: previousSeries.get(day) ?? previousSeries.get(previousDays) ?? 0,
+        current:
+          day <= month.elapsedDays ? (currentSeries.get(day) ?? 0) : null,
+        previous:
+          previousSeries.get(day) ?? previousSeries.get(previousDays) ?? 0,
       }
     },
   )
 
   const currentCategories = categoryAmounts(currentHome)
   const previousCategories = categoryAmounts(previousHome)
-  const sortedCategories = [...currentCategories.entries()].sort((left, right) => {
-    if (right[1] === left[1]) {
-      return left[0].localeCompare(right[0], 'ja')
-    }
-    return right[1] - left[1]
-  })
+  const sortedCategories = [...currentCategories.entries()].sort(
+    (left, right) => {
+      if (right[1] === left[1]) {
+        return left[0].localeCompare(right[0], 'ja')
+      }
+      return right[1] - left[1]
+    },
+  )
   const maxCategoryAmount = sortedCategories[0]?.[1] ?? 0
   const categories = sortedCategories.slice(0, 5).map(([name, amount]) => ({
     name,
@@ -206,10 +238,14 @@ export function buildHomeDashboardViewModel({
     barRatio: ratio(amount, maxCategoryAmount),
   }))
 
-  const categoryNames = new Set([...currentCategories.keys(), ...previousCategories.keys()])
+  const categoryNames = new Set([
+    ...currentCategories.keys(),
+    ...previousCategories.keys(),
+  ])
   const changes = [...categoryNames].map((name) => ({
     name,
-    difference: (currentCategories.get(name) ?? 0) - (previousCategories.get(name) ?? 0),
+    difference:
+      (currentCategories.get(name) ?? 0) - (previousCategories.get(name) ?? 0),
     previousAmount: previousCategories.get(name) ?? 0,
   }))
   const increase =
@@ -236,7 +272,10 @@ export function buildHomeDashboardViewModel({
     variableExpenseAmount,
     fixedExpenseRatio: ratio(fixedExpenseAmount, expenseAmount),
     variableExpenseRatio: ratio(variableExpenseAmount, expenseAmount),
-    dailyAverage: month.elapsedDays === 0 ? 0 : Math.round(expenseAmount / month.elapsedDays),
+    dailyAverage:
+      month.elapsedDays === 0
+        ? 0
+        : Math.round(expenseAmount / month.elapsedDays),
     dayCaption: month.isCurrentMonth
       ? `残り${month.remainingDays}日`
       : `${month.daysInMonth}日間`,

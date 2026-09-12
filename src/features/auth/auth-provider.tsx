@@ -19,7 +19,10 @@ import {
 import { EnvironmentConfigurationError } from '@/shared/config/environment'
 import { getFirebaseAuth } from '@/shared/lib/firebase'
 import { clearPersistedAppearanceSettings } from '@/shared/lib/persisted-appearance-settings'
-import { clearPersistedUserData, ensurePersistedUserDataOwner } from '@/shared/lib/persisted-user-data'
+import {
+  clearPersistedUserData,
+  ensurePersistedUserDataOwner,
+} from '@/shared/lib/persisted-user-data'
 
 import { AuthContext } from './auth-context'
 import type { AuthContextValue, AuthUser } from './model/auth'

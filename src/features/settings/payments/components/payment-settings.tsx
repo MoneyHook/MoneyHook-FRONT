@@ -11,9 +11,20 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
-import { AlertCircle, CreditCard, LoaderCircle, Plus, WalletCards, X } from 'lucide-react'
+import {
+  AlertCircle,
+  CreditCard,
+  LoaderCircle,
+  Plus,
+  WalletCards,
+  X,
+} from 'lucide-react'
 
-import { Alert, AlertDescription, AlertTitle } from '@/shared/components/ui/alert'
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from '@/shared/components/ui/alert'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -49,7 +60,11 @@ import { usePaymentSettingsController } from '../hooks/use-payment-settings-cont
 import { PaymentForm } from './payment-form'
 import { SortablePaymentRow } from './sortable-payment-row'
 
-export function PaymentSettings({ showHeader = true }: { showHeader?: boolean }) {
+export function PaymentSettings({
+  showHeader = true,
+}: {
+  showHeader?: boolean
+}) {
   const {
     editor,
     setEditor,
@@ -72,7 +87,9 @@ export function PaymentSettings({ showHeader = true }: { showHeader?: boolean })
   } = usePaymentSettingsController()
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
   )
   return (
     <SettingsSection
@@ -95,7 +112,11 @@ export function PaymentSettings({ showHeader = true }: { showHeader?: boolean })
       titleId="payment-settings-title"
     >
       {isLoading ? (
-        <div aria-label="支払い方法を読み込んでいます" className="space-y-3" role="status">
+        <div
+          aria-label="支払い方法を読み込んでいます"
+          className="space-y-3"
+          role="status"
+        >
           <Skeleton className="h-16 w-full" />
           <Skeleton className="h-16 w-full" />
         </div>
@@ -121,7 +142,10 @@ export function PaymentSettings({ showHeader = true }: { showHeader?: boolean })
             <p className="text-sm text-muted-foreground">
               新しい取引を追加するときに、最初から選択する支払い方法です。
             </p>
-            <Select onValueChange={changeDefaultPayment} value={defaultPaymentId ?? 'none'}>
+            <Select
+              onValueChange={changeDefaultPayment}
+              value={defaultPaymentId ?? 'none'}
+            >
               <SelectTrigger
                 aria-label="デフォルトの支払い方法"
                 className="w-full sm:max-w-sm"
@@ -132,7 +156,10 @@ export function PaymentSettings({ showHeader = true }: { showHeader?: boolean })
               <SelectContent>
                 <SelectItem value="none">設定しない</SelectItem>
                 {payments.map((payment) => (
-                  <SelectItem key={payment.payment_id} value={payment.payment_id}>
+                  <SelectItem
+                    key={payment.payment_id}
+                    value={payment.payment_id}
+                  >
                     {payment.payment_name}
                   </SelectItem>
                 ))}
@@ -167,7 +194,9 @@ export function PaymentSettings({ showHeader = true }: { showHeader?: boolean })
                       isReordering={isReordering}
                       key={payment.payment_id}
                       onDelete={setPaymentToDelete}
-                      onEdit={(item) => setEditor({ mode: 'edit', payment: item })}
+                      onEdit={(item) =>
+                        setEditor({ mode: 'edit', payment: item })
+                      }
                       payment={payment}
                       paymentTypes={paymentTypes}
                     />
@@ -178,13 +207,18 @@ export function PaymentSettings({ showHeader = true }: { showHeader?: boolean })
           )}
         </div>
       ) : null}
-      <Dialog onOpenChange={(open) => !open && !isSaving && setEditor(null)} open={editor !== null}>
+      <Dialog
+        onOpenChange={(open) => !open && !isSaving && setEditor(null)}
+        open={editor !== null}
+      >
         {editor ? (
           <DialogContent>
             <DialogHeader className="flex flex-row items-center justify-between gap-4 space-y-0">
               <div>
                 <DialogTitle>
-                  {editor.mode === 'add' ? '支払い方法を追加' : '支払い方法を編集'}
+                  {editor.mode === 'add'
+                    ? '支払い方法を追加'
+                    : '支払い方法を編集'}
                 </DialogTitle>
                 <DialogDescription className="sr-only">
                   支払い方法の名前、種類、締め日、支払日を入力します。
@@ -221,11 +255,14 @@ export function PaymentSettings({ showHeader = true }: { showHeader?: boolean })
           <AlertDialogHeader>
             <AlertDialogTitle>支払い方法を削除しますか？</AlertDialogTitle>
             <AlertDialogDescription>
-              「{paymentToDelete?.payment_name}」を削除します。この操作は取り消せません。
+              「{paymentToDelete?.payment_name}
+              」を削除します。この操作は取り消せません。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>キャンセル</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>
+              キャンセル
+            </AlertDialogCancel>
             <AlertDialogAction
               disabled={isDeleting}
               onClick={(event) => {
@@ -234,7 +271,10 @@ export function PaymentSettings({ showHeader = true }: { showHeader?: boolean })
               }}
             >
               {isDeleting ? (
-                <LoaderCircle aria-hidden="true" className="mr-1.5 size-4 animate-spin" />
+                <LoaderCircle
+                  aria-hidden="true"
+                  className="mr-1.5 size-4 animate-spin"
+                />
               ) : null}
               削除する
             </AlertDialogAction>

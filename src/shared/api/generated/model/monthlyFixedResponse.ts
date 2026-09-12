@@ -15,10 +15,10 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { MonthlyFixedResponseMonthlyFixedListItem } from './monthlyFixedResponseMonthlyFixedListItem';
+import type { MonthlyFixedResponseMonthlyFixedListItem } from './monthlyFixedResponseMonthlyFixedListItem'
 
 export interface MonthlyFixedResponse {
   /** Sum of the category totals. */
-  disposable_income: number;
-  monthly_fixed_list: MonthlyFixedResponseMonthlyFixedListItem[];
+  disposable_income: number
+  monthly_fixed_list: MonthlyFixedResponseMonthlyFixedListItem[]
 }

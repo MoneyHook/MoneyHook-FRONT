@@ -15,13 +15,17 @@ import {
 export function usePaymentSettings() {
   const queryClient = useQueryClient()
   const invalidatePayments = async () => {
-    await queryClient.invalidateQueries({ queryKey: getGetPaymentResourcesQueryKey() })
+    await queryClient.invalidateQueries({
+      queryKey: getGetPaymentResourcesQueryKey(),
+    })
   }
   const mutationOptions = { mutation: { onSuccess: invalidatePayments } }
 
   const paymentsQuery = useGetPaymentResources()
   const reorderMutation = useReorderPaymentResources()
-  const reorder = async (nextPayments: PaymentResourceListResponsePaymentListItem[]) => {
+  const reorder = async (
+    nextPayments: PaymentResourceListResponsePaymentListItem[],
+  ) => {
     const queryKey = getGetPaymentResourcesQueryKey()
     const previousData = queryClient.getQueryData(paymentsQuery.queryKey)
     queryClient.setQueryData(queryKey, (current: typeof paymentsQuery.data) =>
@@ -31,9 +35,12 @@ export function usePaymentSettings() {
     )
     try {
       const response = await reorderMutation.mutateAsync({
-        data: { payment_ids: nextPayments.map((payment) => payment.payment_id) },
+        data: {
+          payment_ids: nextPayments.map((payment) => payment.payment_id),
+        },
       })
-      if (response.status !== 200) throw new Error('支払い方法の並べ替えを保存できませんでした。')
+      if (response.status !== 200)
+        throw new Error('支払い方法の並べ替えを保存できませんでした。')
       await invalidatePayments()
     } catch (error) {
       queryClient.setQueryData(queryKey, previousData)

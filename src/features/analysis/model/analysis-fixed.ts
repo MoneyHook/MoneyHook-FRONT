@@ -112,7 +112,9 @@ export function buildFixedBreakdown(
   selectedCategoryIds: string[],
 ): FixedBreakdown {
   const selected = new Set(selectedCategoryIds)
-  const categories = data.categories.filter((category) => selected.has(category.id))
+  const categories = data.categories.filter((category) =>
+    selected.has(category.id),
+  )
   const amount = categories.reduce((sum, category) => sum + category.amount, 0)
 
   return {

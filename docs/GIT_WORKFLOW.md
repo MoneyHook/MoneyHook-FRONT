@@ -10,9 +10,9 @@
 
 ## Branch戦略
 
-| Branch | 役割 |
-|---|---|
-| `main` | リリース済みの安定版 |
+| Branch    | 役割                             |
+| --------- | -------------------------------- |
+| `main`    | リリース済みの安定版             |
 | `develop` | 次回リリースへ向けた変更の統合先 |
 
 通常の機能追加、バグ修正、文書変更、refactorは`develop`から作業branchを作り、`develop`向けのPRで取り込みます。
@@ -21,15 +21,15 @@
 
 形式は`<type>/<英語kebab-case-summary>`です。typeは用途別の接頭辞、summaryは変更内容を表す英語にします。summaryには小文字英数字とhyphenだけを使い、空白、日本語、underscoreを使いません。
 
-| 種類 | 例 |
-|---|---|
-| 機能追加 | `feature/transaction-form` |
-| バグ修正 | `fix/auth-redirect` |
-| 文書 | `docs/local-setup` |
-| Refactor | `refactor/api-error` |
-| 保守作業 | `chore/update-dependencies` |
-| Release準備 | `release/v1-2-0` |
-| 緊急修正 | `hotfix/login-failure` |
+| 種類        | 例                          |
+| ----------- | --------------------------- |
+| 機能追加    | `feature/transaction-form`  |
+| バグ修正    | `fix/auth-redirect`         |
+| 文書        | `docs/local-setup`          |
+| Refactor    | `refactor/api-error`        |
+| 保守作業    | `chore/update-dependencies` |
+| Release準備 | `release/v1-2-0`            |
+| 緊急修正    | `hotfix/login-failure`      |
 
 branch名は変更内容が分かる具体的な語句にします。`feature/update`や`fix/bug`のような曖昧な名前は使用しません。
 
@@ -43,16 +43,16 @@ branch名は変更内容が分かる具体的な語句にします。`feature/up
 
 scopeは変更対象のfeatureや領域を補足する場合だけ付けます。
 
-| Type | 用途 |
-|---|---|
-| `feat` | ユーザーに提供する機能の追加・変更 |
-| `fix` | 不具合修正 |
-| `docs` | 文書だけの変更 |
+| Type       | 用途                               |
+| ---------- | ---------------------------------- |
+| `feat`     | ユーザーに提供する機能の追加・変更 |
+| `fix`      | 不具合修正                         |
+| `docs`     | 文書だけの変更                     |
 | `refactor` | 振る舞いを変えないコード構造の変更 |
-| `test` | テストの追加・修正 |
-| `chore` | 通常の保守作業 |
-| `build` | dependencyやbuild設定の変更 |
-| `ci` | CI設定の変更 |
+| `test`     | テストの追加・修正                 |
+| `chore`    | 通常の保守作業                     |
+| `build`    | dependencyやbuild設定の変更        |
+| `ci`       | CI設定の変更                       |
 
 例:
 

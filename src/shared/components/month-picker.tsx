@@ -1,4 +1,9 @@
-import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
+import {
+  CalendarDays,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react'
 import { useState } from 'react'
 
 import { Button } from '@/shared/components/ui/button'
@@ -81,7 +86,9 @@ export function MonthPicker({
           )}
           variant="ghost"
         >
-          {showCalendarIcon ? <CalendarDays aria-hidden="true" className="size-5" /> : null}
+          {showCalendarIcon ? (
+            <CalendarDays aria-hidden="true" className="size-5" />
+          ) : null}
           <span>{monthLabel}</span>
           <ChevronDown
             aria-hidden="true"
@@ -125,7 +132,8 @@ export function MonthPicker({
           {monthNames.map((month) => {
             const value = formatMonth(visibleYear, month)
             const isSelected = value === monthInput
-            const isDisabled = value > maxMonth || (minMonth !== undefined && value < minMonth)
+            const isDisabled =
+              value > maxMonth || (minMonth !== undefined && value < minMonth)
 
             return (
               <Button

@@ -21,7 +21,13 @@ export function useAnalysisPaymentsController(range: AnalysisRange) {
     const next = new URLSearchParams(searchParams)
     next.delete('payment')
     setSearchParams(next, { replace: true })
-  }, [payments.data, rawPaymentId, searchParams, selectedPayment, setSearchParams])
+  }, [
+    payments.data,
+    rawPaymentId,
+    searchParams,
+    selectedPayment,
+    setSearchParams,
+  ])
 
   const setPayment = (paymentId: string | null) => {
     const next = new URLSearchParams(searchParams)
@@ -40,7 +46,6 @@ export function useAnalysisPaymentsController(range: AnalysisRange) {
       },
     })
   }
-
 
   return { payments, selectedPayment, setPayment, openTransaction }
 }

@@ -15,8 +15,8 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { TransactionDetailResponseTransaction } from './transactionDetailResponseTransaction';
+import type { TransactionDetailResponseTransaction } from './transactionDetailResponseTransaction'
 
 export interface TransactionDetailResponse {
-  transaction: TransactionDetailResponseTransaction;
+  transaction: TransactionDetailResponseTransaction
 }

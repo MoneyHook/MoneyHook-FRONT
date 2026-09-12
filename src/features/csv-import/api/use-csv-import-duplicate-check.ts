@@ -26,15 +26,18 @@ export function useCsvImportDuplicateCheck(rows: ImportRow[]) {
   const queryClient = useQueryClient()
   const key = useMemo(() => importMonths(rows).join('|'), [rows])
   const [state, setState] = useState(initialState)
-  const months = useMemo(() => key ? key.split('|') : [], [key])
-  const isChecking = months.length > 0 && (state.key !== key || state.isChecking)
+  const months = useMemo(() => (key ? key.split('|') : []), [key])
+  const isChecking =
+    months.length > 0 && (state.key !== key || state.isChecking)
   const currentState = state.key === key ? state : initialState
 
   useEffect(() => {
     let cancelled = false
 
     if (!months.length) {
-      return () => { cancelled = true }
+      return () => {
+        cancelled = true
+      }
     }
 
     const checkMonths = async () => {
@@ -63,12 +66,20 @@ export function useCsvImportDuplicateCheck(rows: ImportRow[]) {
         }
       }
 
-      await Promise.all(Array.from({ length: Math.min(MAX_CONCURRENT_REQUESTS, months.length) }, worker))
-      if (!cancelled) setState({ failedMonths, isChecking: false, key, transactions })
+      await Promise.all(
+        Array.from(
+          { length: Math.min(MAX_CONCURRENT_REQUESTS, months.length) },
+          worker,
+        ),
+      )
+      if (!cancelled)
+        setState({ failedMonths, isChecking: false, key, transactions })
     }
 
     void checkMonths()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [key, months, queryClient])
 
   return {

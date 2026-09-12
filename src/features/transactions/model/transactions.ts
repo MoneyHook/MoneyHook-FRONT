@@ -77,7 +77,9 @@ export function normalizeMonthParam(value: string | null, now = new Date()) {
     return `${currentMonthInput}-01`
   }
 
-  return value.slice(0, 7) > currentMonthInput ? `${currentMonthInput}-01` : value
+  return value.slice(0, 7) > currentMonthInput
+    ? `${currentMonthInput}-01`
+    : value
 }
 
 export function createTransactionMonth(
@@ -105,7 +107,9 @@ export function createTransactionMonth(
   }
 }
 
-export function normalizeTransactionView(value: string | null): TransactionView {
+export function normalizeTransactionView(
+  value: string | null,
+): TransactionView {
   return value === 'calendar' ? 'calendar' : 'list'
 }
 
@@ -128,13 +132,17 @@ export function buildTransactionsViewModel(
     }))
     .sort((left, right) => {
       const dateOrder = right.date.localeCompare(left.date)
-      return dateOrder === 0 ? right.id.localeCompare(left.id, 'ja', { numeric: true }) : dateOrder
+      return dateOrder === 0
+        ? right.id.localeCompare(left.id, 'ja', { numeric: true })
+        : dateOrder
     })
 
   return buildTransactionsViewModelFromItems(items)
 }
 
-export function buildTransactionsViewModelFromItems(items: TransactionItem[]): TransactionsViewModel {
+export function buildTransactionsViewModelFromItems(
+  items: TransactionItem[],
+): TransactionsViewModel {
   const expenseAmount = items.reduce(
     (total, item) => total + (item.sign === -1 ? item.amount : 0),
     0,
@@ -192,7 +200,10 @@ export function normalizeSelectedDate(
   items: TransactionItem[],
   now = new Date(),
 ) {
-  if (value?.match(/^\d{4}-\d{2}-\d{2}$/) && value.startsWith(month.monthInput)) {
+  if (
+    value?.match(/^\d{4}-\d{2}-\d{2}$/) &&
+    value.startsWith(month.monthInput)
+  ) {
     const day = Number(value.slice(8, 10))
     if (day >= 1 && day <= month.daysInMonth) {
       return value
@@ -207,7 +218,11 @@ export function buildCalendarDays(month: TransactionMonth): CalendarDay[] {
   const visibleDays = Math.ceil((firstWeekday + month.daysInMonth) / 7) * 7
 
   return Array.from({ length: visibleDays }, (_, index) => {
-    const value = new Date(month.year, month.monthIndex, index - firstWeekday + 1)
+    const value = new Date(
+      month.year,
+      month.monthIndex,
+      index - firstWeekday + 1,
+    )
     return {
       date: formatDate(value.getFullYear(), value.getMonth(), value.getDate()),
       day: value.getDate(),
@@ -221,13 +236,19 @@ export function getCategoryTotals(items: TransactionItem[]) {
 
   items.forEach((item) => {
     if (item.sign === -1) {
-      totals.set(item.categoryName, (totals.get(item.categoryName) ?? 0) + item.amount)
+      totals.set(
+        item.categoryName,
+        (totals.get(item.categoryName) ?? 0) + item.amount,
+      )
     }
   })
 
   return [...totals.entries()]
     .map<TransactionCategoryTotal>(([name, amount]) => ({ name, amount }))
-    .sort((left, right) => right.amount - left.amount || left.name.localeCompare(right.name, 'ja'))
+    .sort(
+      (left, right) =>
+        right.amount - left.amount || left.name.localeCompare(right.name, 'ja'),
+    )
 }
 
 export function formatCurrency(value: number) {

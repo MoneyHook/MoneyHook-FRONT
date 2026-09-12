@@ -15,10 +15,10 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { Identifier } from './identifier';
+import type { Identifier } from './identifier'
 
 export type PaymentTypeListResponsePaymentTypeListItem = {
-  payment_type_id: Identifier;
-  payment_type_name: string;
-  is_payment_due_later: boolean;
-};
+  payment_type_id: Identifier
+  payment_type_name: string
+  is_payment_due_later: boolean
+}

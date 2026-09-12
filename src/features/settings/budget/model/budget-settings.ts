@@ -9,7 +9,11 @@ export function validateBudgetAmount(value: string) {
   }
 
   const amount = Number(normalized)
-  if (!/^\d+$/.test(normalized) || !Number.isSafeInteger(amount) || amount < 1) {
+  if (
+    !/^\d+$/.test(normalized) ||
+    !Number.isSafeInteger(amount) ||
+    amount < 1
+  ) {
     return '1円以上の整数を入力してください。'
   }
 

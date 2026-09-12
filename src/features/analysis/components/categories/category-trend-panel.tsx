@@ -9,7 +9,10 @@ import {
   YAxis,
 } from 'recharts'
 
-import type { CategoryAnalysisItem, CategoryGroup } from '../../model/analysis-categories'
+import type {
+  CategoryAnalysisItem,
+  CategoryGroup,
+} from '../../model/analysis-categories'
 import { formatCurrency } from '../../model/analysis-overview'
 import { analysisChartColors } from '../analysis-chart-colors'
 import { CategoryAnalysisPanel } from './category-analysis-panel'
@@ -66,7 +69,7 @@ export function CategoryTrendPanel({
         <label className="relative inline-flex min-h-9 items-center rounded-lg bg-muted text-xs font-medium sm:text-sm">
           <select
             aria-label="推移の集計単位"
-            className="h-9 appearance-none bg-transparent pl-3 pr-9 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="h-9 appearance-none bg-transparent pr-9 pl-3 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
             onChange={(event) =>
               onGroupChange(event.target.value as CategoryGroup)
             }

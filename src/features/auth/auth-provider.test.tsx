@@ -108,7 +108,9 @@ describe('AuthProvider', () => {
 
     emitIdToken(null)
 
-    expect(screen.getByLabelText('認証状態')).toHaveTextContent('unauthenticated')
+    expect(screen.getByLabelText('認証状態')).toHaveTextContent(
+      'unauthenticated',
+    )
   })
 
   it('uses Firebase ID token state as the authenticated source of truth', async () => {
@@ -131,7 +133,9 @@ describe('AuthProvider', () => {
 
     expect(firebaseMocks.signInWithPopup).toHaveBeenCalledTimes(1)
     await waitFor(() => {
-      expect(screen.getByText('Googleログインがキャンセルされました。')).toBeVisible()
+      expect(
+        screen.getByText('Googleログインがキャンセルされました。'),
+      ).toBeVisible()
     })
   })
 
@@ -145,7 +149,11 @@ describe('AuthProvider', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Googleログイン' }))
 
     await waitFor(() => {
-      expect(screen.getByText('認証サーバーへ接続できませんでした。ネットワークを確認してください。')).toBeVisible()
+      expect(
+        screen.getByText(
+          '認証サーバーへ接続できませんでした。ネットワークを確認してください。',
+        ),
+      ).toBeVisible()
     })
   })
 
@@ -153,7 +161,9 @@ describe('AuthProvider', () => {
     const queryClient = renderAuthProvider()
     emitIdToken(createUser('user-1'))
     await waitFor(() => {
-      expect(screen.getByLabelText('認証状態')).toHaveTextContent('authenticated')
+      expect(screen.getByLabelText('認証状態')).toHaveTextContent(
+        'authenticated',
+      )
     })
     queryClient.setQueryData(['private', 'user-1'], { amount: 100 })
     localStorage.setItem(THEME_STORAGE_KEY, 'dark')
@@ -176,7 +186,9 @@ describe('AuthProvider', () => {
     const user = createUser('user-1')
     emitIdToken(user)
     await waitFor(() => {
-      expect(screen.getByLabelText('認証状態')).toHaveTextContent('authenticated')
+      expect(screen.getByLabelText('認証状態')).toHaveTextContent(
+        'authenticated',
+      )
     })
     queryClient.setQueryData(['private', 'user-1'], { amount: 100 })
     localStorage.setItem(THEME_STORAGE_KEY, 'dark')
@@ -193,7 +205,9 @@ describe('AuthProvider', () => {
     fireEvent.click(screen.getByRole('button', { name: 'ログアウト' }))
 
     await waitFor(() => {
-      expect(screen.getByLabelText('認証状態')).toHaveTextContent('unauthenticated')
+      expect(screen.getByLabelText('認証状態')).toHaveTextContent(
+        'unauthenticated',
+      )
     })
   })
 })
