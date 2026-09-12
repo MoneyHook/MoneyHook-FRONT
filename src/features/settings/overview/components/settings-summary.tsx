@@ -7,6 +7,8 @@ import {
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
+import { Card } from '@/shared/components/ui/card'
+
 type SummaryCardProps = {
   description: string
   icon: typeof CircleUserRound
@@ -18,22 +20,24 @@ function SummaryCard({ description, icon: Icon, title, to }: SummaryCardProps) {
   return (
     <Link
       aria-label={`${title}の設定を開く`}
-      className="group flex min-h-25 items-center gap-3 rounded-2xl border bg-card px-4 py-3 text-left outline-none transition-[background-color,border-color,transform] hover:-translate-y-px hover:border-foreground/15 hover:bg-muted/45 focus-visible:ring-3 focus-visible:ring-ring/50 sm:px-5"
+      className="group block outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
       to={to}
     >
-      <span className="flex size-10 shrink-0 items-center justify-center text-muted-foreground">
-        <Icon aria-hidden="true" className="size-5" />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block text-sm font-medium">{title}</span>
-        <span className="mt-0.5 block truncate text-xs text-muted-foreground sm:text-sm">
-          {description}
+      <Card className="flex min-h-25 flex-row items-center gap-3 px-4 py-3 transition-[background-color,transform] group-hover:bg-muted/70 sm:px-5">
+        <span className="flex size-10 shrink-0 items-center justify-center text-muted-foreground">
+          <Icon aria-hidden="true" className="size-5" />
         </span>
-      </span>
-      <ChevronRight
-        aria-hidden="true"
-        className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
-      />
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-medium">{title}</span>
+          <span className="mt-0.5 block truncate text-xs text-muted-foreground sm:text-sm">
+            {description}
+          </span>
+        </span>
+        <ChevronRight
+          aria-hidden="true"
+          className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+        />
+      </Card>
     </Link>
   )
 }

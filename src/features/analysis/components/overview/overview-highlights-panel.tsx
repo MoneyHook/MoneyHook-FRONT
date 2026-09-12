@@ -1,4 +1,5 @@
 import { ArrowDownRight, ArrowRight, ArrowUpRight, Lightbulb } from 'lucide-react'
+import { Card } from '@/shared/components/ui/card'
 import { cn } from '@/shared/lib/utils'
 import {
   formatCurrency,
@@ -15,7 +16,7 @@ function OverallHighlight({ data }: { data: AnalysisOverviewViewModel }) {
   const Icon = isIncrease ? ArrowUpRight : isDecrease ? ArrowDownRight : ArrowRight
 
   return (
-    <div className="flex items-start gap-3 rounded-xl border bg-background p-3 sm:p-4">
+    <Card className="flex flex-row items-start gap-3 rounded-xl bg-background p-3 sm:p-4">
       <span
         className={cn(
           'flex size-10 shrink-0 items-center justify-center rounded-full',
@@ -39,13 +40,13 @@ function OverallHighlight({ data }: { data: AnalysisOverviewViewModel }) {
             : `前期間比 ${formatSignedPercent(data.differenceRate)}`}
         </p>
       </div>
-    </div>
+    </Card>
   )
 }
 
 function FixedHighlight({ data }: { data: AnalysisOverviewViewModel }) {
   return (
-    <div className="flex items-start gap-3 rounded-xl border bg-background p-3 sm:p-4">
+    <Card className="flex flex-row items-start gap-3 rounded-xl bg-background p-3 sm:p-4">
       <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-warning/12 text-warning">
         <Lightbulb aria-hidden="true" className="size-5" />
       </span>
@@ -60,7 +61,7 @@ function FixedHighlight({ data }: { data: AnalysisOverviewViewModel }) {
             : `（${formatSignedPercent(data.latestFixedDifferenceRate)}）`}
         </p>
       </div>
-    </div>
+    </Card>
   )
 }
 

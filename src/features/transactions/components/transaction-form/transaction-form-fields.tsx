@@ -2,6 +2,7 @@ import { CalendarDays, ChevronRight, Info } from 'lucide-react'
 import { ja } from 'react-day-picker/locale'
 
 import { Calendar } from '@/shared/components/ui/calendar'
+import { Card } from '@/shared/components/ui/card'
 import { Input } from '@/shared/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover'
 import { cn } from '@/shared/lib/utils'
@@ -14,14 +15,9 @@ import { CategoryIcon, PaymentIcon } from './transaction-form-icons'
 
 function FormSection({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <section
-      className={cn(
-        'overflow-hidden rounded-2xl border bg-card shadow-[0_8px_28px_color-mix(in_oklab,var(--foreground)_4%,transparent)]',
-        className,
-      )}
-    >
+    <Card className={cn('block overflow-hidden', className)}>
       {children}
-    </section>
+    </Card>
   )
 }
 

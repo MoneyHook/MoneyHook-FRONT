@@ -1,5 +1,6 @@
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
+import { Badge } from '@/shared/components/ui/badge'
 import { cn } from '@/shared/lib/utils'
 import type { FixedTransactionItem } from '../../model/analysis-fixed'
 import { formatCurrency } from '../../model/analysis-overview'
@@ -19,7 +20,7 @@ function TransactionRow({ item, onOpen }: { item: FixedTransactionItem; onOpen: 
     <li>
       <button
         aria-label={`${item.name}を編集`}
-        className="grid w-full grid-cols-[minmax(5.8rem,auto)_auto_minmax(0,1fr)_auto] items-center gap-2 px-1 py-3 text-left outline-none transition-colors hover:bg-muted/45 focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/50 sm:grid-cols-[8rem_auto_minmax(0,1fr)_auto] sm:gap-4 sm:px-2"
+        className="grid w-full grid-cols-[minmax(5.8rem,auto)_auto_minmax(0,1fr)_auto_auto] items-center gap-2 px-1 py-3 text-left outline-none transition-colors hover:bg-muted/45 focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/50 sm:grid-cols-[8rem_auto_minmax(0,1fr)_auto_auto] sm:gap-4 sm:px-2"
         onClick={() => onOpen(item.id)}
         type="button"
       >
@@ -27,21 +28,31 @@ function TransactionRow({ item, onOpen }: { item: FixedTransactionItem; onOpen: 
         {formatTransactionDate(item.date)}
       </span>
       <CategoryIcon name={item.categoryName} />
-      <span className="min-w-0">
-        <span className="block truncate text-xs font-semibold sm:text-sm">
+      <span className="flex min-w-0 items-baseline gap-2">
+        <span className="truncate text-xs font-semibold sm:text-sm">
           {item.name}
         </span>
-        <span className="mt-0.5 block truncate text-[0.625rem] text-muted-foreground sm:text-xs">
+        <span className="truncate text-[0.625rem] text-muted-foreground sm:text-xs">
           {item.categoryName} · {item.subcategoryName}
         </span>
       </span>
-      <span className="text-right">
-        <span className="block text-xs font-semibold text-expense tabular-nums sm:text-sm">
+      <span className="flex items-baseline justify-end gap-2 whitespace-nowrap text-right">
+        {item.paymentName ? (
+          <Badge
+            className="hidden max-w-28 truncate bg-muted px-2 py-1 text-xs font-normal text-muted-foreground min-[390px]:inline-flex sm:text-sm"
+            variant="ghost"
+          >
+            {item.paymentName}
+          </Badge>
+        ) : null}
+        <span className="text-xs font-semibold text-expense tabular-nums sm:text-sm">
           {formatCurrency(item.amount)}
         </span>
-        <span className="block text-[0.625rem] text-muted-foreground tabular-nums sm:text-xs">
-          {item.time ? item.time.slice(0, 5) : item.paymentName ?? '—'}
-        </span>
+        {item.time ? (
+          <span className="text-[0.625rem] text-muted-foreground tabular-nums sm:text-xs">
+            {item.time.slice(0, 5)}
+          </span>
+        ) : null}
       </span>
         <ChevronRight aria-hidden="true" className="size-4 text-muted-foreground" />
       </button>
