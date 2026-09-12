@@ -63,11 +63,11 @@
   --chart-palette-swatch-default-3: oklch(0.398 0.07 227.392);
   --chart-palette-swatch-default-4: oklch(0.828 0.189 84.429);
   --chart-palette-swatch-default-5: oklch(0.769 0.188 70.08);
-  --chart-palette-swatch-colorful-1: oklch(0.56 0.13 43);
-  --chart-palette-swatch-colorful-2: oklch(0.69 0.16 290.41);
-  --chart-palette-swatch-colorful-3: oklch(0.88 0.03 93.13);
-  --chart-palette-swatch-colorful-4: oklch(0.88 0.04 298.18);
-  --chart-palette-swatch-colorful-5: oklch(0.56 0.13 42.06);
+  --chart-palette-swatch-colorful-1: oklch(0.66 0.19 25);   /* Red Coral */
+  --chart-palette-swatch-colorful-2: oklch(0.65 0.20 300);  /* Violet */
+  --chart-palette-swatch-colorful-3: oklch(0.68 0.18 250);  /* Indigo Blue */
+  --chart-palette-swatch-colorful-4: oklch(0.70 0.15 165);  /* Emerald */
+  --chart-palette-swatch-colorful-5: oklch(0.76 0.17 75);   /* Amber */
   --chart-palette-swatch-monochrome-1: var(--primary);
   --chart-palette-swatch-monochrome-2: color-mix(in oklch, var(--primary) 82%, var(--background));
   --chart-palette-swatch-monochrome-3: color-mix(in oklch, var(--primary) 64%, var(--background));
