@@ -155,10 +155,10 @@ export function TransactionFormFields({
             >
               金額
             </label>
-            <span className="ml-auto text-lg font-semibold sm:text-xl">¥</span>
+            <span className="ml-auto text-2xl font-semibold">¥</span>
             <Input
               aria-invalid={errors.amount ? true : undefined}
-              className="h-12 max-w-44 border-0 px-0 text-right text-xl font-semibold tracking-[-0.04em] tabular-nums shadow-none focus-visible:ring-0 sm:text-2xl"
+              className="h-14 max-w-44 border-0 px-0 text-right text-2xl font-semibold tracking-[-0.04em] tabular-nums shadow-none focus-visible:ring-0 sm:h-16"
               id="new-transaction-amount"
               inputMode="numeric"
               maxLength={7}
@@ -183,7 +183,7 @@ export function TransactionFormFields({
             </label>
             <Input
               aria-invalid={errors.transactionName ? true : undefined}
-              className="ml-auto h-11 max-w-64 text-right"
+              className="ml-auto h-11 max-w-64 text-right text-2xl"
               id="new-transaction-name"
               maxLength={32}
               onChange={(event) =>

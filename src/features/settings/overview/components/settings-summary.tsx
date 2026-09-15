@@ -23,7 +23,7 @@ function SummaryCard({ description, icon: Icon, title, to }: SummaryCardProps) {
       className="group block outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
       to={to}
     >
-      <Card className="flex min-h-25 flex-row items-center gap-3 px-4 py-3 transition-[background-color,transform] group-hover:bg-muted/70 sm:px-5">
+      <Card className="flex min-h-25 flex-row items-center gap-3 px-4 py-3 transition-[background-color,transform] group-hover:bg-surface sm:px-5">
         <span className="flex size-10 shrink-0 items-center justify-center text-muted-foreground">
           <Icon aria-hidden="true" className="size-5" />
         </span>
