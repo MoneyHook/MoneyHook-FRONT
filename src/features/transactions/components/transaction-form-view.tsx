@@ -161,7 +161,7 @@ export function TransactionFormView({
 
         <div
           aria-label="取引区分"
-          className="mt-3 grid grid-cols-2 rounded-2xl bg-muted p-0.5 sm:mt-8 sm:p-1.5"
+          className="mt-3 grid grid-cols-2 rounded-2xl bg-muted-foreground/10 p-0.5 sm:mt-8 sm:p-1.5"
           role="tablist"
         >
           {[
