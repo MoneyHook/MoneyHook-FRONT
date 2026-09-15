@@ -5,6 +5,7 @@ import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { server } from '@/test/msw/server'
+
 import { usePaymentSettings } from './use-payment-settings'
 
 vi.mock('@/shared/config/environment', () => ({

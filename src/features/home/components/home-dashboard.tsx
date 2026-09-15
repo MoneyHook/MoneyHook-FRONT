@@ -1,13 +1,13 @@
 import { ErrorState } from '@/shared/components/app-state'
 
 import { useHomeDashboardController } from '../hooks/use-home-dashboard-controller'
-import { MonthHeader } from './dashboard/month-header'
-import { SummaryCard } from './dashboard/summary-card'
-import { SpendingPaceCard } from './dashboard/spending-pace-card'
 import { CategoryCard } from './dashboard/category-card'
 import { ChangesCard } from './dashboard/changes-card'
 import { FixedSummaryCard } from './dashboard/fixed-summary-card'
 import { HomeDashboardSkeleton } from './dashboard/home-dashboard-skeleton'
+import { MonthHeader } from './dashboard/month-header'
+import { SpendingPaceCard } from './dashboard/spending-pace-card'
+import { SummaryCard } from './dashboard/summary-card'
 
 export function HomeDashboard() {
   const { dashboard, month, handleMonthChange } = useHomeDashboardController()

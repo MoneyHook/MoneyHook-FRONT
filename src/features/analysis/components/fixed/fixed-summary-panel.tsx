@@ -1,5 +1,7 @@
 import { ArrowDownRight, ArrowRight, ArrowUpRight } from 'lucide-react'
+
 import { cn } from '@/shared/lib/utils'
+
 import type { AnalysisFixedViewModel } from '../../model/analysis-fixed'
 import {
   formatCurrency,

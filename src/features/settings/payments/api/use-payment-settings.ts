@@ -1,7 +1,6 @@
-import type { PaymentResourceListResponsePaymentListItem } from '@/shared/api/generated/model'
-
 import { useQueryClient } from '@tanstack/react-query'
 
+import type { PaymentResourceListResponsePaymentListItem } from '@/shared/api/generated/model'
 import {
   getGetPaymentResourcesQueryKey,
   useAddPaymentResource,

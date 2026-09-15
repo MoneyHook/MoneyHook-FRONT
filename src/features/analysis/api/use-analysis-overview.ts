@@ -9,8 +9,8 @@ import {
 } from '@/shared/hooks/use-persisted-query-data'
 
 import {
-  buildAnalysisOverviewViewModel,
   type AnalysisRange,
+  buildAnalysisOverviewViewModel,
 } from '../model/analysis-overview'
 
 function isOverviewResponse(value: unknown): value is V1OverviewResponse {

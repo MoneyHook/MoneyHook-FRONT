@@ -2,6 +2,7 @@ import { ArrowLeft, Settings } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
+import { useAuth } from '@/features/auth'
 import {
   AccountSettings,
   AppearanceSettings,
@@ -10,7 +11,6 @@ import {
   RecurringTransactionSettings,
   SettingsSummary,
 } from '@/features/settings'
-import { useAuth } from '@/features/auth'
 import { Button } from '@/shared/components/ui/button'
 
 function SettingsDetailPage({

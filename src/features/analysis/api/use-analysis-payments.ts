@@ -7,8 +7,8 @@ import {
   usePersistedQueryRefresh,
 } from '@/shared/hooks/use-persisted-query-data'
 
-import { buildAnalysisPaymentsViewModel } from '../model/analysis-payments'
 import type { AnalysisRange } from '../model/analysis-overview'
+import { buildAnalysisPaymentsViewModel } from '../model/analysis-payments'
 
 function isPaymentsResponse(value: unknown): value is V1PaymentsResponse {
   return (

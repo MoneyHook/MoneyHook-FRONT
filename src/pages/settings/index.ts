@@ -1,3 +1,4 @@
+export { CsvImportPage } from './csv-import-page'
 export {
   AccountSettingsPage,
   AppearanceSettingsPage,
@@ -6,4 +7,3 @@ export {
   RecurringTransactionSettingsPage,
   SettingsPage,
 } from './settings-page'
-export { CsvImportPage } from './csv-import-page'

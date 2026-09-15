@@ -1,10 +1,11 @@
 import { ArrowRight, ChartPie } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
+
 import {
+  type AnalysisBreakdownItem,
   formatCurrency,
   formatPercent,
-  type AnalysisBreakdownItem,
 } from '../../model/analysis-overview'
 import { AnalysisPanel } from './overview-analysis-panel'
 

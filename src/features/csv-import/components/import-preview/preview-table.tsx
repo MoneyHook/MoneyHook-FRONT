@@ -1,8 +1,9 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
-import { tableFeatures, useTable, type ColumnDef } from '@tanstack/react-table'
+import { type ColumnDef, tableFeatures, useTable } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { CheckCircle2, Info, Pencil } from 'lucide-react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 
+import type { TimelineTransaction } from '@/shared/api/generated/model/timelineTransaction'
 import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import {
@@ -14,16 +15,15 @@ import {
   DialogTitle,
 } from '@/shared/components/ui/dialog'
 import { Input } from '@/shared/components/ui/input'
-import type { TimelineTransaction } from '@/shared/api/generated/model/timelineTransaction'
 import { cn } from '@/shared/lib/utils'
 
-import { categorySubcategories } from '../category-utils'
-import { SelectField } from '../form-fields'
 import {
   type DuplicateCandidatesByRowId,
   type ImportRow,
 } from '../../model/csv-import'
 import type { Categories, CsvImportDispatch, Payments } from '../../types'
+import { categorySubcategories } from '../category-utils'
+import { SelectField } from '../form-fields'
 
 const previewTableFeatures = tableFeatures({})
 const previewGridColumns =

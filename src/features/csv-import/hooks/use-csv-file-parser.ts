@@ -1,13 +1,12 @@
 import { useCallback, useEffect, useRef } from 'react'
 
 import {
+  type Encoding,
+  inferHeaderRow,
   MAX_COLUMNS,
   MAX_FILE_SIZE,
   MAX_ROWS,
-  inferHeaderRow,
-  type Encoding,
 } from '../model/csv-import'
-
 import type { CsvImportDispatch } from '../types'
 
 export function useCsvFileParser(

@@ -8,7 +8,6 @@ import {
 } from '@/shared/api/generated/transaction/transaction'
 
 import type { NewTransactionFormValues } from '../model/new-transaction'
-
 import { invalidateTransactionQueries } from './invalidate-transaction-queries'
 
 export function useTransactionFormMutations() {

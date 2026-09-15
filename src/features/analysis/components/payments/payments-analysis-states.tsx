@@ -1,5 +1,7 @@
 import { WalletCards } from 'lucide-react'
+
 import { Skeleton } from '@/shared/components/ui/skeleton'
+
 import { AnalysisPanel } from './payments-analysis-panel'
 
 export function PaymentsSkeleton() {

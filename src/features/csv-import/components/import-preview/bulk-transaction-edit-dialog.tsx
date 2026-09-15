@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { tableFeatures, useTable, type ColumnDef } from '@tanstack/react-table'
+import { type ColumnDef, tableFeatures, useTable } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
@@ -14,10 +14,10 @@ import {
 } from '@/shared/components/ui/dialog'
 import { cn } from '@/shared/lib/utils'
 
-import { categorySubcategories } from '../category-utils'
-import { Field, SelectField } from '../form-fields'
 import { type ImportRow } from '../../model/csv-import'
 import type { Categories, Payments } from '../../types'
+import { categorySubcategories } from '../category-utils'
+import { Field, SelectField } from '../form-fields'
 
 const tableFeaturesForBulkEdit = tableFeatures({})
 

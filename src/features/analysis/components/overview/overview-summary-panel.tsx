@@ -1,7 +1,7 @@
 import {
+  type AnalysisOverviewViewModel,
   formatCurrency,
   formatPercent,
-  type AnalysisOverviewViewModel,
 } from '../../model/analysis-overview'
 import { AnalysisPanel } from './overview-analysis-panel'
 

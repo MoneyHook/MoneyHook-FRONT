@@ -1,14 +1,15 @@
 import { ErrorState } from '@/shared/components/app-state'
+
 import { useAnalysisOverview } from '../../api/use-analysis-overview'
-import { analysisChartColors } from '../analysis-chart-colors'
-import type { AnalysisRange } from '../../model/analysis-overview'
 import type { AnalysisView } from '../../model/analysis-navigation'
-import { SummaryPanel } from './overview-summary-panel'
-import { SpendingTrendPanel } from './overview-spending-trend-panel'
+import type { AnalysisRange } from '../../model/analysis-overview'
+import { analysisChartColors } from '../analysis-chart-colors'
 import { BreakdownPanel } from './overview-breakdown-panel'
 import { ChangesPanel } from './overview-changes-panel'
 import { HighlightsPanel } from './overview-highlights-panel'
 import { OverviewSkeleton } from './overview-skeleton'
+import { SpendingTrendPanel } from './overview-spending-trend-panel'
+import { SummaryPanel } from './overview-summary-panel'
 
 export function OverviewContent({
   range,

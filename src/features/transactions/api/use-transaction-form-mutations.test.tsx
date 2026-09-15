@@ -4,18 +4,19 @@ import { http, HttpResponse } from 'msw'
 import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { getGetPaymentResourcesQueryKey } from '@/shared/api/generated/payment/payment'
 import {
+  getGetFrequentTransactionNamesQueryKey,
   getGetTimelineDataQueryKey,
   getGetV1TransactionQueryKey,
-  getGetFrequentTransactionNamesQueryKey,
 } from '@/shared/api/generated/transaction/transaction'
-import { getGetPaymentResourcesQueryKey } from '@/shared/api/generated/payment/payment'
 import {
   createPersistedQueryKey,
   readPersistedQueryData,
   writePersistedQueryData,
 } from '@/shared/lib/persisted-user-data'
 import { server } from '@/test/msw/server'
+
 import { createNewTransactionValues } from '../model/new-transaction'
 import { useTransactionFormMutations } from './use-transaction-form-mutations'
 

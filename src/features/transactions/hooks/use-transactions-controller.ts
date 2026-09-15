@@ -4,6 +4,15 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { useTransactionFilterReferences } from '../api/use-transaction-filter-references'
 import { useTransactions } from '../api/use-transactions'
 import {
+  EMPTY_TRANSACTION_FILTERS,
+  filterTransactions,
+  getActiveFilterCount,
+  parseTransactionFilters,
+  summarizeFilteredTransactions,
+  type TransactionFilters,
+  writeTransactionFilters,
+} from '../model/transaction-filters'
+import {
   buildTransactionsViewModelFromItems,
   createTransactionMonth,
   normalizeMonthParam,
@@ -11,15 +20,6 @@ import {
   normalizeTransactionView,
   type TransactionView,
 } from '../model/transactions'
-import {
-  EMPTY_TRANSACTION_FILTERS,
-  filterTransactions,
-  getActiveFilterCount,
-  parseTransactionFilters,
-  summarizeFilteredTransactions,
-  writeTransactionFilters,
-  type TransactionFilters,
-} from '../model/transaction-filters'
 
 export function useTransactionsController() {
   const navigate = useNavigate()

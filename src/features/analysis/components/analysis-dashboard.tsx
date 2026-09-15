@@ -1,7 +1,7 @@
+import { useAnalysisDashboardController } from '../hooks/use-analysis-dashboard-controller'
 import { AnalysisCategoriesContent } from './analysis-categories'
 import { AnalysisFixedContent } from './analysis-fixed'
 import { AnalysisPaymentsContent } from './analysis-payments'
-import { useAnalysisDashboardController } from '../hooks/use-analysis-dashboard-controller'
 import { AnalysisHeader } from './overview/analysis-header'
 import { OverviewContent } from './overview/overview-content'
 

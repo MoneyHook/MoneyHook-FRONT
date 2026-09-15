@@ -161,7 +161,7 @@ export function TransactionFormView({
 
         <div
           aria-label="取引区分"
-          className="mt-3 grid grid-cols-2 rounded-2xl bg-muted p-0.5 sm:mt-8 sm:p-1.5"
+          className="mt-3 grid grid-cols-2 rounded-2xl bg-muted-foreground/10 p-0.5 sm:mt-8 sm:p-1.5"
           role="tablist"
         >
           {[
@@ -213,7 +213,7 @@ export function TransactionFormView({
       />
       <div className="fixed right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-30 sm:static sm:mt-6 sm:flex sm:justify-end">
         <Button
-          className="h-12 rounded-full px-5 text-base shadow-lg sm:px-7 sm:rounded-lg sm:shadow-none"
+          className="h-12 rounded-full px-5 text-base shadow-lg sm:rounded-lg sm:px-7 sm:shadow-none"
           disabled={isSaving || isDeleting}
           form="transaction-form"
           size="lg"

@@ -6,14 +6,14 @@ import { cn } from '@/shared/lib/utils'
 
 import { useTransactionFilterReferences } from '../../api/use-transaction-filter-references'
 import {
+  summarizeFilteredTransactions,
+  type TransactionFilters,
+} from '../../model/transaction-filters'
+import {
   formatBalance,
   formatCurrency,
   type TransactionItem,
 } from '../../model/transactions'
-import {
-  summarizeFilteredTransactions,
-  type TransactionFilters,
-} from '../../model/transaction-filters'
 
 type FilterReferences = ReturnType<typeof useTransactionFilterReferences>
 

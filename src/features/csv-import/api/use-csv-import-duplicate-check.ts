@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
+import { useEffect, useMemo, useState } from 'react'
 
 import type { TimelineTransaction } from '@/shared/api/generated/model/timelineTransaction'
 import { getGetTimelineDataQueryOptions } from '@/shared/api/generated/transaction/transaction'

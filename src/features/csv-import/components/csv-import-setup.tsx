@@ -1,7 +1,8 @@
 import { FileUp, LoaderCircle } from 'lucide-react'
 
-import { cn } from '@/shared/lib/utils'
 import { Card } from '@/shared/components/ui/card'
+import { cn } from '@/shared/lib/utils'
+
 import type { ImportSign } from '../model/csv-import'
 
 export function CsvImportSetup({

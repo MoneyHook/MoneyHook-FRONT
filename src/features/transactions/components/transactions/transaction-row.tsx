@@ -1,7 +1,7 @@
 import { ChevronRight } from 'lucide-react'
 
-import { cn } from '@/shared/lib/utils'
 import { getCategoryPresentation } from '@/shared/lib/category-presentation'
+import { cn } from '@/shared/lib/utils'
 
 import { formatCurrency, type TransactionItem } from '../../model/transactions'
 

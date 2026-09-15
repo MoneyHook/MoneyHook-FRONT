@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import {
-  PERSISTED_USER_DATA_PREFIX,
   clearPersistedUserData,
   createPersistedQueryKey,
   ensurePersistedUserDataOwner,
+  PERSISTED_USER_DATA_PREFIX,
   readPersistedUserData,
-  writePersistedUserData,
   writePersistedQueryData,
+  writePersistedUserData,
 } from '../persisted-user-data'
 
 describe('persisted user data', () => {

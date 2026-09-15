@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import {
-  DEFAULT_PAYMENT_STORAGE_KEY,
   clearDefaultPaymentId,
+  DEFAULT_PAYMENT_STORAGE_KEY,
   readDefaultPaymentId,
   writeDefaultPaymentId,
 } from '../default-payment'

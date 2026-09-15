@@ -1,8 +1,9 @@
 import { cn } from '@/shared/lib/utils'
+
 import {
-  formatSignedCurrency,
   type AnalysisChangeItem,
   type AnalysisOverviewViewModel,
+  formatSignedCurrency,
 } from '../../model/analysis-overview'
 import { AnalysisPanel } from './overview-analysis-panel'
 import { formatSignedPercent } from './overview-format'

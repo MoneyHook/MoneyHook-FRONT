@@ -3,9 +3,9 @@ import {
   ChartPie,
   House,
   LogOut,
+  type LucideIcon,
   Plus,
   Settings,
-  type LucideIcon,
 } from 'lucide-react'
 import { useMemo } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
@@ -26,7 +26,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu'
-import { cn } from '@/shared/lib/utils'
 import {
   Sidebar,
   SidebarContent,
@@ -41,6 +40,7 @@ import {
   SidebarProvider,
   useSidebar,
 } from '@/shared/components/ui/sidebar'
+import { cn } from '@/shared/lib/utils'
 
 type NavigationItem = {
   label: string

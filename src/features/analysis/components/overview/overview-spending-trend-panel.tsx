@@ -7,11 +7,12 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { analysisChartColors } from '../analysis-chart-colors'
+
 import {
-  formatCurrency,
   type AnalysisOverviewViewModel,
+  formatCurrency,
 } from '../../model/analysis-overview'
+import { analysisChartColors } from '../analysis-chart-colors'
 import { AnalysisPanel } from './overview-analysis-panel'
 
 function SpendingTooltip({

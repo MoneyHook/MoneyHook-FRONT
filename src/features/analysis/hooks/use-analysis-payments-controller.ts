@@ -1,8 +1,9 @@
 import { useEffect } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+
 import { useAnalysisPayments } from '../api/use-analysis-payments'
-import { getSelectedPayment } from '../model/analysis-payments'
 import type { AnalysisRange } from '../model/analysis-overview'
+import { getSelectedPayment } from '../model/analysis-payments'
 
 export function useAnalysisPaymentsController(range: AnalysisRange) {
   const navigate = useNavigate()

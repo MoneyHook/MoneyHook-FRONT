@@ -1,12 +1,12 @@
+import { useQueryClient } from '@tanstack/react-query'
 import {
+  type ReactNode,
   useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
   useState,
-  type ReactNode,
 } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
 import { useAuth } from '@/features/auth'
@@ -15,19 +15,18 @@ import {
   useGetV1Settings,
   usePatchV1Settings,
 } from '@/shared/api/generated/settings/settings'
-
 import {
   ACCENT_STORAGE_KEY,
+  type AccentColor,
   AppearanceContext,
+  type AppearanceSettings,
   CHART_PALETTE_STORAGE_KEY,
+  type ChartPalette,
   DEFAULT_APPEARANCE_SETTINGS,
   isAccentColor,
   isChartPalette,
   isThemeMode,
   THEME_STORAGE_KEY,
-  type AccentColor,
-  type AppearanceSettings,
-  type ChartPalette,
   type ThemeMode,
 } from '@/shared/hooks/appearance-context'
 
