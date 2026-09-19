@@ -4169,7 +4169,8 @@ export const getGetFrequentTransactionNamesUrl = (
 }
 
 /**
- * @summary List previously used transaction-name configurations by frequency
+ * Scores each transaction as 0.5 raised to (days since transaction date / 60), using today's date in Japan and excluding future transactions. There is no historical cutoff. Exact transaction names are ranked by their total score across all configurations, then latest transaction date, total usage count (all descending), and transaction name ascending. For each name, returns the category, subcategory, fixed flag and payment combination with the highest score, then latest transaction date and usage count descending; remaining ties use category ID, subcategory ID, fixed flag and payment ID ascending, with null payment IDs first. Applies to both form suggestions and CSV import defaults. Scores are not included in the response.
+ * @summary List transaction-name recommendations by recency-weighted frequency
  */
 export const getFrequentTransactionNames = async (
   params?: GetFrequentTransactionNamesParams,
@@ -4320,7 +4321,7 @@ export function useGetFrequentTransactionNames<
   queryKey: DataTag<QueryKey, TData, TError>
 }
 /**
- * @summary List previously used transaction-name configurations by frequency
+ * @summary List transaction-name recommendations by recency-weighted frequency
  */
 
 export function useGetFrequentTransactionNames<

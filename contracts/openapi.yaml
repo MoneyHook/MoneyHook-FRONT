@@ -507,7 +507,18 @@ paths:
     get:
       tags: [Transaction]
       operationId: getFrequentTransactionNames
-      summary: List previously used transaction-name configurations by frequency
+      summary: List transaction-name recommendations by recency-weighted frequency
+      description: >-
+        Scores each transaction as 0.5 raised to (days since transaction date / 60),
+        using today's date in Japan and excluding future transactions. There is no
+        historical cutoff. Exact transaction names are ranked by their total score
+        across all configurations, then latest transaction date, total usage count
+        (all descending), and transaction name ascending. For each name, returns
+        the category, subcategory, fixed flag and payment combination with the
+        highest score, then latest transaction date and usage count descending;
+        remaining ties use category ID, subcategory ID, fixed flag and payment ID
+        ascending, with null payment IDs first. Applies to both form suggestions
+        and CSV import defaults. Scores are not included in the response.
       security: [BearerAuth: []]
       parameters:
         - name: limit
@@ -517,7 +528,7 @@ paths:
           schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
       responses:
         '200':
-          description: De-duplicated by transaction name and limited after database ordering by usage count
+          description: De-duplicated by exact transaction name and limited after recency-weighted ranking
           content:
             application/json:
               schema:

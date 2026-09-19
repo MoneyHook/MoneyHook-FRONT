@@ -98,7 +98,7 @@ function registerHandlers({
     http.get(
       'http://api.test/api/transaction/getFrequentTransactionName',
       async ({ request }) => {
-        if (new URL(request.url).searchParams.get('limit') !== '20') {
+        if (new URL(request.url).searchParams.get('limit') !== '100') {
           return HttpResponse.json(
             { message: '候補件数が不正です' },
             { status: 400 },
@@ -401,6 +401,119 @@ describe('NewTransactionView', () => {
         '/app/transactions?month=2026-08-01&view=list',
       )
     })
+  })
+
+  it('recommends matching names while preserving the frequent list and defers IME updates', async () => {
+    registerHandlers({
+      frequentTransactions: [
+        frequentTransaction,
+        { ...frequentTransaction, transaction_name: 'カフェ' },
+      ],
+    })
+    renderNewTransaction()
+    const frequent = await screen.findByRole('region', { name: 'よく使う項目' })
+    const input = screen.getByLabelText('取引名')
+    expect(
+      screen.queryByRole('region', { name: 'おすすめ' }),
+    ).not.toBeInTheDocument()
+    fireEvent.change(input, { target: { value: 'らん' } })
+    expect(
+      within(screen.getByRole('region', { name: 'おすすめ' })).getByRole(
+        'button',
+        { name: 'ランチを候補から適用' },
+      ),
+    ).toBeVisible()
+    fireEvent.compositionStart(input)
+    fireEvent.change(input, { target: { value: 'かふぇ' } })
+    expect(
+      within(screen.getByRole('region', { name: 'おすすめ' })).getByRole(
+        'button',
+        { name: 'ランチを候補から適用' },
+      ),
+    ).toBeVisible()
+    fireEvent.compositionEnd(input)
+    fireEvent.blur(input)
+    expect(
+      within(screen.getByRole('region', { name: 'おすすめ' })).getByRole(
+        'button',
+        { name: 'カフェを候補から適用' },
+      ),
+    ).toBeVisible()
+    expect(
+      within(frequent)
+        .getAllByRole('button')
+        .map((button) => button.textContent),
+    ).toEqual(['ランチ', 'カフェ'])
+    for (const value of ['該当なし', '　 ', '']) {
+      fireEvent.change(input, { target: { value } })
+      expect(
+        screen.queryByRole('region', { name: 'おすすめ' }),
+      ).not.toBeInTheDocument()
+    }
+  })
+
+  it('applies recommendation fields, preserves entered values and reopens only after name editing', async () => {
+    let submittedBody: unknown
+    registerHandlers({
+      frequentTransactions: [{ ...frequentTransaction, fixed_flg: true }],
+    })
+    server.use(
+      http.post('http://api.test/api/v1/transactions', async ({ request }) => {
+        submittedBody = await request.json()
+        return HttpResponse.json({ transaction: {} }, { status: 201 })
+      }),
+    )
+    renderNewTransaction()
+    await screen.findByText('よく使う項目')
+    fireEvent.change(screen.getByLabelText('金額'), {
+      target: { value: '1200' },
+    })
+    fireEvent.click(screen.getByRole('tab', { name: '収入' }))
+    const input = screen.getByLabelText('取引名')
+    fireEvent.change(input, { target: { value: 'らん' } })
+    fireEvent.click(
+      within(screen.getByRole('region', { name: 'おすすめ' })).getByRole(
+        'button',
+        { name: 'ランチを候補から適用' },
+      ),
+    )
+    expect(input).toHaveValue('ランチ')
+    expect(
+      screen.queryByRole('region', { name: 'おすすめ' }),
+    ).not.toBeInTheDocument()
+    expect(screen.getByLabelText('金額')).toHaveValue('1200')
+    expect(screen.getByRole('tab', { name: '収入' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
+    expect(screen.getByRole('switch', { name: '固定費フラグ' })).toBeChecked()
+    expect(screen.getByText('外食')).toBeVisible()
+    fireEvent.change(input, { target: { value: 'ラン' } })
+    expect(screen.getByRole('region', { name: 'おすすめ' })).toBeVisible()
+    fireEvent.click(
+      within(screen.getByRole('region', { name: 'よく使う項目' })).getByRole(
+        'button',
+        { name: 'ランチを候補から適用' },
+      ),
+    )
+    expect(
+      screen.queryByRole('region', { name: 'おすすめ' }),
+    ).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: '保存' }))
+    await waitFor(() =>
+      expect(submittedBody).toEqual({
+        transaction: {
+          transaction_date: '2026-08-30',
+          transaction_name: 'ランチ',
+          amount: 1200,
+          sign: 1,
+          category_id: '10',
+          sub_category_id: '11',
+          fixed_flg: true,
+          payment_id: '30',
+        },
+      }),
+    )
   })
 
   it('opens all transaction candidates in a bottom sheet', async () => {

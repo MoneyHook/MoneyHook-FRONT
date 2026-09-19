@@ -127,7 +127,7 @@ export function useTransactionFormReferences({ isEdit }: { isEdit: boolean }) {
     },
   })
   const frequentTransactionsQuery = useGetFrequentTransactionNames(
-    { limit: 20 },
+    { limit: 100 },
     {
       query: {
         enabled: !isEdit,

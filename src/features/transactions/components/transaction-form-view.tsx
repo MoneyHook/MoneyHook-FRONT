@@ -208,6 +208,10 @@ export function TransactionFormView({
         selectedPayment={controller.selectedPayment}
         paymentTypeNames={controller.paymentTypeNames}
         paymentsError={controller.paymentsError}
+        recommendedTransactions={controller.recommendedTransactions}
+        handleNameChange={controller.handleNameChange}
+        handleNameCompositionStart={controller.handleNameCompositionStart}
+        handleNameCompositionEnd={controller.handleNameCompositionEnd}
         frequentTransactions={controller.frequentTransactions}
         selectFrequentTransaction={controller.selectFrequentTransaction}
       />
