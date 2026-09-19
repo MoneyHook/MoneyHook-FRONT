@@ -5,6 +5,7 @@ import type { TimelineTransaction } from '@/shared/api/generated/model'
 import {
   buildCalendarDays,
   buildTransactionsViewModel,
+  buildTransactionsViewModelFromItems,
   createTransactionMonth,
   getDefaultSelectedDate,
   normalizeMonthParam,
@@ -32,6 +33,35 @@ function transaction(
 }
 
 describe('transaction view model', () => {
+  it('groups repeated dates in input order without mutating the input', () => {
+    const items = buildTransactionsViewModel([
+      transaction({ transaction_id: '1' }),
+      transaction({ transaction_id: '2', transaction_sign: 1 }),
+      transaction({ transaction_id: '3', transaction_date: '2024-08-27' }),
+    ]).items
+    const original = structuredClone(items)
+    items.forEach(Object.freeze)
+    Object.freeze(items)
+    const result = buildTransactionsViewModelFromItems(items)
+
+    expect(items).toEqual(original)
+    expect(result.groups[0]).toEqual({
+      date: '2024-08-28',
+      items: [items[0], items[1]],
+      expenseAmount: 1200,
+      incomeAmount: 1200,
+    })
+    expect(result.expenseAmount).toBe(2400)
+    expect(result.balanceAmount).toBe(-1200)
+    expect(buildTransactionsViewModelFromItems([])).toEqual({
+      items: [],
+      groups: [],
+      expenseAmount: 0,
+      incomeAmount: 0,
+      balanceAmount: 0,
+    })
+  })
+
   it('normalizes invalid and future months to the current month', () => {
     const now = new Date(2026, 7, 30, 12)
 
