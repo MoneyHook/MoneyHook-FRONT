@@ -4,6 +4,7 @@ import type {
 } from '@/shared/api/generated/model'
 
 import type { AnalysisRange } from './analysis-overview'
+import { compareAnalysisTransactions } from './analysis-transactions'
 
 export type FixedSeriesItem = {
   bucket: string
@@ -60,21 +61,6 @@ function formatSeries(item: { bucket: string; expense_amount: number }) {
     label: `${Number(item.bucket.slice(5, 7))}月`,
     expenseAmount: item.expense_amount,
   }
-}
-
-function compareTransactions(
-  left: FixedTransactionItem,
-  right: FixedTransactionItem,
-) {
-  const dateOrder = right.date.localeCompare(left.date)
-  if (dateOrder !== 0) {
-    return dateOrder
-  }
-
-  const timeOrder = (right.time ?? '').localeCompare(left.time ?? '')
-  return timeOrder === 0
-    ? right.id.localeCompare(left.id, 'ja', { numeric: true })
-    : timeOrder
 }
 
 function buildTransaction(
@@ -148,7 +134,7 @@ export function buildAnalysisFixedViewModel(
       series: category.series.map(formatSeries),
       transactions: category.transaction_list
         .map(buildTransaction)
-        .sort(compareTransactions),
+        .sort(compareAnalysisTransactions),
     }))
   const uniqueTransactions = new Map<string, FixedTransactionItem>()
 
@@ -172,6 +158,8 @@ export function buildAnalysisFixedViewModel(
     differenceRate: response.summary.difference_rate,
     series: response.series.map(formatSeries),
     categories,
-    transactions: [...uniqueTransactions.values()].sort(compareTransactions),
+    transactions: [...uniqueTransactions.values()].sort(
+      compareAnalysisTransactions,
+    ),
   }
 }
