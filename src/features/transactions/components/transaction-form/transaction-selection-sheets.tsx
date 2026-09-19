@@ -92,7 +92,7 @@ export function TransactionSelectionSheets({
           </SheetHeader>
           <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">
             <div className="flex flex-wrap gap-2">
-              {frequentTransactions.map((transaction) => (
+              {frequentTransactions.slice(0, 30).map((transaction) => (
                 <TransactionCandidateChip
                   key={`${transaction.transaction_name}-${transaction.category_id}-${transaction.sub_category_id}`}
                   onSelect={(selectedTransaction) => {

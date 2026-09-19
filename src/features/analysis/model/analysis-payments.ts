@@ -4,6 +4,7 @@ import type {
 } from '@/shared/api/generated/model'
 
 import type { AnalysisRange } from './analysis-overview'
+import { compareAnalysisTransactions } from './analysis-transactions'
 
 export const UNCLASSIFIED_PAYMENT_ID = 'unclassified'
 
@@ -50,21 +51,6 @@ function formatSeries(item: { bucket: string; expense_amount: number }) {
   }
 }
 
-function compareTransactions(
-  left: PaymentTransactionItem,
-  right: PaymentTransactionItem,
-) {
-  const dateOrder = right.date.localeCompare(left.date)
-  if (dateOrder !== 0) {
-    return dateOrder
-  }
-
-  const timeOrder = (right.time ?? '').localeCompare(left.time ?? '')
-  return timeOrder === 0
-    ? right.id.localeCompare(left.id, 'ja', { numeric: true })
-    : timeOrder
-}
-
 function buildTransaction(
   transaction: V1TransactionResource,
 ): PaymentTransactionItem {
@@ -106,7 +92,7 @@ export function buildAnalysisPaymentsViewModel(
       series: payment.series.map(formatSeries),
       transactions: payment.transaction_list
         .map(buildTransaction)
-        .sort(compareTransactions),
+        .sort(compareAnalysisTransactions),
     }))
     .sort((left, right) => {
       if (right.amount === left.amount) {

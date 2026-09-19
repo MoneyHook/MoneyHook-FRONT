@@ -1,5 +1,6 @@
 import { ArrowLeft, Settings } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { useAuth } from '@/features/auth'
@@ -49,23 +50,58 @@ function SettingsDetailPage({
 }
 
 export function SettingsPage() {
+  const [isHeaderCompact, setIsHeaderCompact] = useState(false)
+
+  useEffect(() => {
+    const updateHeader = () => {
+      setIsHeaderCompact(window.scrollY > 16)
+    }
+
+    updateHeader()
+    window.addEventListener('scroll', updateHeader, { passive: true })
+    return () => window.removeEventListener('scroll', updateHeader)
+  }, [])
+
+  useEffect(() => {
+    document.body.classList.add('settings-page-scrollbar-hidden')
+    return () =>
+      document.body.classList.remove('settings-page-scrollbar-hidden')
+  }, [])
+
   return (
     <section
       aria-labelledby="page-title"
       className="motion-route-enter mx-auto w-full max-w-3xl px-5 pt-5 pb-24 md:px-10 md:pt-8 md:pb-12"
     >
-      <header className="flex items-start gap-4 border-b pb-4">
-        <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center text-muted-foreground">
+      <header
+        className={`transition-padding sticky top-0 z-10 flex gap-4 border-b bg-background/95 backdrop-blur duration-200 ease-out ${
+          isHeaderCompact ? 'items-center py-3' : 'items-start pb-4'
+        }`}
+        data-compact={isHeaderCompact || undefined}
+        data-slot="settings-page-header"
+      >
+        <span
+          className={`flex size-10 shrink-0 items-center justify-center text-muted-foreground transition-[margin] duration-200 ease-out ${
+            isHeaderCompact ? '' : 'mt-0.5'
+          }`}
+        >
           <Settings aria-hidden="true" className="size-5" />
         </span>
-        <div className="space-y-1.5">
+        <div className="min-w-0">
           <h1
             id="page-title"
             className="text-xl font-semibold tracking-[-0.035em] md:text-2xl"
           >
             設定
           </h1>
-          <p className="max-w-2xl text-sm leading-6 text-muted-foreground md:text-base">
+          <p
+            aria-hidden={isHeaderCompact}
+            className={`max-w-2xl overflow-hidden text-sm leading-6 text-muted-foreground transition-[max-height,opacity,margin,transform] duration-200 ease-out md:text-base ${
+              isHeaderCompact
+                ? 'max-h-0 -translate-y-1 opacity-0'
+                : 'mt-1.5 max-h-12 translate-y-0 opacity-100'
+            }`}
+          >
             アカウント、予算、支払い方法、表示に関する設定を管理します。
           </p>
         </div>

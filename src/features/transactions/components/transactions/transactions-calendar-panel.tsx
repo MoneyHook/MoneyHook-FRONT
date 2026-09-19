@@ -12,7 +12,6 @@ import {
   formatCurrency,
   formatJapaneseDate,
   getCategoryTotals,
-  type TransactionItem,
   type TransactionMonth,
   type TransactionsViewModel,
 } from '../../model/transactions'
@@ -66,13 +65,10 @@ function CalendarGrid({
   onDateChange: (date: string) => void
 }) {
   const days = useMemo(() => buildCalendarDays(month), [month])
-  const itemsByDate = useMemo(() => {
-    const result = new Map<string, TransactionItem[]>()
-    data.items.forEach((item) =>
-      result.set(item.date, [...(result.get(item.date) ?? []), item]),
-    )
-    return result
-  }, [data.items])
+  const itemsByDate = useMemo(
+    () => new Map(data.groups.map((group) => [group.date, group.items])),
+    [data.groups],
+  )
 
   return (
     <div className="mt-4">
@@ -146,11 +142,9 @@ function SelectedDayDetails({
   onOpen: (id: string) => void
   selectedDate: string
 }) {
-  const items = data.items.filter((item) => item.date === selectedDate)
-  const expenseAmount = items.reduce(
-    (total, item) => total + (item.sign === -1 ? item.amount : 0),
-    0,
-  )
+  const group = data.groups.find((group) => group.date === selectedDate)
+  const items = group?.items ?? []
+  const expenseAmount = group?.expenseAmount ?? 0
   const categories = getCategoryTotals(items)
 
   return (

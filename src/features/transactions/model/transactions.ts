@@ -143,36 +143,29 @@ export function buildTransactionsViewModel(
 export function buildTransactionsViewModelFromItems(
   items: TransactionItem[],
 ): TransactionsViewModel {
-  const expenseAmount = items.reduce(
-    (total, item) => total + (item.sign === -1 ? item.amount : 0),
-    0,
-  )
-  const incomeAmount = items.reduce(
-    (total, item) => total + (item.sign === 1 ? item.amount : 0),
-    0,
-  )
-  const byDate = new Map<string, TransactionItem[]>()
+  let expenseAmount = 0
+  let incomeAmount = 0
+  const byDate = new Map<string, TransactionDayGroup>()
 
-  items.forEach((item) => {
-    byDate.set(item.date, [...(byDate.get(item.date) ?? []), item])
-  })
-
-  const groups = [...byDate.entries()].map(([date, dayItems]) => ({
-    date,
-    items: dayItems,
-    expenseAmount: dayItems.reduce(
-      (total, item) => total + (item.sign === -1 ? item.amount : 0),
-      0,
-    ),
-    incomeAmount: dayItems.reduce(
-      (total, item) => total + (item.sign === 1 ? item.amount : 0),
-      0,
-    ),
-  }))
+  for (const item of items) {
+    let group = byDate.get(item.date)
+    if (!group) {
+      group = { date: item.date, items: [], expenseAmount: 0, incomeAmount: 0 }
+      byDate.set(item.date, group)
+    }
+    group.items.push(item)
+    if (item.sign === -1) {
+      group.expenseAmount += item.amount
+      expenseAmount += item.amount
+    } else {
+      group.incomeAmount += item.amount
+      incomeAmount += item.amount
+    }
+  }
 
   return {
     items,
-    groups,
+    groups: [...byDate.values()],
     expenseAmount,
     incomeAmount,
     balanceAmount: incomeAmount - expenseAmount,

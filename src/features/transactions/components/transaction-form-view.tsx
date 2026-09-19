@@ -1,4 +1,5 @@
 import { LoaderCircle, Trash2, Upload, X } from 'lucide-react'
+import { useEffect } from 'react'
 
 import { ErrorState } from '@/shared/components/app-state'
 import {
@@ -27,6 +28,16 @@ import { TransactionSelectionSheets } from './transaction-form/transaction-selec
 export function TransactionFormView({
   transactionId,
 }: { transactionId?: string } = {}) {
+  useEffect(() => {
+    if (transactionId) {
+      return
+    }
+
+    document.body.classList.add('transaction-form-scrollbar-hidden')
+    return () =>
+      document.body.classList.remove('transaction-form-scrollbar-hidden')
+  }, [transactionId])
+
   const controller = useTransactionFormController(transactionId)
   const {
     isLoading,
@@ -208,12 +219,16 @@ export function TransactionFormView({
         selectedPayment={controller.selectedPayment}
         paymentTypeNames={controller.paymentTypeNames}
         paymentsError={controller.paymentsError}
+        recommendedTransactions={controller.recommendedTransactions}
+        handleNameChange={controller.handleNameChange}
+        handleNameCompositionStart={controller.handleNameCompositionStart}
+        handleNameCompositionEnd={controller.handleNameCompositionEnd}
         frequentTransactions={controller.frequentTransactions}
         selectFrequentTransaction={controller.selectFrequentTransaction}
       />
-      <div className="fixed right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-30 sm:static sm:mt-6 sm:flex sm:justify-end">
+      <div className="fixed right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] left-4 z-30 sm:static sm:mt-6 sm:flex sm:justify-end">
         <Button
-          className="h-12 rounded-full px-5 text-base shadow-lg sm:rounded-lg sm:px-7 sm:shadow-none"
+          className="h-12 w-full rounded-full px-5 text-base shadow-lg sm:w-auto sm:rounded-lg sm:px-7 sm:shadow-none"
           disabled={isSaving || isDeleting}
           form="transaction-form"
           size="lg"
