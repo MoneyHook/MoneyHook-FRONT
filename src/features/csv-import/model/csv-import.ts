@@ -135,7 +135,9 @@ export function duplicateCandidatesByRowId({
   transactions.forEach((transaction) => {
     if (transaction.transaction_sign !== transactionSign) return
     const key = `${transaction.transaction_date}:${transaction.transaction_amount}`
-    candidatesByKey.set(key, [...(candidatesByKey.get(key) ?? []), transaction])
+    const candidates = candidatesByKey.get(key)
+    if (candidates) candidates.push(transaction)
+    else candidatesByKey.set(key, [transaction])
   })
 
   return new Map(
