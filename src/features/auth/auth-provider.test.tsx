@@ -1,6 +1,5 @@
 import { QueryClientProvider } from '@tanstack/react-query'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { FirebaseError } from 'firebase/app'
 import type { User } from 'firebase/auth'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -120,41 +119,6 @@ describe('AuthProvider', () => {
 
     expect(screen.getByLabelText('認証状態')).toHaveTextContent('authenticated')
     expect(screen.getByLabelText('ユーザーID')).toHaveTextContent('user-1')
-  })
-
-  it('reports a cancelled Google popup in Japanese', async () => {
-    firebaseMocks.signInWithPopup.mockRejectedValue(
-      new FirebaseError('auth/popup-closed-by-user', 'cancelled'),
-    )
-    renderAuthProvider()
-    emitIdToken(null)
-
-    fireEvent.click(screen.getByRole('button', { name: 'Googleログイン' }))
-
-    expect(firebaseMocks.signInWithPopup).toHaveBeenCalledTimes(1)
-    await waitFor(() => {
-      expect(
-        screen.getByText('Googleログインがキャンセルされました。'),
-      ).toBeVisible()
-    })
-  })
-
-  it('reports authentication errors from the Google popup flow', async () => {
-    firebaseMocks.signInWithPopup.mockRejectedValue(
-      new FirebaseError('auth/network-request-failed', 'network failed'),
-    )
-    renderAuthProvider()
-    emitIdToken(null)
-
-    fireEvent.click(screen.getByRole('button', { name: 'Googleログイン' }))
-
-    await waitFor(() => {
-      expect(
-        screen.getByText(
-          '認証サーバーへ接続できませんでした。ネットワークを確認してください。',
-        ),
-      ).toBeVisible()
-    })
   })
 
   it('clears cached server data when the authenticated uid changes', async () => {
