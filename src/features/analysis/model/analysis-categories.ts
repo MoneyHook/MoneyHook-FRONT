@@ -4,6 +4,7 @@ import type {
 } from '@/shared/api/generated/model'
 
 import type { AnalysisRange } from './analysis-overview'
+import { compareAnalysisTransactions } from './analysis-transactions'
 
 export type CategoryGroup = 'day' | 'week' | 'month'
 export type CategoryListMode = 'top' | 'all'
@@ -75,21 +76,6 @@ function formatSeriesLabel(bucket: string, group: CategoryGroup) {
     return `${month}/${day}週`
   }
   return `${month}/${day}`
-}
-
-function compareTransactions(
-  left: CategoryTransactionItem,
-  right: CategoryTransactionItem,
-) {
-  const dateOrder = right.date.localeCompare(left.date)
-  if (dateOrder !== 0) {
-    return dateOrder
-  }
-
-  const timeOrder = (right.time ?? '').localeCompare(left.time ?? '')
-  return timeOrder === 0
-    ? right.id.localeCompare(left.id, 'ja', { numeric: true })
-    : timeOrder
 }
 
 function buildTransaction(
@@ -171,7 +157,7 @@ export function buildAnalysisCategoriesViewModel(
         })),
       transactions: category.transaction_list
         .map(buildTransaction)
-        .sort(compareTransactions),
+        .sort(compareAnalysisTransactions),
     }))
 
   const leading = categories

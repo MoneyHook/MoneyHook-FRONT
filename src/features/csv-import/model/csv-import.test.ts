@@ -263,6 +263,20 @@ describe('CSV import model', () => {
           payment_name: 'カード',
         },
         {
+          transaction_id: 'second-match',
+          transaction_name: 'Another purchase',
+          transaction_amount: 3980,
+          transaction_sign: -1,
+          transaction_date: '2026-09-01',
+          category_id: 'food',
+          category_name: '食費',
+          sub_category_id: 'groceries',
+          sub_category_name: '食料品',
+          fixed_flg: false,
+          payment_id: null,
+          payment_name: null,
+        },
+        {
           transaction_id: 'income',
           transaction_name: '返金',
           transaction_amount: 3980,
@@ -309,8 +323,20 @@ describe('CSV import model', () => {
 
     expect(importMonths(rows)).toEqual(['2026-09-01', '2026-10-01'])
     expect([...matches.entries()]).toEqual([
-      [rows[0].id, [expect.objectContaining({ transaction_id: 'match' })]],
-      [rows[2].id, [expect.objectContaining({ transaction_id: 'match' })]],
+      [
+        rows[0].id,
+        [
+          expect.objectContaining({ transaction_id: 'match' }),
+          expect.objectContaining({ transaction_id: 'second-match' }),
+        ],
+      ],
+      [
+        rows[2].id,
+        [
+          expect.objectContaining({ transaction_id: 'match' }),
+          expect.objectContaining({ transaction_id: 'second-match' }),
+        ],
+      ],
     ])
   })
 })

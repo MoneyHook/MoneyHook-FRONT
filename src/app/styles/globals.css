@@ -597,6 +597,17 @@
   display: none;
 }
 
+.settings-page-scrollbar-hidden,
+.transaction-form-scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.settings-page-scrollbar-hidden::-webkit-scrollbar,
+.transaction-form-scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

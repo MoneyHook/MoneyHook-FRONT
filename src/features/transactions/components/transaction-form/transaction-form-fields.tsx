@@ -13,7 +13,10 @@ import { cn } from '@/shared/lib/utils'
 
 import type { TransactionFormController } from '../../hooks/use-transaction-form-controller'
 import { formatCalendarDate } from '../../model/transaction-form'
-import { TransactionCandidates } from '../transaction-candidates'
+import {
+  TransactionCandidateChip,
+  TransactionCandidates,
+} from '../transaction-candidates'
 import { CategoryIcon, PaymentIcon } from './transaction-form-icons'
 
 function FormSection({
@@ -64,6 +67,10 @@ type Props = Pick<
   | 'selectedPayment'
   | 'paymentTypeNames'
   | 'paymentsError'
+  | 'recommendedTransactions'
+  | 'handleNameChange'
+  | 'handleNameCompositionStart'
+  | 'handleNameCompositionEnd'
   | 'frequentTransactions'
   | 'selectFrequentTransaction'
 >
@@ -84,12 +91,16 @@ export function TransactionFormFields({
   selectedPayment,
   paymentTypeNames,
   paymentsError,
+  recommendedTransactions,
+  handleNameChange,
+  handleNameCompositionStart,
+  handleNameCompositionEnd,
   frequentTransactions,
   selectFrequentTransaction,
 }: Props) {
   return (
     <form
-      className="mt-3 min-h-0 flex-1 overflow-y-auto pb-24 sm:mt-8 sm:block sm:overflow-visible sm:pb-0"
+      className="scrollbar-hidden mt-3 min-h-0 flex-1 overflow-y-auto pb-24 sm:mt-8 sm:block sm:overflow-visible sm:pb-0"
       id="transaction-form"
       noValidate
       onSubmit={(event) => void handleSubmit(event)}
@@ -155,10 +166,10 @@ export function TransactionFormFields({
             >
               金額
             </label>
-            <span className="ml-auto text-2xl font-semibold">¥</span>
+            <span className="ml-auto text-xl font-semibold">¥</span>
             <Input
               aria-invalid={errors.amount ? true : undefined}
-              className="h-14 max-w-44 border-0 px-0 text-right text-2xl font-semibold tracking-[-0.04em] tabular-nums shadow-none focus-visible:ring-0 sm:h-16"
+              className="h-14 max-w-44 border-0 px-0 text-right text-2xl font-semibold tracking-[-0.04em] tabular-nums shadow-none placeholder:text-muted-foreground/60 focus-visible:ring-0 sm:h-16"
               id="new-transaction-amount"
               inputMode="numeric"
               maxLength={7}
@@ -183,11 +194,13 @@ export function TransactionFormFields({
             </label>
             <Input
               aria-invalid={errors.transactionName ? true : undefined}
-              className="ml-auto h-11 max-w-64 text-right text-2xl"
+              className="ml-auto h-11 max-w-64 text-right text-xl placeholder:text-muted-foreground/60"
               id="new-transaction-name"
               maxLength={32}
-              onChange={(event) =>
-                setValue('transactionName', event.target.value)
+              onChange={(event) => handleNameChange(event.target.value)}
+              onCompositionStart={handleNameCompositionStart}
+              onCompositionEnd={(event) =>
+                handleNameCompositionEnd(event.currentTarget.value)
               }
               placeholder="例: ランチ"
               value={form.transactionName}
@@ -197,6 +210,22 @@ export function TransactionFormFields({
             <p className="px-4 pb-3 text-sm text-destructive" role="alert">
               {errors.transactionName}
             </p>
+          ) : null}
+          {recommendedTransactions.length ? (
+            <section aria-label="おすすめ" className="px-4 pb-4 sm:px-5">
+              <h2 className="mb-2 text-sm font-medium text-muted-foreground">
+                おすすめ
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {recommendedTransactions.map((transaction) => (
+                  <TransactionCandidateChip
+                    key={`${transaction.transaction_name}-${transaction.category_id}-${transaction.sub_category_id}`}
+                    onSelect={selectFrequentTransaction}
+                    transaction={transaction}
+                  />
+                ))}
+              </div>
+            </section>
           ) : null}
         </FormSection>
 

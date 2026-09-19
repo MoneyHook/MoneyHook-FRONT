@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect, useMemo, useState } from 'react'
+import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
@@ -22,6 +22,7 @@ import {
   getTransactionMonth,
   parseCalendarDate,
 } from '../model/transaction-form'
+import { getTransactionRecommendations } from '../model/transaction-recommendations'
 
 type SelectionSheet = 'category' | 'payment' | 'candidate' | null
 type CategorySelectionStep = 'category' | 'subcategory'
@@ -63,6 +64,8 @@ export function useTransactionFormController(transactionId?: string) {
   const [formOverride, setFormOverride] =
     useState<NewTransactionFormValues | null>(null)
   const form = formOverride ?? initialForm
+  const [recommendationInput, setRecommendationInput] = useState('')
+  const isComposingName = useRef(false)
   const [errors, setErrors] = useState<NewTransactionErrors>({})
   const [selectionSheet, setSelectionSheet] = useState<SelectionSheet>(null)
   const [categorySelectionStep, setCategorySelectionStep] =
@@ -148,6 +151,24 @@ export function useTransactionFormController(transactionId?: string) {
     setErrors((current) => ({ ...current, [key]: undefined }))
   }
 
+  const recommendedTransactions = isEdit
+    ? []
+    : getTransactionRecommendations(frequentTransactions, recommendationInput)
+
+  const handleNameChange = (name: string) => {
+    setValue('transactionName', name)
+    if (!isComposingName.current) setRecommendationInput(name)
+  }
+
+  const handleNameCompositionStart = () => {
+    isComposingName.current = true
+  }
+
+  const handleNameCompositionEnd = (name: string) => {
+    isComposingName.current = false
+    setRecommendationInput(name)
+  }
+
   const selectCategory = (categoryId: string) => {
     setFormOverride((current) => ({
       ...(current ?? initialForm),
@@ -165,6 +186,7 @@ export function useTransactionFormController(transactionId?: string) {
   const selectFrequentTransaction = (
     transaction: (typeof frequentTransactions)[number],
   ) => {
+    setRecommendationInput('')
     setFormOverride((current) => ({
       ...(current ?? initialForm),
       transactionName: transaction.transaction_name,
@@ -260,6 +282,10 @@ export function useTransactionFormController(transactionId?: string) {
     selectedPayment,
     selectedDate,
     frequentTransactions,
+    recommendedTransactions,
+    handleNameChange,
+    handleNameCompositionStart,
+    handleNameCompositionEnd,
     setValue,
     selectCategory,
     selectFrequentTransaction,
