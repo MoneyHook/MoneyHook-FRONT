@@ -497,6 +497,10 @@ describe('SettingsPage', () => {
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date(2026, 7, 22, 12))
+    Object.defineProperty(window, 'scrollY', {
+      configurable: true,
+      value: 0,
+    })
     localStorage.clear()
     document.documentElement.className = ''
     delete document.documentElement.dataset.accent
@@ -552,6 +556,29 @@ describe('SettingsPage', () => {
     expect(
       screen.queryByRole('button', { name: '管理する' }),
     ).not.toBeInTheDocument()
+  })
+
+  it('collapses the settings description after scrolling', () => {
+    Object.defineProperty(window, 'scrollY', {
+      configurable: true,
+      value: 24,
+    })
+
+    renderSettingsPage()
+
+    const header = document.querySelector('[data-slot="settings-page-header"]')
+    expect(header).toHaveAttribute('data-compact', 'true')
+    expect(
+      screen.getByText(
+        'アカウント、予算、支払い方法、表示に関する設定を管理します。',
+      ),
+    ).toHaveAttribute('aria-hidden', 'true')
+  })
+
+  it('hides the browser scrollbar while the settings page is shown', () => {
+    renderSettingsPage()
+
+    expect(document.body).toHaveClass('settings-page-scrollbar-hidden')
   })
 
   it('shows only static menu content without fetching summary data', async () => {

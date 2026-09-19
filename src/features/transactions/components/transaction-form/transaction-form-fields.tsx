@@ -100,7 +100,7 @@ export function TransactionFormFields({
 }: Props) {
   return (
     <form
-      className="mt-3 min-h-0 flex-1 overflow-y-auto pb-24 sm:mt-8 sm:block sm:overflow-visible sm:pb-0"
+      className="scrollbar-hidden mt-3 min-h-0 flex-1 overflow-y-auto pb-24 sm:mt-8 sm:block sm:overflow-visible sm:pb-0"
       id="transaction-form"
       noValidate
       onSubmit={(event) => void handleSubmit(event)}

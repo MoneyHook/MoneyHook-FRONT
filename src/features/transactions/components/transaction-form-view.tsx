@@ -1,4 +1,5 @@
 import { LoaderCircle, Trash2, Upload, X } from 'lucide-react'
+import { useEffect } from 'react'
 
 import { ErrorState } from '@/shared/components/app-state'
 import {
@@ -27,6 +28,16 @@ import { TransactionSelectionSheets } from './transaction-form/transaction-selec
 export function TransactionFormView({
   transactionId,
 }: { transactionId?: string } = {}) {
+  useEffect(() => {
+    if (transactionId) {
+      return
+    }
+
+    document.body.classList.add('transaction-form-scrollbar-hidden')
+    return () =>
+      document.body.classList.remove('transaction-form-scrollbar-hidden')
+  }, [transactionId])
+
   const controller = useTransactionFormController(transactionId)
   const {
     isLoading,
