@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 
 import {
   createPersistedQueryKey,
@@ -71,17 +71,4 @@ export function usePersistedQueryData<T>({
     }),
     [cachedData, persist, queryOptions],
   )
-}
-
-export function usePersistedQueryRefresh(
-  refetch: () => Promise<unknown>,
-  enabled = true,
-) {
-  useEffect(() => {
-    if (enabled) {
-      void refetch()
-    }
-    // Query observers already deduplicate an in-flight request from initial mounting.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 }

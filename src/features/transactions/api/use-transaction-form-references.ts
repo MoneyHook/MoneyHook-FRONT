@@ -67,8 +67,7 @@ function cachedSuccessResponse<T>(data: T) {
 }
 
 /**
- * Loads transaction-form reference data from local storage for first paint, then
- * immediately revalidates each value through the existing API query.
+ * Loads transaction-form reference data from local storage when available.
  */
 export function useTransactionFormReferences({ isEdit }: { isEdit: boolean }) {
   const [cachedCategories] = useState(() =>
@@ -138,17 +137,6 @@ export function useTransactionFormReferences({ isEdit }: { isEdit: boolean }) {
       },
     },
   )
-
-  useEffect(() => {
-    void categoriesQuery.refetch()
-    void paymentsQuery.refetch()
-    void paymentTypesQuery.refetch()
-    if (!isEdit) {
-      void frequentTransactionsQuery.refetch()
-    }
-    // Revalidate on every form mount even when another screen has a fresh in-memory query.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   useEffect(() => {
     if (categoriesQuery.data?.status === 200) {

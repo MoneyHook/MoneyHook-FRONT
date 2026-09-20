@@ -7,7 +7,7 @@ import {
   Plus,
   Settings,
 } from 'lucide-react'
-import { Suspense, useMemo } from 'react'
+import { useMemo } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { toast } from 'sonner'
 
@@ -250,15 +250,7 @@ export function AppShell() {
 
       <DesktopSidebar pathname={location.pathname} />
       <SidebarInset id="main-content" tabIndex={-1}>
-        <Suspense
-          fallback={
-            <div className="p-6 text-sm text-muted-foreground" role="status">
-              画面を読み込んでいます
-            </div>
-          }
-        >
-          <Outlet />
-        </Suspense>
+        <Outlet />
         {!isTransactionComposer ? (
           <MobileNavigation pathname={location.pathname} />
         ) : null}
