@@ -2,10 +2,7 @@ import { useEffect } from 'react'
 
 import type { V1FixedResponse } from '@/shared/api/generated/model'
 import { useGetV1AnalyticsFixed } from '@/shared/api/generated/transaction/transaction'
-import {
-  usePersistedQueryData,
-  usePersistedQueryRefresh,
-} from '@/shared/hooks/use-persisted-query-data'
+import { usePersistedQueryData } from '@/shared/hooks/use-persisted-query-data'
 
 import { buildAnalysisFixedViewModel } from '../model/analysis-fixed'
 import type { AnalysisRange } from '../model/analysis-overview'
@@ -32,7 +29,6 @@ export function useAnalysisFixed(range: AnalysisRange) {
   const query = useGetV1AnalyticsFixed(parameters, {
     query: cache.queryOptions,
   })
-  usePersistedQueryRefresh(query.refetch)
   useEffect(() => {
     cache.persist(query.data)
   }, [cache, query.data])

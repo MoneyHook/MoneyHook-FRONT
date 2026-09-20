@@ -2,10 +2,7 @@ import { useEffect } from 'react'
 
 import type { TimelineResponse } from '@/shared/api/generated/model'
 import { useGetTimelineData } from '@/shared/api/generated/transaction/transaction'
-import {
-  usePersistedQueryData,
-  usePersistedQueryRefresh,
-} from '@/shared/hooks/use-persisted-query-data'
+import { usePersistedQueryData } from '@/shared/hooks/use-persisted-query-data'
 
 import { buildTransactionsViewModel } from '../model/transactions'
 
@@ -19,7 +16,6 @@ export function useTransactions(month: string) {
     resource: 'transaction-timeline',
   })
   const query = useGetTimelineData({ month }, { query: cache.queryOptions })
-  usePersistedQueryRefresh(query.refetch)
   useEffect(() => {
     cache.persist(query.data)
   }, [cache, query.data])

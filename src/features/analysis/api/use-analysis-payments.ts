@@ -2,10 +2,7 @@ import { useEffect } from 'react'
 
 import type { V1PaymentsResponse } from '@/shared/api/generated/model'
 import { useGetV1AnalyticsPayments } from '@/shared/api/generated/transaction/transaction'
-import {
-  usePersistedQueryData,
-  usePersistedQueryRefresh,
-} from '@/shared/hooks/use-persisted-query-data'
+import { usePersistedQueryData } from '@/shared/hooks/use-persisted-query-data'
 
 import type { AnalysisRange } from '../model/analysis-overview'
 import { buildAnalysisPaymentsViewModel } from '../model/analysis-payments'
@@ -32,7 +29,6 @@ export function useAnalysisPayments(range: AnalysisRange) {
   const query = useGetV1AnalyticsPayments(parameters, {
     query: cache.queryOptions,
   })
-  usePersistedQueryRefresh(query.refetch)
   useEffect(() => {
     cache.persist(query.data)
   }, [cache, query.data])
