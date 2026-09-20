@@ -134,7 +134,7 @@ export function PaymentSettings({
       ) : null}
       {!isLoading && !hasError ? (
         <div className="space-y-5">
-          <Card className="gap-2 rounded-xl bg-background p-4">
+          <Card className="gap-2 rounded-xl border p-4">
             <label className="text-sm font-medium" htmlFor="default-payment">
               デフォルトの支払い方法
             </label>
