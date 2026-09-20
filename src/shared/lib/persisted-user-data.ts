@@ -107,12 +107,18 @@ function stableSerialize(value: unknown): string {
 }
 
 function removeOldestQueryEntries(storage: Storage): void {
-  const entries = Array.from({ length: storage.length }, (_, index) =>
+  const keys = Array.from({ length: storage.length }, (_, index) =>
     storage.key(index),
+  ).filter((key): key is string =>
+    Boolean(key?.startsWith(PERSISTED_QUERY_DATA_PREFIX)),
   )
-    .filter((key): key is string =>
-      Boolean(key?.startsWith(PERSISTED_QUERY_DATA_PREFIX)),
-    )
+
+  // Only parse and sort cached payloads when an entry must actually be evicted.
+  if (keys.length <= MAX_PERSISTED_QUERY_ENTRIES) {
+    return
+  }
+
+  const entries = keys
     .flatMap((key) => {
       try {
         const raw = storage.getItem(key)

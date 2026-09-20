@@ -1,5 +1,10 @@
 import type { FrequentTransactionResponseTransactionListItem } from '@/shared/api/generated/model/frequentTransactionResponseTransactionListItem'
 
+export type TransactionRecommendationIndex = Array<{
+  transaction: FrequentTransactionResponseTransactionListItem
+  normalizedName: string
+}>
+
 export function normalizeTransactionName(name: string): string {
   return name
     .normalize('NFKC')
@@ -10,20 +15,29 @@ export function normalizeTransactionName(name: string): string {
     .replace(/\s/g, '')
 }
 
-export function getTransactionRecommendations(
+export function createTransactionRecommendationIndex(
   transactions: FrequentTransactionResponseTransactionListItem[],
+): TransactionRecommendationIndex {
+  return transactions.map((transaction) => ({
+    transaction,
+    normalizedName: normalizeTransactionName(transaction.transaction_name),
+  }))
+}
+
+export function getTransactionRecommendations(
+  index: TransactionRecommendationIndex,
   input: string,
 ): FrequentTransactionResponseTransactionListItem[] {
   const query = normalizeTransactionName(input)
   if (!query) return []
 
-  return transactions
-    .map((transaction) => {
-      const name = normalizeTransactionName(transaction.transaction_name)
-      const rank = name === query ? 0 : name.startsWith(query) ? 1 : 2
-      return { transaction, name, rank }
+  return index
+    .map(({ transaction, normalizedName }) => {
+      const rank =
+        normalizedName === query ? 0 : normalizedName.startsWith(query) ? 1 : 2
+      return { transaction, normalizedName, rank }
     })
-    .filter(({ name }) => name.includes(query))
+    .filter(({ normalizedName }) => normalizedName.includes(query))
     .sort((a, b) => a.rank - b.rank)
     .slice(0, 6)
     .map(({ transaction }) => transaction)

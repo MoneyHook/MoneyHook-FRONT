@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   clearPersistedUserData,
@@ -83,6 +83,48 @@ describe('persisted user data', () => {
         localStorage.key(index),
       ).filter((key) => key?.includes(':query:')),
     ).toHaveLength(24)
+  })
+
+  it('does not read cached payloads when the cache is within its limit', () => {
+    const getItem = vi.spyOn(Storage.prototype, 'getItem')
+    try {
+      for (let index = 0; index < 24; index += 1) {
+        writePersistedQueryData(
+          createPersistedQueryKey('timeline', { index }),
+          1,
+          { index },
+        )
+      }
+      expect(getItem).not.toHaveBeenCalled()
+    } finally {
+      getItem.mockRestore()
+    }
+  })
+
+  it('evicts the least recently accessed query without removing unrelated data', () => {
+    localStorage.setItem('other-setting', 'keep')
+    for (let index = 0; index < 24; index += 1) {
+      localStorage.setItem(
+        createPersistedQueryKey('timeline', { index }),
+        JSON.stringify({
+          version: 1,
+          value: { index },
+          accessedAt: index === 0 ? 100 : index,
+        }),
+      )
+    }
+    writePersistedQueryData(
+      createPersistedQueryKey('timeline', { index: 24 }),
+      1,
+      { index: 24 },
+    )
+    expect(
+      localStorage.getItem(createPersistedQueryKey('timeline', { index: 1 })),
+    ).toBeNull()
+    expect(
+      localStorage.getItem(createPersistedQueryKey('timeline', { index: 0 })),
+    ).not.toBeNull()
+    expect(localStorage.getItem('other-setting')).toBe('keep')
   })
 
   it('clears another user cache before assigning the authenticated owner', () => {
