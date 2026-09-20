@@ -1,0 +1,7 @@
+interface:
+  display_name: "Git変更整理とPR作成"
+  short_description: "変更を論理分割してdevelop向けPRまで安全に整える"
+  default_prompt: "$git-pr-workflow を使って、現在の変更を適切なブランチに整理し、論理単位でコミットしてdevelop向けPRを作成してください。"
+
+policy:
+  allow_implicit_invocation: false
