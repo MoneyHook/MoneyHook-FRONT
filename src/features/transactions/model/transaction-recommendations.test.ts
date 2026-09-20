@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  createTransactionRecommendationIndex,
   getTransactionRecommendations,
   normalizeTransactionName,
 } from './transaction-recommendations'
@@ -19,9 +20,12 @@ describe('transaction recommendations', () => {
   it('normalizes width, case, kana and whitespace without changing display names', () => {
     expect(normalizeTransactionName(' ＡＢＣ　ｶﾞｽ\t')).toBe('abcがす')
     const transactions = [candidate('ＡＢＣ ガス')]
-    expect(getTransactionRecommendations(transactions, 'abcがす')).toEqual(
-      transactions,
-    )
+    expect(
+      getTransactionRecommendations(
+        createTransactionRecommendationIndex(transactions),
+        'abcがす',
+      ),
+    ).toEqual(transactions)
     expect(transactions[0].transaction_name).toBe('ＡＢＣ ガス')
   })
 
@@ -36,9 +40,10 @@ describe('transaction recommendations', () => {
     ]
     const transactions = names.map(candidate)
     expect(
-      getTransactionRecommendations(transactions, 'らんち').map(
-        (item) => item.transaction_name,
-      ),
+      getTransactionRecommendations(
+        createTransactionRecommendationIndex(transactions),
+        'らんち',
+      ).map((item) => item.transaction_name),
     ).toEqual(['ランチ', 'ランチ 渋谷', 'ランチ 新宿', '朝ランチ', '夜ランチ'])
     expect(transactions.map((item) => item.transaction_name)).toEqual(names)
   })
@@ -47,7 +52,10 @@ describe('transaction recommendations', () => {
     'returns no matches for %j',
     (input) => {
       expect(
-        getTransactionRecommendations([candidate('ランチ')], input),
+        getTransactionRecommendations(
+          createTransactionRecommendationIndex([candidate('ランチ')]),
+          input,
+        ),
       ).toEqual([])
     },
   )
@@ -56,8 +64,27 @@ describe('transaction recommendations', () => {
     const transactions = Array.from({ length: 20 }, (_, index) =>
       candidate(`候補${index}`),
     )
-    expect(getTransactionRecommendations(transactions, '候')).toEqual(
-      transactions.slice(0, 6),
-    )
+    expect(
+      getTransactionRecommendations(
+        createTransactionRecommendationIndex(transactions),
+        '候',
+      ),
+    ).toEqual(transactions.slice(0, 6))
+  })
+
+  it('reuses a normalized index without mutating the source data', () => {
+    const transactions = [candidate('ＡＢＣ ガス'), candidate('ランチ')]
+    const index = createTransactionRecommendationIndex(transactions)
+
+    expect(getTransactionRecommendations(index, 'abc')).toEqual([
+      transactions[0],
+    ])
+    expect(getTransactionRecommendations(index, 'らん')).toEqual([
+      transactions[1],
+    ])
+    expect(transactions.map((item) => item.transaction_name)).toEqual([
+      'ＡＢＣ ガス',
+      'ランチ',
+    ])
   })
 })

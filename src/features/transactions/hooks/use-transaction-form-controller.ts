@@ -22,7 +22,10 @@ import {
   getTransactionMonth,
   parseCalendarDate,
 } from '../model/transaction-form'
-import { getTransactionRecommendations } from '../model/transaction-recommendations'
+import {
+  createTransactionRecommendationIndex,
+  getTransactionRecommendations,
+} from '../model/transaction-recommendations'
 
 type SelectionSheet = 'category' | 'payment' | 'candidate' | null
 type CategorySelectionStep = 'category' | 'subcategory'
@@ -114,10 +117,17 @@ export function useTransactionFormController(transactionId?: string) {
     (payment) => payment.payment_id === form.paymentId,
   )
   const selectedDate = parseCalendarDate(form.transactionDate)
-  const frequentTransactions =
-    frequentTransactionsQuery.data?.status === 200
-      ? frequentTransactionsQuery.data.data.transaction_list
-      : []
+  const frequentTransactions = useMemo(
+    () =>
+      frequentTransactionsQuery.data?.status === 200
+        ? frequentTransactionsQuery.data.data.transaction_list
+        : [],
+    [frequentTransactionsQuery.data],
+  )
+  const recommendationIndex = useMemo(
+    () => createTransactionRecommendationIndex(frequentTransactions),
+    [frequentTransactions],
+  )
 
   useEffect(() => {
     if (
@@ -153,7 +163,7 @@ export function useTransactionFormController(transactionId?: string) {
 
   const recommendedTransactions = isEdit
     ? []
-    : getTransactionRecommendations(frequentTransactions, recommendationInput)
+    : getTransactionRecommendations(recommendationIndex, recommendationInput)
 
   const handleNameChange = (name: string) => {
     setValue('transactionName', name)
