@@ -11,10 +11,7 @@ import {
   useGetV1AnalyticsFixed,
   useGetV1AnalyticsOverview,
 } from '@/shared/api/generated/transaction/transaction'
-import {
-  usePersistedQueryData,
-  usePersistedQueryRefresh,
-} from '@/shared/hooks/use-persisted-query-data'
+import { usePersistedQueryData } from '@/shared/hooks/use-persisted-query-data'
 
 import {
   buildHomeDashboardViewModel,
@@ -108,11 +105,6 @@ export function useHomeDashboard(month: MonthContext) {
   })
   const budget = useGetV1Budget({ month: month.month })
 
-  usePersistedQueryRefresh(currentOverview.refetch)
-  usePersistedQueryRefresh(previousOverview.refetch)
-  usePersistedQueryRefresh(currentHome.refetch)
-  usePersistedQueryRefresh(previousHome.refetch)
-  usePersistedQueryRefresh(fixed.refetch)
   useEffect(() => {
     currentOverviewCache.persist(currentOverview.data)
   }, [currentOverviewCache, currentOverview.data])

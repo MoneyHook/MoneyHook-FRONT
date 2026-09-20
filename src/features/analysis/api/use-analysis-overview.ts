@@ -3,10 +3,7 @@ import {
   useGetV1AnalyticsFixed,
   useGetV1AnalyticsOverview,
 } from '@/shared/api/generated/transaction/transaction'
-import {
-  usePersistedQueryData,
-  usePersistedQueryRefresh,
-} from '@/shared/hooks/use-persisted-query-data'
+import { usePersistedQueryData } from '@/shared/hooks/use-persisted-query-data'
 
 import {
   type AnalysisRange,
@@ -78,9 +75,6 @@ export function useAnalysisOverview(range: AnalysisRange) {
   const fixed = useGetV1AnalyticsFixed(fixedParameters, {
     query: fixedCache.queryOptions,
   })
-  usePersistedQueryRefresh(overview.refetch)
-  usePersistedQueryRefresh(categories.refetch)
-  usePersistedQueryRefresh(fixed.refetch)
   useEffect(() => {
     overviewCache.persist(overview.data)
   }, [overviewCache, overview.data])

@@ -67,8 +67,7 @@ function cachedSuccessResponse<T>(data: T) {
 }
 
 /**
- * Loads transaction-form reference data from local storage for first paint, then
- * immediately revalidates each value through the existing API query.
+ * Loads transaction-form reference data from local storage when available.
  */
 export function useTransactionFormReferences({ isEdit }: { isEdit: boolean }) {
   const [cachedCategories] = useState(() =>
@@ -107,7 +106,7 @@ export function useTransactionFormReferences({ isEdit }: { isEdit: boolean }) {
       initialData: cachedCategories
         ? () => cachedSuccessResponse(cachedCategories)
         : undefined,
-      initialDataUpdatedAt: cachedCategories ? 0 : undefined,
+      staleTime: cachedCategories ? Infinity : undefined,
     },
   })
   const paymentsQuery = useGetPaymentResources({
@@ -115,7 +114,7 @@ export function useTransactionFormReferences({ isEdit }: { isEdit: boolean }) {
       initialData: cachedPayments
         ? () => cachedSuccessResponse(cachedPayments)
         : undefined,
-      initialDataUpdatedAt: cachedPayments ? 0 : undefined,
+      staleTime: cachedPayments ? Infinity : undefined,
     },
   })
   const paymentTypesQuery = useGetPaymentTypes({
@@ -123,7 +122,7 @@ export function useTransactionFormReferences({ isEdit }: { isEdit: boolean }) {
       initialData: cachedPaymentTypes
         ? () => cachedSuccessResponse(cachedPaymentTypes)
         : undefined,
-      initialDataUpdatedAt: cachedPaymentTypes ? 0 : undefined,
+      staleTime: cachedPaymentTypes ? Infinity : undefined,
     },
   })
   const frequentTransactionsQuery = useGetFrequentTransactionNames(
@@ -134,21 +133,10 @@ export function useTransactionFormReferences({ isEdit }: { isEdit: boolean }) {
         initialData: cachedFrequentTransactions
           ? () => cachedSuccessResponse(cachedFrequentTransactions)
           : undefined,
-        initialDataUpdatedAt: cachedFrequentTransactions ? 0 : undefined,
+        staleTime: cachedFrequentTransactions ? Infinity : undefined,
       },
     },
   )
-
-  useEffect(() => {
-    void categoriesQuery.refetch()
-    void paymentsQuery.refetch()
-    void paymentTypesQuery.refetch()
-    if (!isEdit) {
-      void frequentTransactionsQuery.refetch()
-    }
-    // Revalidate on every form mount even when another screen has a fresh in-memory query.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   useEffect(() => {
     if (categoriesQuery.data?.status === 200) {
