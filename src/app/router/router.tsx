@@ -1,24 +1,26 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 
+import { AnalysisPage } from '@/pages/analysis'
+import { HomePage } from '@/pages/home'
+import { LoginPage } from '@/pages/login'
 import { AppNotFoundPage, PublicNotFoundPage } from '@/pages/not-found'
-
-import { AppShell } from '../layouts/app-shell'
-import { ProtectedRoute, RootRedirect } from './auth-routes'
 import {
   AccountSettingsPage,
-  AnalysisPage,
   AppearanceSettingsPage,
   BudgetSettingsPage,
   CsvImportPage,
-  EditTransactionPage,
-  HomePage,
-  LoginPage,
-  NewTransactionPage,
   PaymentSettingsPage,
   RecurringTransactionSettingsPage,
   SettingsPage,
+} from '@/pages/settings'
+import {
+  EditTransactionPage,
+  NewTransactionPage,
   TransactionsPage,
-} from './lazy-pages'
+} from '@/pages/transactions'
+
+import { AppShell } from '../layouts/app-shell'
+import { ProtectedRoute, RootRedirect } from './auth-routes'
 import { RouteErrorPage } from './route-error-page'
 
 export const router = createBrowserRouter([
