@@ -29,7 +29,7 @@ describe('usePersistedQueryData', () => {
     localStorage.clear()
   })
 
-  it('uses persisted data without calling the query function', async () => {
+  it('renders persisted data before refreshing it once', async () => {
     const resource = 'test-resource'
     const parameters = { month: '2026-09' }
     const cachedValue = { items: ['cached'] }
@@ -38,11 +38,22 @@ describe('usePersistedQueryData', () => {
       1,
       cachedValue,
     )
-    const queryFn = vi.fn(async () => ({
-      data: { items: ['api'] },
-      headers: new Headers(),
-      status: 200 as const,
-    }))
+    let resolveQuery: () => void
+    const queryFn = vi.fn(
+      () =>
+        new Promise<{
+          data: CachedValue
+          headers: Headers
+          status: 200
+        }>((resolve) => {
+          resolveQuery = () =>
+            resolve({
+              data: { items: ['api'] },
+              headers: new Headers(),
+              status: 200,
+            })
+        }),
+    )
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     })
@@ -69,13 +80,21 @@ describe('usePersistedQueryData', () => {
       },
     )
 
-    await waitFor(() => expect(result.current.fetchStatus).toBe('idle'))
-
     expect(result.current.data).toEqual({
       data: cachedValue,
       headers: expect.any(Headers),
       status: 200,
     })
-    expect(queryFn).not.toHaveBeenCalled()
+    await waitFor(() => expect(queryFn).toHaveBeenCalledTimes(1))
+
+    resolveQuery!()
+
+    await waitFor(() =>
+      expect(result.current.data).toEqual({
+        data: { items: ['api'] },
+        headers: expect.any(Headers),
+        status: 200,
+      }),
+    )
   })
 })

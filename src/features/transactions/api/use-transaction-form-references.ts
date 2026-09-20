@@ -106,7 +106,7 @@ export function useTransactionFormReferences({ isEdit }: { isEdit: boolean }) {
       initialData: cachedCategories
         ? () => cachedSuccessResponse(cachedCategories)
         : undefined,
-      staleTime: cachedCategories ? Infinity : undefined,
+      initialDataUpdatedAt: cachedCategories ? 0 : undefined,
     },
   })
   const paymentsQuery = useGetPaymentResources({
@@ -114,7 +114,7 @@ export function useTransactionFormReferences({ isEdit }: { isEdit: boolean }) {
       initialData: cachedPayments
         ? () => cachedSuccessResponse(cachedPayments)
         : undefined,
-      staleTime: cachedPayments ? Infinity : undefined,
+      initialDataUpdatedAt: cachedPayments ? 0 : undefined,
     },
   })
   const paymentTypesQuery = useGetPaymentTypes({
@@ -122,7 +122,7 @@ export function useTransactionFormReferences({ isEdit }: { isEdit: boolean }) {
       initialData: cachedPaymentTypes
         ? () => cachedSuccessResponse(cachedPaymentTypes)
         : undefined,
-      staleTime: cachedPaymentTypes ? Infinity : undefined,
+      initialDataUpdatedAt: cachedPaymentTypes ? 0 : undefined,
     },
   })
   const frequentTransactionsQuery = useGetFrequentTransactionNames(
@@ -133,7 +133,7 @@ export function useTransactionFormReferences({ isEdit }: { isEdit: boolean }) {
         initialData: cachedFrequentTransactions
           ? () => cachedSuccessResponse(cachedFrequentTransactions)
           : undefined,
-        staleTime: cachedFrequentTransactions ? Infinity : undefined,
+        initialDataUpdatedAt: cachedFrequentTransactions ? 0 : undefined,
       },
     },
   )

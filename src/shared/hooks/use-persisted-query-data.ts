@@ -38,7 +38,7 @@ export function usePersistedQueryData<T>({
               headers: new Headers(),
               status: 200 as const,
             }),
-            staleTime: Infinity,
+            initialDataUpdatedAt: 0,
           }
         : {},
     [cachedData],
@@ -66,7 +66,7 @@ export function usePersistedQueryData<T>({
       persist,
       queryOptions: queryOptions as {
         initialData?: () => SuccessfulResponse<T>
-        staleTime?: number
+        initialDataUpdatedAt?: number
       },
     }),
     [cachedData, persist, queryOptions],
