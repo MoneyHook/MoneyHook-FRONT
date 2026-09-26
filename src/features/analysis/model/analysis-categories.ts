@@ -21,6 +21,7 @@ export type CategoryTransactionItem = {
   time: string | null
   name: string
   amount: number
+  subcategoryId: string
   subcategoryName: string
   paymentName: string | null
 }
@@ -87,6 +88,7 @@ function buildTransaction(
     time: transaction.transaction_time,
     name: transaction.transaction_name,
     amount: transaction.amount,
+    subcategoryId: transaction.sub_category_id,
     subcategoryName: transaction.sub_category_name,
     paymentName: transaction.payment_name,
   }
@@ -202,5 +204,20 @@ export function getSelectedCategory(
     data.categories.find((category) => category.id === categoryId) ??
     data.categories[0] ??
     null
+  )
+}
+
+export function getSelectedSubcategory(
+  category: CategoryAnalysisItem | null,
+  subcategoryId: string | null,
+) {
+  if (!category || !subcategoryId) {
+    return null
+  }
+
+  return (
+    category.subcategories.find(
+      (subcategory) => subcategory.id === subcategoryId,
+    ) ?? null
   )
 }

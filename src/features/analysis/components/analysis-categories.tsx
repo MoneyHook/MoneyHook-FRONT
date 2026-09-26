@@ -15,11 +15,13 @@ export function AnalysisCategoriesContent({ range }: { range: AnalysisRange }) {
   const {
     categories,
     selectedCategory,
+    selectedSubcategory,
     group,
     listMode,
     changeCategory,
     changeListMode,
     changeGroup,
+    changeSubcategory,
     openTransaction,
   } = useAnalysisCategoriesController(range)
 
@@ -65,6 +67,8 @@ export function AnalysisCategoriesContent({ range }: { range: AnalysisRange }) {
       <CategoryTransactionsPanel
         category={selectedCategory}
         onOpen={openTransaction}
+        onSubcategoryChange={changeSubcategory}
+        selectedSubcategory={selectedSubcategory}
       />
     </div>
   )
