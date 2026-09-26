@@ -3,6 +3,7 @@ import {
   CircleUserRound,
   Monitor,
   Repeat2,
+  Tags,
   WalletCards,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -52,6 +53,18 @@ export function SettingsSummary() {
         to="/app/settings/account"
       />
       <SummaryCard
+        description="テーマやアクセントカラー、グラフの配色を設定します。"
+        icon={Monitor}
+        title="表示"
+        to="/app/settings/appearance"
+      />
+      <SummaryCard
+        description="取引で使うサブカテゴリの表示を設定します。"
+        icon={Tags}
+        title="カテゴリ・サブカテゴリ"
+        to="/app/settings/categories"
+      />
+      <SummaryCard
         description="毎月の支出上限を設定します。"
         icon={WalletCards}
         title="予算"
@@ -68,12 +81,6 @@ export function SettingsSummary() {
         icon={Repeat2}
         title="収支の自動入力"
         to="/app/settings/recurring-transactions"
-      />
-      <SummaryCard
-        description="テーマやアクセントカラー、グラフの配色を設定します。"
-        icon={Monitor}
-        title="表示"
-        to="/app/settings/appearance"
       />
     </div>
   )

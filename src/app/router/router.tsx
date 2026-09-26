@@ -8,6 +8,7 @@ import {
   AccountSettingsPage,
   AppearanceSettingsPage,
   BudgetSettingsPage,
+  CategorySettingsPage,
   CsvImportPage,
   PaymentSettingsPage,
   RecurringTransactionSettingsPage,
@@ -55,6 +56,7 @@ export const router = createBrowserRouter([
           { path: 'settings', element: <SettingsPage /> },
           { path: 'settings/account', element: <AccountSettingsPage /> },
           { path: 'settings/budget', element: <BudgetSettingsPage /> },
+          { path: 'settings/categories', element: <CategorySettingsPage /> },
           {
             path: 'settings/import',
             element: <Navigate replace to="/app/transactions/import" />,
