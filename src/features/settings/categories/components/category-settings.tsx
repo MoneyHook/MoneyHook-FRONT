@@ -106,9 +106,6 @@ export function CategorySettings({
       (!categoriesQuery.isError || categoriesQuery.data) ? (
         categories.length ? (
           <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              カテゴリごとに少なくとも1つのサブカテゴリを表示する必要があります。
-            </p>
             <Accordion collapsible type="single">
               {categories.map((category) => {
                 const visibleSubcategoryCount =

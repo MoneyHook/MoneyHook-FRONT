@@ -58,7 +58,7 @@ class OpenApiContractTest < Minitest::Test
 
   def test_all_business_operations_require_firebase_bearer_auth
     all_operations.each do |operation|
-      next if operation.fetch("path") == "/"
+      next if ["/", "/api/job/daily"].include?(operation.fetch("path"))
 
       assert_equal [{"BearerAuth" => []}], operation.fetch("security"), operation.fetch("operationId")
       responses = operation.fetch("responses")
@@ -66,6 +66,16 @@ class OpenApiContractTest < Minitest::Test
         assert responses.key?(status), "#{operation.fetch('operationId')} must declare #{status}"
       end
     end
+  end
+
+  def test_daily_job_requires_scheduler_oidc_auth
+    operation = @spec.dig("paths", "/api/job/daily", "post")
+
+    assert_equal [{"SchedulerOidcAuth" => []}], operation.fetch("security")
+    assert_equal({"$ref" => "#/components/responses/SchedulerUnauthorized"}, operation.fetch("responses").fetch("401"))
+    refute operation.fetch("responses").key?("409")
+    assert_equal 2, operation.dig("responses", "403", "content", "application/json", "schema", "oneOf").length
+    assert @spec.fetch("components").fetch("securitySchemes").key?("SchedulerOidcAuth")
   end
 
   def test_legacy_authentication_contract_is_removed

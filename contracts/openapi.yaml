@@ -894,7 +894,7 @@ paths:
       description: |
         Intended for Google Cloud Scheduler. On the last day of a month, all enabled recurring rows
         whose configured day is greater than or equal to today are also materialized.
-      security: [BearerAuth: []]
+      security: [SchedulerOidcAuth: []]
       parameters:
         - name: User-Agent
           in: header
@@ -927,15 +927,16 @@ paths:
               schema:
                 type: string
                 enum: ['Success Jobs', 'Today is Nothing, Success Jobs']
-        '401': { $ref: '#/components/responses/V1Unauthorized' }
-        '409': { $ref: '#/components/responses/AuthIdentityConflict' }
+        '401': { $ref: '#/components/responses/SchedulerUnauthorized' }
         '500': { $ref: '#/components/responses/V1InternalError' }
         '403':
-          description: One or more scheduler headers are invalid
+          description: The Google identity is not allowed or one or more scheduler headers are invalid
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { status: error, message: Invalid Request }
+              schema:
+                oneOf:
+                  - { $ref: '#/components/schemas/V1ErrorResponse' }
+                  - { $ref: '#/components/schemas/ErrorResponse' }
         '422':
           description: Database batch insert failed
           content:
@@ -949,7 +950,12 @@ components:
       type: http
       scheme: bearer
       bearerFormat: Firebase ID token
-      description: All business endpoints require a verified Google-provider Firebase ID token.
+      description: User-facing business endpoints require a verified Google-provider Firebase ID token.
+    SchedulerOidcAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Google OIDC ID token
+      description: The daily job accepts only a Google-signed token for the configured audience and Scheduler service account.
   parameters:
     V1StartDate:
       name: start_date
@@ -992,6 +998,11 @@ components:
           schema: { $ref: '#/components/schemas/V1ErrorResponse' }
     V1Unauthorized:
       description: Missing, expired, invalid, or non-Google Firebase Bearer token
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/V1ErrorResponse' }
+    SchedulerUnauthorized:
+      description: Missing, expired, invalid, or incorrectly scoped Scheduler OIDC Bearer token
       content:
         application/json:
           schema: { $ref: '#/components/schemas/V1ErrorResponse' }
