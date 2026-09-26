@@ -71,6 +71,7 @@ import type {
   V1NotFoundResponse,
   V1OverviewResponse,
   V1PaymentsResponse,
+  V1TransactionCreateRequest,
   V1TransactionRequest,
   V1TransactionResponse,
   V1TransactionUpdateResponse,
@@ -160,7 +161,7 @@ export const getCreateV1TransactionUrl = () => {
  * @summary Create a transaction for the React client
  */
 export const createV1Transaction = async (
-  v1TransactionRequest: V1TransactionRequest,
+  v1TransactionCreateRequest: V1TransactionCreateRequest,
   options?: RequestInit,
 ): Promise<createV1TransactionResponse> => {
   const getHeaders = (
@@ -178,7 +179,7 @@ export const createV1Transaction = async (
       'Content-Type': 'application/json',
       ...getHeaders(options?.headers),
     },
-    body: JSON.stringify(v1TransactionRequest),
+    body: JSON.stringify(v1TransactionCreateRequest),
   })
 }
 
@@ -228,7 +229,7 @@ export const getCreateV1TransactionMutationOptions = <
 export type CreateV1TransactionMutationResult = NonNullable<
   Awaited<ReturnType<typeof createV1Transaction>>
 >
-export type CreateV1TransactionMutationBody = V1TransactionRequest
+export type CreateV1TransactionMutationBody = V1TransactionCreateRequest
 export type CreateV1TransactionMutationError =
   | V1BadRequestResponse
   | V1UnauthorizedResponse
@@ -237,7 +238,7 @@ export type CreateV1TransactionMutationError =
   | V1ValidationErrorResponse
   | V1InternalErrorResponse
 export type CreateV1TransactionMutationVariables = {
-  data: V1TransactionRequest
+  data: V1TransactionCreateRequest
 }
 
 /**

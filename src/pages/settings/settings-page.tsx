@@ -8,6 +8,7 @@ import {
   AccountSettings,
   AppearanceSettings,
   BudgetSettings,
+  CategorySettings,
   PaymentSettings,
   RecurringTransactionSettings,
   SettingsSummary,
@@ -143,6 +144,17 @@ export function PaymentSettingsPage() {
       title="支払い方法"
     >
       <PaymentSettings showHeader={false} />
+    </SettingsDetailPage>
+  )
+}
+
+export function CategorySettingsPage() {
+  return (
+    <SettingsDetailPage
+      description="取引の入力時に表示するサブカテゴリを設定できます。"
+      title="カテゴリ・サブカテゴリ"
+    >
+      <CategorySettings showHeader={false} />
     </SettingsDetailPage>
   )
 }

@@ -58,6 +58,7 @@ export function useTransactionFormController(transactionId?: string) {
             sign: transaction.sign,
             categoryId: transaction.category_id,
             subcategoryId: transaction.sub_category_id,
+            subcategoryName: '',
             fixed: transaction.fixed_flg,
             paymentId: transaction.payment_id,
           }
@@ -73,6 +74,7 @@ export function useTransactionFormController(transactionId?: string) {
   const [selectionSheet, setSelectionSheet] = useState<SelectionSheet>(null)
   const [categorySelectionStep, setCategorySelectionStep] =
     useState<CategorySelectionStep>('category')
+  const [newSubcategoryName, setNewSubcategoryName] = useState('')
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [datePickerOpen, setDatePickerOpen] = useState(false)
 
@@ -180,17 +182,28 @@ export function useTransactionFormController(transactionId?: string) {
   }
 
   const selectCategory = (categoryId: string) => {
+    const options =
+      categories
+        .find((category) => category.category_id === categoryId)
+        ?.sub_category_list.filter((subcategory) => subcategory.enable) ?? []
+    const onlyOption = isEdit && options.length === 1 ? options[0] : undefined
     setFormOverride((current) => ({
       ...(current ?? initialForm),
       categoryId,
-      subcategoryId: '',
+      subcategoryId: onlyOption?.sub_category_id ?? '',
+      subcategoryName: '',
     }))
     setErrors((current) => ({
       ...current,
       categoryId: undefined,
       subcategoryId: undefined,
     }))
-    setCategorySelectionStep('subcategory')
+    if (onlyOption) {
+      setSelectionSheet(null)
+      setCategorySelectionStep('category')
+    } else {
+      setCategorySelectionStep('subcategory')
+    }
   }
 
   const selectFrequentTransaction = (
@@ -202,6 +215,7 @@ export function useTransactionFormController(transactionId?: string) {
       transactionName: transaction.transaction_name,
       categoryId: transaction.category_id,
       subcategoryId: transaction.sub_category_id,
+      subcategoryName: '',
       fixed: transaction.fixed_flg,
       paymentId: transaction.payment_id,
     }))
@@ -218,6 +232,34 @@ export function useTransactionFormController(transactionId?: string) {
     setSelectionSheet('category')
   }
 
+  const confirmNewSubcategory = () => {
+    const name = newSubcategoryName.trim()
+    if (name.length < 1 || name.length > 16) {
+      setErrors((current) => ({
+        ...current,
+        subcategoryName: 'サブカテゴリ名は1〜16文字で入力してください。',
+      }))
+      return
+    }
+    setFormOverride((current) => ({
+      ...(current ?? initialForm),
+      subcategoryId: '',
+      subcategoryName: name,
+    }))
+    setErrors((current) => ({
+      ...current,
+      subcategoryId: undefined,
+      subcategoryName: undefined,
+    }))
+    setSelectionSheet(null)
+    setCategorySelectionStep('category')
+  }
+
+  const changeNewSubcategoryName = (name: string) => {
+    setNewSubcategoryName(name)
+    setErrors((current) => ({ ...current, subcategoryName: undefined }))
+  }
+
   const handleSignChange = (sign: NewTransactionSign) => {
     setValue('sign', sign)
   }
@@ -227,6 +269,14 @@ export function useTransactionFormController(transactionId?: string) {
     const nextErrors = validateNewTransaction(form)
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length) {
+      const formElement = event.currentTarget
+      requestAnimationFrame(() => {
+        const firstInvalid = formElement.querySelector<HTMLElement>(
+          '[aria-invalid="true"]',
+        )
+        firstInvalid?.focus()
+        firstInvalid?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+      })
       return
     }
 
@@ -300,6 +350,9 @@ export function useTransactionFormController(transactionId?: string) {
     selectCategory,
     selectFrequentTransaction,
     openCategorySelection,
+    confirmNewSubcategory,
+    newSubcategoryName,
+    changeNewSubcategoryName,
     handleSignChange,
     handleSubmit,
     handleDelete,
