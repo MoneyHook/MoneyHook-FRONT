@@ -1,10 +1,18 @@
-import { ChevronRight, Funnel } from 'lucide-react'
+import { ChevronDown, ChevronRight, Funnel } from 'lucide-react'
+import { useState } from 'react'
 
 import { Button } from '@/shared/components/ui/button'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/shared/components/ui/popover'
+import { cn } from '@/shared/lib/utils'
 
 import type {
   CategoryAnalysisItem,
   CategoryTransactionItem,
+  SubcategoryAnalysisItem,
 } from '../../model/analysis-categories'
 import { formatCurrency } from '../../model/analysis-overview'
 import { CategoryIcon } from '../category-icon'
@@ -74,32 +82,96 @@ function TransactionRow({
 export function CategoryTransactionsPanel({
   category,
   onOpen,
+  onSubcategoryChange,
+  selectedSubcategory,
 }: {
   category: CategoryAnalysisItem
   onOpen: (id: string) => void
+  onSubcategoryChange: (subcategoryId: string | null) => void
+  selectedSubcategory: SubcategoryAnalysisItem | null
 }) {
-  const transactions = category.transactions.slice(0, 3)
+  const [expandedFor, setExpandedFor] = useState<{
+    categoryId: string
+    subcategoryId: string | null
+  } | null>(null)
+  const [filterOpen, setFilterOpen] = useState(false)
+  const selectedSubcategoryId = selectedSubcategory?.id ?? null
+  const expanded =
+    expandedFor?.categoryId === category.id &&
+    expandedFor.subcategoryId === selectedSubcategoryId
+  const transactions = selectedSubcategory
+    ? category.transactions.filter(
+        (transaction) => transaction.subcategoryId === selectedSubcategory.id,
+      )
+    : category.transactions
+  const visibleTransactions = expanded ? transactions : transactions.slice(0, 3)
+
   return (
     <CategoryAnalysisPanel className="p-0">
       <div className="flex items-center justify-between gap-4 px-4 py-4 sm:px-6">
         <h2 className="text-base font-semibold sm:text-lg">
           {category.name}の取引一覧
         </h2>
-        <Button
-          aria-label="取引を絞り込み（準備中）"
-          className="text-success disabled:opacity-100"
-          disabled
-          size="sm"
-          title="絞り込みは準備中です"
-          variant="ghost"
-        >
-          絞り込み
-          <Funnel aria-hidden="true" />
-        </Button>
+        <Popover onOpenChange={setFilterOpen} open={filterOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              aria-label="取引を絞り込む"
+              aria-expanded={filterOpen}
+              className={cn(selectedSubcategory && 'text-primary', 'shrink-0')}
+              size="sm"
+              variant="ghost"
+            >
+              絞り込み
+              <Funnel aria-hidden="true" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="end" className="w-64 p-3" sideOffset={8}>
+            <h3 className="text-sm font-semibold">サブカテゴリ</h3>
+            <div
+              aria-label="サブカテゴリで絞り込む"
+              className="mt-2 grid gap-1"
+            >
+              <button
+                aria-pressed={!selectedSubcategory}
+                className={cn(
+                  'min-h-10 rounded-lg px-3 text-left text-sm font-medium transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50',
+                  !selectedSubcategory && 'bg-primary/10 text-primary',
+                )}
+                onClick={() => {
+                  onSubcategoryChange(null)
+                  setFilterOpen(false)
+                }}
+                type="button"
+              >
+                すべて
+              </button>
+              {category.subcategories.map((subcategory) => {
+                const selected = subcategory.id === selectedSubcategory?.id
+                return (
+                  <button
+                    aria-pressed={selected}
+                    className={cn(
+                      'min-h-10 rounded-lg px-3 text-left text-sm font-medium transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50',
+                      selected && 'bg-primary/10 text-primary',
+                    )}
+                    key={subcategory.id}
+                    onClick={() => {
+                      onSubcategoryChange(subcategory.id)
+                      setFilterOpen(false)
+                    }}
+                    type="button"
+                  >
+                    {subcategory.name}
+                  </button>
+                )
+              })}
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
-      {transactions.length > 0 ? (
+      {visibleTransactions.length > 0 ? (
         <div className="divide-y border-t px-3 sm:px-4">
-          {transactions.map((transaction) => (
+          {visibleTransactions.map((transaction) => (
             <TransactionRow
               categoryName={category.name}
               item={transaction}
@@ -110,21 +182,53 @@ export function CategoryTransactionsPanel({
         </div>
       ) : (
         <div className="border-t px-6 py-10 text-center text-sm text-muted-foreground">
-          このカテゴリの取引はありません
+          <p>
+            {selectedSubcategory
+              ? `${selectedSubcategory.name}の取引はありません`
+              : 'このカテゴリの取引はありません'}
+          </p>
+          {selectedSubcategory ? (
+            <Button
+              className="mt-3"
+              onClick={() => onSubcategoryChange(null)}
+              size="sm"
+              variant="outline"
+            >
+              絞り込みを解除
+            </Button>
+          ) : null}
         </div>
       )}
-      <div className="border-t p-3 sm:p-4">
-        <button
-          aria-label={`${category.name}のすべての取引を表示（準備中）`}
-          className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border text-sm font-medium text-muted-foreground disabled:cursor-default"
-          disabled
-          title="取引一覧との連携は準備中です"
-          type="button"
-        >
-          {category.name}のすべての取引を表示
-          <ChevronRight aria-hidden="true" className="size-4" />
-        </button>
-      </div>
+      {transactions.length > 3 ? (
+        <div className="border-t p-3 sm:p-4">
+          <button
+            aria-expanded={expanded}
+            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border text-sm font-medium transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+            onClick={() =>
+              setExpandedFor(
+                expanded
+                  ? null
+                  : {
+                      categoryId: category.id,
+                      subcategoryId: selectedSubcategoryId,
+                    },
+              )
+            }
+            type="button"
+          >
+            {expanded
+              ? '最新3件に戻す'
+              : `すべて表示（${transactions.length}件）`}
+            <ChevronDown
+              aria-hidden="true"
+              className={cn(
+                'size-4 transition-transform',
+                expanded && 'rotate-180',
+              )}
+            />
+          </button>
+        </div>
+      ) : null}
     </CategoryAnalysisPanel>
   )
 }

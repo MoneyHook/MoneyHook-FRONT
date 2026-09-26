@@ -39,7 +39,7 @@ function formatAxisAmount(value: number) {
   if (value === 0) {
     return '¥0'
   }
-  return `¥${Math.round(value / 10_000)}万`
+  return formatCurrency(value)
 }
 
 function PaymentTrendTooltip({
@@ -104,7 +104,7 @@ export function PaymentTrendPanel({
         </span>
       </div>
       <div
-        aria-label="直近6か月の支払い方法別支出推移グラフ"
+        aria-label="選択期間の支払い方法別支出推移グラフ"
         className="mt-4 h-56 w-full sm:h-72"
       >
         <ResponsiveContainer height="100%" width="100%">
@@ -129,7 +129,7 @@ export function PaymentTrendPanel({
               tick={{ fill: 'var(--muted-foreground)', fontSize: 10 }}
               tickFormatter={(value) => formatAxisAmount(Number(value))}
               tickLine={false}
-              width={48}
+              width={68}
             />
             <Tooltip
               content={<PaymentTrendTooltip />}

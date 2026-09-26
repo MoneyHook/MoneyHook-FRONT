@@ -34,4 +34,23 @@ describe('validateNewTransaction', () => {
       subcategoryId: 'サブカテゴリを選択してください。',
     })
   })
+
+  it('accepts a new subcategory name and validates its trimmed length', () => {
+    const values = {
+      ...createNewTransactionValues(new Date(2026, 8, 25)),
+      amount: '1200',
+      transactionName: 'コーヒー',
+      categoryId: '10',
+      subcategoryName: '  カフェ  ',
+    }
+    expect(validateNewTransaction(values)).toEqual({})
+    expect(
+      validateNewTransaction({
+        ...values,
+        subcategoryName: 'あいうえおかきくけこさしすせそたち',
+      }),
+    ).toEqual({
+      subcategoryName: 'サブカテゴリ名は1〜16文字で入力してください。',
+    })
+  })
 })

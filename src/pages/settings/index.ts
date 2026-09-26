@@ -3,6 +3,7 @@ export {
   AccountSettingsPage,
   AppearanceSettingsPage,
   BudgetSettingsPage,
+  CategorySettingsPage,
   PaymentSettingsPage,
   RecurringTransactionSettingsPage,
   SettingsPage,

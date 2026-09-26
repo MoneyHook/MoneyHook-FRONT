@@ -84,7 +84,7 @@ function FixedHighlight({ data }: { data: AnalysisOverviewViewModel }) {
 export function HighlightsPanel({ data }: { data: AnalysisOverviewViewModel }) {
   return (
     <AnalysisPanel>
-      <h2 className="text-sm font-semibold sm:text-lg">今月のハイライト</h2>
+      <h2 className="text-sm font-semibold sm:text-lg">選択期間のハイライト</h2>
       <div className="mt-4 grid gap-3 min-[400px]:grid-cols-2">
         <OverallHighlight data={data} />
         <FixedHighlight data={data} />

@@ -13,6 +13,10 @@ import {
 } from '@/shared/api/generated/payment/payment'
 import { useGetFrequentTransactionNames } from '@/shared/api/generated/transaction/transaction'
 import {
+  CATEGORY_REFERENCE_CACHE_KEY,
+  CATEGORY_REFERENCE_CACHE_VERSION,
+} from '@/shared/lib/category-reference-cache'
+import {
   PERSISTED_USER_DATA_PREFIX,
   readPersistedUserData,
   writePersistedUserData,
@@ -21,7 +25,7 @@ import {
 const CACHE_VERSION = 1
 export const FREQUENT_TRANSACTIONS_CACHE_VERSION = 2
 export const TRANSACTION_FORM_REFERENCE_CACHE_KEYS = {
-  categories: `${PERSISTED_USER_DATA_PREFIX}transaction-form:categories`,
+  categories: CATEGORY_REFERENCE_CACHE_KEY,
   payments: `${PERSISTED_USER_DATA_PREFIX}transaction-form:payments`,
   paymentTypes: `${PERSISTED_USER_DATA_PREFIX}transaction-form:payment-types`,
   frequentTransactions: `${PERSISTED_USER_DATA_PREFIX}transaction-form:frequent-transactions`,
@@ -73,7 +77,7 @@ export function useTransactionFormReferences({ isEdit }: { isEdit: boolean }) {
   const [cachedCategories] = useState(() =>
     readPersistedUserData(
       TRANSACTION_FORM_REFERENCE_CACHE_KEYS.categories,
-      CACHE_VERSION,
+      CATEGORY_REFERENCE_CACHE_VERSION,
       isCategoryResponse,
     ),
   )
@@ -142,7 +146,7 @@ export function useTransactionFormReferences({ isEdit }: { isEdit: boolean }) {
     if (categoriesQuery.data?.status === 200) {
       writePersistedUserData(
         TRANSACTION_FORM_REFERENCE_CACHE_KEYS.categories,
-        CACHE_VERSION,
+        CATEGORY_REFERENCE_CACHE_VERSION,
         categoriesQuery.data.data,
       )
     }

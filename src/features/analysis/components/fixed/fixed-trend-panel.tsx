@@ -38,7 +38,7 @@ function formatAxisAmount(value: number) {
   if (value === 0) {
     return '¥0'
   }
-  return `¥${Math.round(value / 10_000)}万`
+  return formatCurrency(value)
 }
 
 export function FixedTrendPanel({ data }: { data: AnalysisFixedViewModel }) {
@@ -51,7 +51,7 @@ export function FixedTrendPanel({ data }: { data: AnalysisFixedViewModel }) {
         </span>
       </div>
       <div
-        aria-label="直近6か月の固定費推移グラフ"
+        aria-label="選択期間の固定費推移グラフ"
         className="mt-4 h-52 w-full sm:h-72"
       >
         <ResponsiveContainer height="100%" width="100%">
@@ -76,7 +76,7 @@ export function FixedTrendPanel({ data }: { data: AnalysisFixedViewModel }) {
               tick={{ fill: 'var(--muted-foreground)', fontSize: 10 }}
               tickFormatter={(value) => formatAxisAmount(Number(value))}
               tickLine={false}
-              width={46}
+              width={68}
             />
             <Tooltip
               content={<TrendTooltip />}

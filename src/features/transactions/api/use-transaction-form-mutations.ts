@@ -1,11 +1,13 @@
 import { useQueryClient } from '@tanstack/react-query'
 
+import { getGetCategoryWithSubCategoryListQueryKey } from '@/shared/api/generated/category/category'
 import {
   getGetV1TransactionQueryKey,
   useCreateV1Transaction,
   useDeleteV1Transaction,
   useUpdateV1Transaction,
 } from '@/shared/api/generated/transaction/transaction'
+import { clearCategoryReferenceCache } from '@/shared/lib/category-reference-cache'
 
 import type { NewTransactionFormValues } from '../model/new-transaction'
 import { invalidateTransactionQueries } from './invalidate-transaction-queries'
@@ -25,7 +27,9 @@ export function useTransactionFormMutations() {
           amount: Number(form.amount),
           sign: form.sign,
           category_id: form.categoryId,
-          sub_category_id: form.subcategoryId,
+          ...(form.subcategoryName
+            ? { sub_category_name: form.subcategoryName.trim() }
+            : { sub_category_id: form.subcategoryId }),
           fixed_flg: form.fixed,
           payment_id: form.paymentId,
         },
@@ -36,6 +40,12 @@ export function useTransactionFormMutations() {
     }
 
     await invalidateTransactionQueries(queryClient)
+    if (form.subcategoryName) {
+      clearCategoryReferenceCache()
+      await queryClient.invalidateQueries({
+        queryKey: getGetCategoryWithSubCategoryListQueryKey(),
+      })
+    }
   }
   const update = async (
     transactionId: string,

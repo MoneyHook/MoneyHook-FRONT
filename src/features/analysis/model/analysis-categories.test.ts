@@ -8,6 +8,7 @@ import type {
 import {
   buildAnalysisCategoriesViewModel,
   getSelectedCategory,
+  getSelectedSubcategory,
   normalizeCategoryUrlState,
 } from './analysis-categories'
 
@@ -131,6 +132,7 @@ describe('analysis categories model', () => {
       '2',
       '1',
     ])
+    expect(model.categories[0].transactions[0].subcategoryId).toBe('11')
     expect(model.categories[0].series.map((item) => item.label)).toEqual([
       '3月',
       '4月',
@@ -143,6 +145,16 @@ describe('analysis categories model', () => {
     expect(getSelectedCategory(model, '3')?.name).toBe('住居')
     expect(getSelectedCategory(model, 'missing')?.name).toBe('食費')
     expect(model.categories[0].series[0].label).toBe('3/1週')
+  })
+
+  it('selects a subcategory only when it belongs to the selected category', () => {
+    const model = buildAnalysisCategoriesViewModel(response(), range, 'month')
+    const category = getSelectedCategory(model, '4')
+
+    expect(getSelectedSubcategory(category, '11')?.name).toBe('外食')
+    expect(getSelectedSubcategory(category, 'missing')).toBeNull()
+    expect(getSelectedSubcategory(category, null)).toBeNull()
+    expect(getSelectedSubcategory(null, '11')).toBeNull()
   })
 
   it('normalizes unknown URL state to stable defaults', () => {

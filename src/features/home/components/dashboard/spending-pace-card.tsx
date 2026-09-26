@@ -28,11 +28,15 @@ function PaceTooltip({
     return null
   }
   const current = payload.find((item) => item.dataKey === 'current')?.value
+  const previous = payload.find((item) => item.dataKey === 'previous')?.value
   return (
     <div className="rounded-xl border bg-popover px-3 py-2 text-xs shadow-lg">
       <p>{label}日</p>
       <p className="mt-1 font-semibold tabular-nums">
-        {current === undefined ? 'データなし' : formatCurrency(current)}
+        今月：{current == null ? '集計対象外' : formatCurrency(current)}
+      </p>
+      <p className="mt-1 tabular-nums">
+        前月：{previous == null ? '集計対象外' : formatCurrency(previous)}
       </p>
     </div>
   )
@@ -85,11 +89,9 @@ export function SpendingPaceCard({ data }: { data: HomeDashboardViewModel }) {
             <YAxis
               axisLine={false}
               tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
-              tickFormatter={(value) =>
-                value === 0 ? '0' : `${Math.round(value / 10000)}万`
-              }
+              tickFormatter={(value) => formatCurrency(Number(value))}
               tickLine={false}
-              width={42}
+              width={68}
             />
             <Tooltip content={<PaceTooltip />} />
             <Area

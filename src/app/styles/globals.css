@@ -239,7 +239,7 @@
 }
 .login-hero-copy h1 {
   margin: 1.5rem 0 1.25rem;
-  font-size: clamp(3.1rem, 7vw, 6.4rem);
+  font-size: clamp(2.5rem, 5vw, 4.8rem);
   font-weight: 600;
   letter-spacing: -0.075em;
   line-height: 0.98;
@@ -268,15 +268,16 @@
   color: var(--login-kicker);
 }
 .login-hero-screen {
-  position: absolute;
-  right: 22rem;
-  bottom: -10rem;
-  width: min(56vw, 52rem);
+  position: relative;
+  grid-column: 1 / -1;
+  grid-row: 2;
+  width: min(100%, 52rem);
+  margin: 0 auto;
   overflow: hidden;
   border: 1px solid var(--login-screen-border);
   border-radius: 1.2rem;
   box-shadow: 0 3rem 8rem var(--login-screen-shadow);
-  transform: rotate(-3deg);
+  transform: none;
   transform-origin: bottom right;
   animation: login-screen-enter 850ms 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -315,7 +316,8 @@
   font-weight: 600;
 }
 .login-title-break {
-  display: inline;
+  display: block;
+  white-space: nowrap;
 }
 .login-google-button {
   border-color: var(--login-card-border);
@@ -485,9 +487,7 @@
     grid-template-columns: minmax(0, 1fr) minmax(18rem, 23rem);
   }
   .login-hero-screen {
-    right: 13rem;
-    width: min(68vw, 45rem);
-    opacity: 0.75;
+    width: min(100%, 45rem);
   }
 }
 @media (max-width: 48.0625rem) {
@@ -502,7 +502,8 @@
     flex-direction: column;
     width: 100%;
     min-height: auto;
-    padding: 7.25rem 1.25rem 3rem;
+    padding: 6rem 1.25rem 3rem;
+    gap: 1.5rem;
   }
   .login-hero-copy {
     order: 1;
@@ -526,7 +527,7 @@
     order: 2;
     width: 100%;
     max-width: 32rem;
-    margin: 2rem auto 0;
+    margin: 0 auto;
   }
   .login-card {
     padding: 1.75rem 1.25rem;

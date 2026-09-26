@@ -1,6 +1,7 @@
 export { AccountSettings } from './account/components/account-settings'
 export { AppearanceSettings } from './appearance/components/appearance-settings'
 export { BudgetSettings } from './budget/components/budget-settings'
+export { CategorySettings } from './categories/components/category-settings'
 export { SettingsSection } from './components/settings-section'
 export { SettingsSummary } from './overview/components/settings-summary'
 export { PaymentSettings } from './payments/components/payment-settings'

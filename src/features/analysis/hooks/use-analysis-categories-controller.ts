@@ -6,6 +6,7 @@ import {
   type CategoryGroup,
   type CategoryListMode,
   getSelectedCategory,
+  getSelectedSubcategory,
   normalizeCategoryUrlState,
 } from '../model/analysis-categories'
 import type { AnalysisRange } from '../model/analysis-overview'
@@ -17,6 +18,7 @@ export function useAnalysisCategoriesController(range: AnalysisRange) {
   const rawGroup = searchParams.get('group')
   const rawListMode = searchParams.get('list')
   const rawCategoryId = searchParams.get('category')
+  const rawSubcategoryId = searchParams.get('subcategory')
   const { group, listMode } = normalizeCategoryUrlState({
     group: rawGroup,
     listMode: rawListMode,
@@ -25,6 +27,10 @@ export function useAnalysisCategoriesController(range: AnalysisRange) {
   const selectedCategory = categories.data
     ? getSelectedCategory(categories.data, rawCategoryId)
     : null
+  const selectedSubcategory = getSelectedSubcategory(
+    selectedCategory,
+    rawSubcategoryId,
+  )
 
   useEffect(() => {
     const next = new URLSearchParams(searchParams)
@@ -41,14 +47,19 @@ export function useAnalysisCategoriesController(range: AnalysisRange) {
       next.delete('list')
       changed = true
     }
-    if (
+    const categoryIsInvalid =
       rawCategoryId &&
       categories.data &&
       !categories.data.categories.some(
         (category) => category.id === rawCategoryId,
       )
-    ) {
+    if (categoryIsInvalid) {
       next.delete('category')
+      next.delete('subcategory')
+      changed = true
+    }
+    if (rawSubcategoryId && selectedCategory && !selectedSubcategory) {
+      next.delete('subcategory')
       changed = true
     }
     if (changed) {
@@ -61,13 +72,33 @@ export function useAnalysisCategoriesController(range: AnalysisRange) {
     rawCategoryId,
     rawGroup,
     rawListMode,
+    rawSubcategoryId,
     searchParams,
+    selectedCategory,
+    selectedSubcategory,
     setSearchParams,
   ])
 
   const setParam = (name: string, value: string) => {
     const next = new URLSearchParams(searchParams)
     next.set(name, value)
+    setSearchParams(next)
+  }
+
+  const changeCategory = (categoryId: string) => {
+    const next = new URLSearchParams(searchParams)
+    next.set('category', categoryId)
+    next.delete('subcategory')
+    setSearchParams(next)
+  }
+
+  const changeSubcategory = (subcategoryId: string | null) => {
+    const next = new URLSearchParams(searchParams)
+    if (subcategoryId) {
+      next.set('subcategory', subcategoryId)
+    } else {
+      next.delete('subcategory')
+    }
     setSearchParams(next)
   }
 
@@ -82,11 +113,13 @@ export function useAnalysisCategoriesController(range: AnalysisRange) {
   return {
     categories,
     selectedCategory,
+    selectedSubcategory,
     group,
     listMode,
-    changeCategory: (categoryId: string) => setParam('category', categoryId),
+    changeCategory,
     changeListMode: (mode: CategoryListMode) => setParam('list', mode),
     changeGroup: (nextGroup: CategoryGroup) => setParam('group', nextGroup),
+    changeSubcategory,
     openTransaction,
   }
 }

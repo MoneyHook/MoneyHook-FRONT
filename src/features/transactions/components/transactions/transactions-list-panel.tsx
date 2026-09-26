@@ -39,23 +39,23 @@ function MonthlySummary({
         />
       </div>
       <dl className="mt-4 grid grid-cols-3 divide-x">
-        <div className="min-w-0 pr-3 sm:pr-6">
+        <div className="min-w-0 pr-2 sm:pr-6">
           <dt className="text-xs text-muted-foreground sm:text-sm">支出合計</dt>
-          <dd className="mt-1 truncate text-lg font-semibold tracking-[-0.03em] tabular-nums sm:text-2xl">
+          <dd className="mt-1 text-xs font-semibold tracking-[-0.05em] whitespace-nowrap tabular-nums min-[390px]:text-sm sm:text-2xl">
             {formatCurrency(data.expenseAmount)}
           </dd>
         </div>
-        <div className="min-w-0 px-3 sm:px-6">
+        <div className="min-w-0 px-2 sm:px-6">
           <dt className="text-xs text-muted-foreground sm:text-sm">収入合計</dt>
-          <dd className="mt-1 truncate text-lg font-semibold tracking-[-0.03em] tabular-nums sm:text-2xl">
+          <dd className="mt-1 text-xs font-semibold tracking-[-0.05em] whitespace-nowrap tabular-nums min-[390px]:text-sm sm:text-2xl">
             {formatCurrency(data.incomeAmount)}
           </dd>
         </div>
-        <div className="min-w-0 pl-3 sm:pl-6">
+        <div className="min-w-0 pl-2 sm:pl-6">
           <dt className="text-xs text-muted-foreground sm:text-sm">収支</dt>
           <dd
             className={cn(
-              'mt-1 truncate text-lg font-semibold tracking-[-0.03em] tabular-nums sm:text-2xl',
+              'mt-1 text-xs font-semibold tracking-[-0.05em] whitespace-nowrap tabular-nums min-[390px]:text-sm sm:text-2xl',
               data.balanceAmount < 0
                 ? 'text-expense'
                 : data.balanceAmount > 0

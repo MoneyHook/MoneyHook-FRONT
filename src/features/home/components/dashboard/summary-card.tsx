@@ -38,7 +38,7 @@ function Metric({
   captionClassName?: string
 }) {
   return (
-    <div className="flex min-w-0 items-start gap-3">
+    <div className="flex min-w-0 items-start gap-2 sm:gap-3">
       <span
         className={cn(
           'flex size-7 shrink-0 items-center justify-center rounded-full sm:size-9',
@@ -48,15 +48,15 @@ function Metric({
         <Icon aria-hidden="true" className="size-3.5 sm:size-4.5" />
       </span>
       <div className="min-w-0">
-        <p className="truncate text-[0.625rem] text-muted-foreground sm:text-sm">
+        <p className="text-[0.5rem] text-muted-foreground sm:text-sm">
           {label}
         </p>
-        <p className="truncate text-sm font-semibold tabular-nums sm:mt-0.5 sm:text-lg">
+        <p className="text-[0.625rem] font-semibold tabular-nums sm:mt-0.5 sm:text-lg">
           {value}
         </p>
         <p
           className={cn(
-            'text-[0.625rem] font-medium tabular-nums sm:mt-0.5 sm:text-xs',
+            'text-[0.5rem] font-medium tabular-nums sm:mt-0.5 sm:text-xs',
             captionClassName,
           )}
         >
