@@ -148,7 +148,7 @@ export function CategorySummaryPanel({
   return (
     <CategoryAnalysisPanel id="category-summary">
       <h2 className="text-base font-semibold sm:text-lg">カテゴリ別支出</h2>
-      <div className="mx-auto mt-4 grid max-w-4xl items-center gap-4 min-[390px]:grid-cols-[9rem_minmax(0,1fr)] sm:mt-5 sm:grid-cols-[15rem_minmax(0,1fr)] sm:gap-8">
+      <div className="mx-auto mt-4 grid max-w-4xl items-center gap-4 sm:mt-5 sm:grid-cols-[15rem_minmax(0,1fr)] sm:gap-8">
         <CategoryDonut items={items} total={data.totalExpenseAmount} />
         <ul className="min-w-0 space-y-0.5">
           {items.map((item, index) => (

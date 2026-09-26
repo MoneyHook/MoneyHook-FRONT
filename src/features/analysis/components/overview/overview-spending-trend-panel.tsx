@@ -55,7 +55,7 @@ export function SpendingTrendPanel({
         </span>
       </div>
       <div
-        aria-label="直近6か月の月別支出グラフ"
+        aria-label="選択期間の月別支出グラフ"
         className="mt-2 h-40 w-full sm:mt-6 sm:h-72"
       >
         <ResponsiveContainer height="100%" width="100%">
@@ -77,11 +77,9 @@ export function SpendingTrendPanel({
             <YAxis
               axisLine={false}
               tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
-              tickFormatter={(value) =>
-                value === 0 ? '0' : `${Math.round(Number(value) / 10000)}万`
-              }
+              tickFormatter={(value) => formatCurrency(Number(value))}
               tickLine={false}
-              width={48}
+              width={68}
             />
             <Tooltip
               content={<SpendingTooltip />}

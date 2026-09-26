@@ -33,16 +33,16 @@ export function TransactionRow({
   return (
     <button
       aria-label={`${item.name}を編集`}
-      className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 px-3 py-3 text-left transition-colors outline-none hover:bg-muted/45 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset sm:px-4"
+      className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-2 px-3 py-3 text-left transition-colors outline-none hover:bg-muted/45 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset sm:gap-x-3 sm:px-4"
       onClick={() => onOpen(item.id)}
       type="button"
     >
       <CategoryIcon item={item} />
       <span className="min-w-0">
-        <span className="block truncate text-sm font-semibold sm:text-base">
+        <span className="block truncate text-xs font-semibold sm:text-base">
           {item.name}
         </span>
-        <span className="mt-0.5 block truncate text-xs text-muted-foreground sm:text-sm">
+        <span className="mt-0.5 block truncate text-[0.6875rem] text-muted-foreground sm:text-sm">
           {item.categoryName} <span aria-hidden="true">›</span>{' '}
           {item.subcategoryName}
         </span>
@@ -55,7 +55,7 @@ export function TransactionRow({
         ) : null}
         <span
           className={cn(
-            'min-w-18 text-right text-base font-semibold tabular-nums sm:min-w-24 sm:text-lg',
+            'min-w-16 text-right text-sm font-semibold tabular-nums sm:min-w-24 sm:text-lg',
             item.sign === -1 ? 'text-expense' : 'text-income',
           )}
         >

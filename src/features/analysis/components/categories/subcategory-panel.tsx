@@ -101,7 +101,7 @@ export function SubcategoryPanel({
   category: CategoryAnalysisItem
 }) {
   return (
-    <CategoryAnalysisPanel>
+    <CategoryAnalysisPanel id="category-detail" className="scroll-mt-4">
       <div className="flex items-baseline justify-between gap-4">
         <h2 className="text-base font-semibold sm:text-lg">
           {category.name}の内訳

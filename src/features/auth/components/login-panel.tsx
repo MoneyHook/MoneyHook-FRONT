@@ -44,9 +44,9 @@ export function LoginPanel() {
     <div className="login-card motion-auth-enter w-full max-w-lg space-y-7">
       <div className="space-y-4 text-center">
         <p className="login-eyebrow">家計を見渡す場所</p>
-        <h1 className="text-3xl font-semibold tracking-[-0.045em] md:text-[2.65rem] md:leading-tight">
+        <h2 className="text-3xl font-semibold tracking-[-0.045em] md:text-[2.65rem] md:leading-tight">
           MoneyHooksへ<span className="login-title-break">ログイン</span>
-        </h1>
+        </h2>
         <p className="mx-auto max-w-sm text-sm leading-6 text-muted-foreground">
           Googleアカウントでログインして、家計データを確認できます。
         </p>

@@ -48,7 +48,7 @@ function formatAxisAmount(value: number) {
   if (value === 0) {
     return '¥0'
   }
-  return `¥${Math.round(value / 10_000)}万`
+  return formatCurrency(value)
 }
 
 export function CategoryTrendPanel({
@@ -119,7 +119,7 @@ export function CategoryTrendPanel({
               tick={{ fill: 'var(--muted-foreground)', fontSize: 10 }}
               tickFormatter={(value) => formatAxisAmount(Number(value))}
               tickLine={false}
-              width={46}
+              width={68}
             />
             <Tooltip
               content={<TrendTooltip />}
