@@ -16,6 +16,8 @@ import {
 import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Skeleton } from '@/shared/components/ui/skeleton'
+import { getCategoryPresentation } from '@/shared/lib/category-presentation'
+import { cn } from '@/shared/lib/utils'
 
 import { SettingsSection } from '../../components/settings-section'
 import { useCategorySettings } from '../api/use-category-settings'
@@ -108,6 +110,10 @@ export function CategorySettings({
           <div className="space-y-3">
             <Accordion collapsible type="single">
               {categories.map((category) => {
+                const categoryPresentation = getCategoryPresentation(
+                  category.category_name,
+                )
+                const CategoryIcon = categoryPresentation.icon
                 const visibleSubcategoryCount =
                   category.sub_category_list.filter(
                     (subcategory) => subcategory.enable,
@@ -120,8 +126,18 @@ export function CategorySettings({
                     value={category.category_id}
                   >
                     <AccordionTrigger className="bg-muted/40 px-4 py-3 text-base hover:no-underline sm:px-5">
-                      <span className="min-w-0 truncate">
-                        {category.category_name}
+                      <span className="flex min-w-0 items-center gap-3">
+                        <span
+                          className={cn(
+                            'flex size-8 shrink-0 items-center justify-center rounded-full',
+                            categoryPresentation.iconClassName,
+                          )}
+                        >
+                          <CategoryIcon aria-hidden="true" className="size-4" />
+                        </span>
+                        <span className="truncate">
+                          {category.category_name}
+                        </span>
                       </span>
                     </AccordionTrigger>
                     <AccordionContent className="pb-0">
