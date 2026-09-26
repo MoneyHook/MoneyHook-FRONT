@@ -4,6 +4,7 @@ import { http, HttpResponse } from 'msw'
 import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { getGetCategoryWithSubCategoryListQueryKey } from '@/shared/api/generated/category/category'
 import { getGetPaymentResourcesQueryKey } from '@/shared/api/generated/payment/payment'
 import {
   getGetFrequentTransactionNamesQueryKey,
@@ -11,9 +12,14 @@ import {
   getGetV1TransactionQueryKey,
 } from '@/shared/api/generated/transaction/transaction'
 import {
+  CATEGORY_REFERENCE_CACHE_KEY,
+  CATEGORY_REFERENCE_CACHE_VERSION,
+} from '@/shared/lib/category-reference-cache'
+import {
   createPersistedQueryKey,
   readPersistedQueryData,
   writePersistedQueryData,
+  writePersistedUserData,
 } from '@/shared/lib/persisted-user-data'
 import { server } from '@/test/msw/server'
 
@@ -111,4 +117,51 @@ describe('transaction mutation cache refresh', () => {
         expect(queryClient.getQueryData(detailKey)).toBeUndefined()
     },
   )
+
+  it('sends a new subcategory name and refreshes category references', async () => {
+    let requestBody: unknown
+    server.use(
+      http.post('http://api.test/api/v1/transactions', async ({ request }) => {
+        requestBody = await request.json()
+        return HttpResponse.json({ transaction: {} }, { status: 201 })
+      }),
+    )
+    const queryClient = new QueryClient()
+    const categoryKey = getGetCategoryWithSubCategoryListQueryKey()
+    queryClient.setQueryData(categoryKey, { cached: true })
+    writePersistedUserData(
+      CATEGORY_REFERENCE_CACHE_KEY,
+      CATEGORY_REFERENCE_CACHE_VERSION,
+      { category_list: [] },
+    )
+    const { result } = renderHook(() => useTransactionFormMutations(), {
+      wrapper: ({ children }: { children: ReactNode }) => (
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
+      ),
+    })
+
+    await act(async () => {
+      await result.current.create({
+        ...createNewTransactionValues(new Date(2026, 8, 25)),
+        transactionName: 'コーヒー',
+        amount: '500',
+        categoryId: '10',
+        subcategoryName: '  カフェ  ',
+      })
+    })
+
+    expect(requestBody).toMatchObject({
+      transaction: {
+        category_id: '10',
+        sub_category_name: 'カフェ',
+      },
+    })
+    expect(
+      (requestBody as { transaction: Record<string, unknown> }).transaction,
+    ).not.toHaveProperty('sub_category_id')
+    expect(queryClient.getQueryState(categoryKey)?.isInvalidated).toBe(true)
+    expect(localStorage.getItem(CATEGORY_REFERENCE_CACHE_KEY)).toBeNull()
+  })
 })

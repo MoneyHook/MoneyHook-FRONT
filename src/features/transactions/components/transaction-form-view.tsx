@@ -256,6 +256,11 @@ export function TransactionFormView({
         setValue={controller.setValue}
         payments={controller.payments}
         paymentTypeNames={controller.paymentTypeNames}
+        isEdit={controller.isEdit}
+        errors={controller.errors}
+        confirmNewSubcategory={controller.confirmNewSubcategory}
+        newSubcategoryName={controller.newSubcategoryName}
+        changeNewSubcategoryName={controller.changeNewSubcategoryName}
       />
 
       {isEdit && transaction ? (

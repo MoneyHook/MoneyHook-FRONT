@@ -1,6 +1,8 @@
-import { ArrowLeft, Check } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, Plus } from 'lucide-react'
+import { useState } from 'react'
 
 import { Button } from '@/shared/components/ui/button'
+import { Input } from '@/shared/components/ui/input'
 import {
   Sheet,
   SheetContent,
@@ -57,7 +59,155 @@ type Props = Pick<
   | 'setValue'
   | 'payments'
   | 'paymentTypeNames'
+  | 'isEdit'
+  | 'errors'
+  | 'confirmNewSubcategory'
+  | 'newSubcategoryName'
+  | 'changeNewSubcategoryName'
 >
+
+type SubcategorySelectionProps = Pick<
+  Props,
+  | 'form'
+  | 'setCategorySelectionStep'
+  | 'selectedCategory'
+  | 'enabledSubcategories'
+  | 'setValue'
+  | 'setSelectionSheet'
+  | 'isEdit'
+  | 'errors'
+  | 'confirmNewSubcategory'
+  | 'newSubcategoryName'
+  | 'changeNewSubcategoryName'
+>
+
+function SubcategorySelection({
+  form,
+  setCategorySelectionStep,
+  selectedCategory,
+  enabledSubcategories,
+  setValue,
+  setSelectionSheet,
+  isEdit,
+  errors,
+  confirmNewSubcategory,
+  newSubcategoryName,
+  changeNewSubcategoryName,
+}: SubcategorySelectionProps) {
+  const [isCreatingNewSubcategory, setIsCreatingNewSubcategory] =
+    useState(false)
+
+  return (
+    <div className="animate-in duration-150 fade-in slide-in-from-right-2">
+      <SheetHeader className="border-b px-5 py-4 text-left">
+        <Button
+          aria-label="カテゴリ選択へ戻る"
+          className="mb-1 -ml-2 w-fit"
+          onClick={() => setCategorySelectionStep('category')}
+          size="sm"
+          type="button"
+          variant="ghost"
+        >
+          <ArrowLeft aria-hidden="true" /> カテゴリ
+        </Button>
+        <SheetTitle>サブカテゴリを選択</SheetTitle>
+        <SheetDescription>
+          {selectedCategory?.category_name ?? 'カテゴリ'}
+          のサブカテゴリを選択してください。
+        </SheetDescription>
+      </SheetHeader>
+      <div className="p-2">
+        {enabledSubcategories.length ? (
+          enabledSubcategories.map((subcategory) => (
+            <SheetOption
+              isSelected={form.subcategoryId === subcategory.sub_category_id}
+              key={subcategory.sub_category_id}
+              onClick={() => {
+                setValue('subcategoryId', subcategory.sub_category_id)
+                setValue('subcategoryName', '')
+                setSelectionSheet(null)
+                setCategorySelectionStep('category')
+              }}
+            >
+              <span className="font-medium">
+                {subcategory.sub_category_name}
+              </span>
+            </SheetOption>
+          ))
+        ) : (
+          <p className="px-4 py-8 text-center text-sm text-muted-foreground">
+            選択できるサブカテゴリがありません。
+          </p>
+        )}
+        {!isEdit ? (
+          <div className="mt-2 space-y-2">
+            {isCreatingNewSubcategory ? (
+              <>
+                <div
+                  className={cn(
+                    'flex h-14 w-full items-center border-b border-input transition-colors focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50',
+                    errors.subcategoryName &&
+                      'border-destructive focus-within:border-destructive focus-within:ring-destructive/20',
+                  )}
+                >
+                  <label className="sr-only" htmlFor="new-subcategory-name">
+                    サブカテゴリ名
+                  </label>
+                  <Input
+                    aria-describedby={
+                      errors.subcategoryName
+                        ? 'new-subcategory-name-error'
+                        : undefined
+                    }
+                    aria-invalid={errors.subcategoryName ? true : undefined}
+                    autoFocus
+                    className="h-full rounded-none border-0 bg-transparent px-3 shadow-none focus-visible:border-0 focus-visible:ring-0 aria-invalid:border-0 aria-invalid:ring-0"
+                    id="new-subcategory-name"
+                    maxLength={16}
+                    onChange={(event) =>
+                      changeNewSubcategoryName(event.target.value)
+                    }
+                    placeholder="例: カフェ"
+                    value={newSubcategoryName}
+                  />
+                  <Button
+                    aria-label="登録"
+                    className="mr-1 shrink-0"
+                    onClick={confirmNewSubcategory}
+                    type="button"
+                  >
+                    <ArrowRight aria-hidden="true" />
+                  </Button>
+                </div>
+                {errors.subcategoryName ? (
+                  <p
+                    className="px-1 text-sm text-destructive"
+                    id="new-subcategory-name-error"
+                  >
+                    {errors.subcategoryName}
+                  </p>
+                ) : null}
+              </>
+            ) : (
+              <Button
+                className="min-h-14 w-full justify-start"
+                onClick={() => {
+                  changeNewSubcategoryName(form.subcategoryName)
+                  setIsCreatingNewSubcategory(true)
+                }}
+                type="button"
+                variant="ghost"
+              >
+                <Plus aria-hidden="true" />
+                新しいサブカテゴリを作成
+              </Button>
+            )}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  )
+}
 
 export function TransactionSelectionSheets({
   selectionSheet,
@@ -74,6 +224,11 @@ export function TransactionSelectionSheets({
   setValue,
   payments,
   paymentTypeNames,
+  isEdit,
+  errors,
+  confirmNewSubcategory,
+  newSubcategoryName,
+  changeNewSubcategoryName,
 }: Props) {
   return (
     <>
@@ -144,52 +299,21 @@ export function TransactionSelectionSheets({
                 ))}
               </div>
             </div>
-          ) : (
-            <div className="animate-in duration-150 fade-in slide-in-from-right-2">
-              <SheetHeader className="border-b px-5 py-4 text-left">
-                <Button
-                  aria-label="カテゴリ選択へ戻る"
-                  className="mb-1 -ml-2 w-fit"
-                  onClick={() => setCategorySelectionStep('category')}
-                  size="sm"
-                  type="button"
-                  variant="ghost"
-                >
-                  <ArrowLeft aria-hidden="true" /> カテゴリ
-                </Button>
-                <SheetTitle>サブカテゴリを選択</SheetTitle>
-                <SheetDescription>
-                  {selectedCategory?.category_name ?? 'カテゴリ'}
-                  のサブカテゴリを選択してください。
-                </SheetDescription>
-              </SheetHeader>
-              <div className="p-2">
-                {enabledSubcategories.length ? (
-                  enabledSubcategories.map((subcategory) => (
-                    <SheetOption
-                      isSelected={
-                        form.subcategoryId === subcategory.sub_category_id
-                      }
-                      key={subcategory.sub_category_id}
-                      onClick={() => {
-                        setValue('subcategoryId', subcategory.sub_category_id)
-                        setSelectionSheet(null)
-                        setCategorySelectionStep('category')
-                      }}
-                    >
-                      <span className="font-medium">
-                        {subcategory.sub_category_name}
-                      </span>
-                    </SheetOption>
-                  ))
-                ) : (
-                  <p className="px-4 py-8 text-center text-sm text-muted-foreground">
-                    選択できるサブカテゴリがありません。
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
+          ) : categorySelectionStep === 'subcategory' ? (
+            <SubcategorySelection
+              changeNewSubcategoryName={changeNewSubcategoryName}
+              confirmNewSubcategory={confirmNewSubcategory}
+              enabledSubcategories={enabledSubcategories}
+              errors={errors}
+              form={form}
+              isEdit={isEdit}
+              newSubcategoryName={newSubcategoryName}
+              selectedCategory={selectedCategory}
+              setCategorySelectionStep={setCategorySelectionStep}
+              setSelectionSheet={setSelectionSheet}
+              setValue={setValue}
+            />
+          ) : null}
         </SheetContent>
       </Sheet>
 

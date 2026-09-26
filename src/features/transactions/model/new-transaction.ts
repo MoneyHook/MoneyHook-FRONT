@@ -8,6 +8,7 @@ export type NewTransactionFormValues = {
   sign: NewTransactionSign
   categoryId: string
   subcategoryId: string
+  subcategoryName: string
   fixed: boolean
   paymentId: string | null
 }
@@ -18,6 +19,7 @@ export type NewTransactionField =
   | 'transactionName'
   | 'categoryId'
   | 'subcategoryId'
+  | 'subcategoryName'
 
 export type NewTransactionErrors = Partial<Record<NewTransactionField, string>>
 
@@ -41,6 +43,7 @@ export function createNewTransactionValues(
     sign: -1,
     categoryId: '',
     subcategoryId: '',
+    subcategoryName: '',
     fixed: false,
     paymentId: defaultPaymentId,
   }
@@ -83,8 +86,15 @@ export function validateNewTransaction(
   if (!values.categoryId) {
     errors.categoryId = 'カテゴリを選択してください。'
   }
-  if (!values.subcategoryId) {
+  const subcategoryNameLength = values.subcategoryName.trim().length
+  if (!values.subcategoryId && !subcategoryNameLength) {
     errors.subcategoryId = 'サブカテゴリを選択してください。'
+  }
+  if (
+    values.subcategoryName &&
+    (subcategoryNameLength < 1 || subcategoryNameLength > 16)
+  ) {
+    errors.subcategoryName = 'サブカテゴリ名は1〜16文字で入力してください。'
   }
 
   return errors

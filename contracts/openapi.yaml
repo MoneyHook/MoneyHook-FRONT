@@ -50,7 +50,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: { $ref: '#/components/schemas/V1TransactionRequest' }
+            schema: { $ref: '#/components/schemas/V1TransactionCreateRequest' }
       responses:
         '201':
           description: Created transaction
@@ -1082,6 +1082,35 @@ components:
         sub_category_id: { $ref: '#/components/schemas/Identifier' }
         fixed_flg: { type: boolean }
         payment_id: { $ref: '#/components/schemas/NullableIdentifier' }
+    V1TransactionCreateInput:
+      type: object
+      additionalProperties: false
+      description: Exactly one of `sub_category_id` or `sub_category_name` must be supplied.
+      required:
+        [
+          transaction_date,
+          transaction_name,
+          amount,
+          sign,
+          category_id,
+          fixed_flg,
+        ]
+      properties:
+        transaction_date: { $ref: '#/components/schemas/DateString' }
+        transaction_time: { $ref: '#/components/schemas/V1NullableTime' }
+        transaction_name: { type: string, minLength: 1, maxLength: 32 }
+        amount: { type: integer, format: int64, minimum: 1, maximum: 9999999 }
+        sign: { type: integer, enum: [-1, 1] }
+        category_id: { $ref: '#/components/schemas/Identifier' }
+        sub_category_id:
+          $ref: '#/components/schemas/Identifier'
+          description: Existing subcategory ID. Mutually exclusive with `sub_category_name`.
+        sub_category_name:
+          type: string
+          maxLength: 16
+          description: Trimmed name to find, expose, or create. Mutually exclusive with `sub_category_id`.
+        fixed_flg: { type: boolean }
+        payment_id: { $ref: '#/components/schemas/NullableIdentifier' }
     V1BudgetRequest:
       type: object
       additionalProperties: false
@@ -1126,6 +1155,12 @@ components:
       required: [transaction]
       properties:
         transaction: { $ref: '#/components/schemas/V1TransactionInput' }
+    V1TransactionCreateRequest:
+      type: object
+      additionalProperties: false
+      required: [transaction]
+      properties:
+        transaction: { $ref: '#/components/schemas/V1TransactionCreateInput' }
     V1TransactionResource:
       type: object
       additionalProperties: false

@@ -86,6 +86,20 @@ class OpenApiContractTest < Minitest::Test
     assert_equal expected_fields.sort, schema.fetch("properties").keys.sort
   end
 
+  def test_v1_create_transaction_accepts_exactly_one_subcategory_reference_shape
+    create_request = @spec.dig("paths", "/api/v1/transactions", "post", "requestBody", "content", "application/json", "schema")
+    update_request = @spec.dig("paths", "/api/v1/transactions/{transactionId}", "patch", "requestBody", "content", "application/json", "schema")
+    create_input = @spec.dig("components", "schemas", "V1TransactionCreateInput")
+    update_input = @spec.dig("components", "schemas", "V1TransactionInput")
+
+    assert_equal({"$ref" => "#/components/schemas/V1TransactionCreateRequest"}, create_request)
+    assert_equal({"$ref" => "#/components/schemas/V1TransactionRequest"}, update_request)
+    refute_includes create_input.fetch("required"), "sub_category_id"
+    assert_includes create_input.fetch("properties"), "sub_category_name"
+    assert_includes update_input.fetch("required"), "sub_category_id"
+    refute_includes update_input.fetch("properties"), "sub_category_name"
+  end
+
   def test_out_of_scope_features_are_not_added_to_v1_contract
     v1_document = {
       "paths" => @spec.fetch("paths").select { |path, _| path.start_with?("/api/v1/") },

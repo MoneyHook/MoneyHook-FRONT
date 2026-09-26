@@ -110,6 +110,11 @@ export function TransactionFormFields({
           <Popover onOpenChange={setDatePickerOpen} open={datePickerOpen}>
             <PopoverTrigger asChild>
               <button
+                aria-describedby={
+                  errors.transactionDate
+                    ? 'new-transaction-transactionDate-error'
+                    : undefined
+                }
                 aria-invalid={errors.transactionDate ? true : undefined}
                 aria-label="日付"
                 className="flex min-h-12 w-full items-center gap-3 border-b px-4 text-left transition-colors outline-none hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-16 sm:px-5"
@@ -155,7 +160,10 @@ export function TransactionFormFields({
             </PopoverContent>
           </Popover>
           {errors.transactionDate ? (
-            <p className="px-4 pb-3 text-sm text-destructive" role="alert">
+            <p
+              id="new-transaction-transactionDate-error"
+              className="px-4 pb-3 text-sm text-destructive"
+            >
               {errors.transactionDate}
             </p>
           ) : null}
@@ -168,6 +176,9 @@ export function TransactionFormFields({
             </label>
             <span className="ml-auto text-xl font-semibold">¥</span>
             <Input
+              aria-describedby={
+                errors.amount ? 'new-transaction-amount-error' : undefined
+              }
               aria-invalid={errors.amount ? true : undefined}
               className="h-14 max-w-44 border-0 px-0 text-right text-2xl font-semibold tracking-[-0.04em] tabular-nums shadow-none placeholder:text-muted-foreground/60 focus-visible:ring-0 sm:h-16"
               id="new-transaction-amount"
@@ -181,7 +192,10 @@ export function TransactionFormFields({
             />
           </FormRow>
           {errors.amount ? (
-            <p className="px-4 pb-3 text-sm text-destructive" role="alert">
+            <p
+              id="new-transaction-amount-error"
+              className="px-4 pb-3 text-sm text-destructive"
+            >
               {errors.amount}
             </p>
           ) : null}
@@ -193,6 +207,11 @@ export function TransactionFormFields({
               取引名
             </label>
             <Input
+              aria-describedby={
+                errors.transactionName
+                  ? 'new-transaction-transactionName-error'
+                  : undefined
+              }
               aria-invalid={errors.transactionName ? true : undefined}
               className="ml-auto h-11 max-w-64 text-right text-xl placeholder:text-muted-foreground/60"
               id="new-transaction-name"
@@ -207,7 +226,10 @@ export function TransactionFormFields({
             />
           </FormRow>
           {errors.transactionName ? (
-            <p className="px-4 pb-3 text-sm text-destructive" role="alert">
+            <p
+              id="new-transaction-transactionName-error"
+              className="px-4 pb-3 text-sm text-destructive"
+            >
               {errors.transactionName}
             </p>
           ) : null}
@@ -232,12 +254,18 @@ export function TransactionFormFields({
         <FormSection>
           <button
             aria-describedby={
-              errors.categoryId || errors.subcategoryId
+              errors.categoryId ||
+              errors.subcategoryId ||
+              errors.subcategoryName
                 ? 'new-transaction-category-error'
                 : undefined
             }
             aria-invalid={
-              errors.categoryId || errors.subcategoryId ? true : undefined
+              errors.categoryId ||
+              errors.subcategoryId ||
+              errors.subcategoryName
+                ? true
+                : undefined
             }
             className="flex min-h-20 w-full items-center gap-3 px-4 text-left transition-colors outline-none hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-28 sm:px-5"
             onClick={openCategorySelection}
@@ -260,11 +288,13 @@ export function TransactionFormFields({
                 <span
                   className={cn(
                     'mt-0.5 block truncate text-xs sm:text-sm',
-                    !selectedSubcategory && 'text-muted-foreground',
+                    !selectedSubcategory &&
+                      !form.subcategoryName &&
+                      'text-muted-foreground',
                   )}
                 >
                   {selectedSubcategory?.sub_category_name ??
-                    'サブカテゴリを選択'}
+                    (form.subcategoryName || 'サブカテゴリを選択')}
                 </span>
               </span>
             </span>
@@ -273,13 +303,17 @@ export function TransactionFormFields({
               className="size-5 shrink-0 text-muted-foreground"
             />
           </button>
-          {errors.categoryId || errors.subcategoryId ? (
+          {errors.categoryId ||
+          errors.subcategoryId ||
+          errors.subcategoryName ? (
             <p
               className="px-4 pb-3 text-sm text-destructive"
               id="new-transaction-category-error"
               role="alert"
             >
-              {errors.categoryId ?? errors.subcategoryId}
+              {errors.categoryId ??
+                errors.subcategoryId ??
+                errors.subcategoryName}
             </p>
           ) : null}
           <div className="border-t" />
