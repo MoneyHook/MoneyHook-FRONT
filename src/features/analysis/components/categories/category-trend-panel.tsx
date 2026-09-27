@@ -1,4 +1,3 @@
-import { ChevronDown } from 'lucide-react'
 import {
   CartesianGrid,
   Line,
@@ -8,6 +7,14 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select'
 
 import type {
   CategoryAnalysisItem,
@@ -66,26 +73,24 @@ export function CategoryTrendPanel({
         <h2 className="text-base font-semibold sm:text-lg">
           {category.name}の推移
         </h2>
-        <label className="relative inline-flex min-h-9 items-center rounded-lg bg-muted text-xs font-medium sm:text-sm">
-          <select
+        <Select
+          onValueChange={(value) => onGroupChange(value as CategoryGroup)}
+          value={group}
+        >
+          <SelectTrigger
             aria-label="推移の集計単位"
-            className="h-9 appearance-none bg-transparent pr-9 pl-3 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-            onChange={(event) =>
-              onGroupChange(event.target.value as CategoryGroup)
-            }
-            value={group}
+            className="h-9 w-auto min-w-22 border-transparent bg-muted px-3 text-xs font-medium sm:text-sm"
           >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent align="end">
             {groupOptions.map((option) => (
-              <option key={option.value} value={option.value}>
+              <SelectItem key={option.value} value={option.value}>
                 {option.label}
-              </option>
+              </SelectItem>
             ))}
-          </select>
-          <ChevronDown
-            aria-hidden="true"
-            className="pointer-events-none absolute right-3 size-4"
-          />
-        </label>
+          </SelectContent>
+        </Select>
       </div>
       <div
         aria-label={`${category.name}の支出推移グラフ`}

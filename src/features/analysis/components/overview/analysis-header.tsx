@@ -24,6 +24,7 @@ import {
   type AnalysisRangeSelection,
   formatJapaneseMonth,
   getCurrentAnalysisMonth,
+  getPreviousAnalysisMonth,
 } from '../../model/analysis-overview'
 
 export function AnalysisHeader({
@@ -40,7 +41,14 @@ export function AnalysisHeader({
   const [periodOpen, setPeriodOpen] = useState(false)
   const label = selection.isDefault
     ? '直近6か月'
-    : `${formatJapaneseMonth(selection.startMonth)}〜${Number(selection.endMonth.slice(5))}月`
+    : selection.startMonth === selection.endMonth
+      ? formatJapaneseMonth(selection.startMonth)
+      : `${formatJapaneseMonth(selection.startMonth)}〜${Number(selection.endMonth.slice(5))}月`
+
+  const selectMonth = (month: string) => {
+    onRangeChange(month, month)
+    setPeriodOpen(false)
+  }
 
   return (
     <>
@@ -77,6 +85,24 @@ export function AnalysisHeader({
             sideOffset={8}
           >
             <p className="text-sm font-semibold">表示期間</p>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <Button
+                className="min-h-10"
+                onClick={() => selectMonth(getCurrentAnalysisMonth())}
+                type="button"
+                variant="outline"
+              >
+                今月
+              </Button>
+              <Button
+                className="min-h-10"
+                onClick={() => selectMonth(getPreviousAnalysisMonth())}
+                type="button"
+                variant="outline"
+              >
+                先月
+              </Button>
+            </div>
             <div className="mt-3 grid gap-3 border-t pt-3">
               <MonthPicker
                 align="start"

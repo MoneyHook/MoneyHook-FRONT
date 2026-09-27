@@ -12,6 +12,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 
+import { Skeleton } from '@/shared/components/ui/skeleton'
 import { cn } from '@/shared/lib/utils'
 
 import {
@@ -85,6 +86,7 @@ function BudgetRing({ budgetRatio }: { budgetRatio: number | null }) {
           data={[{ value: progress }]}
           endAngle={-270}
           innerRadius="82%"
+          key={budgetRatio ?? 'unconfigured'}
           outerRadius="100%"
           startAngle={90}
         >
@@ -95,11 +97,12 @@ function BudgetRing({ budgetRatio }: { budgetRatio: number | null }) {
             type="number"
           />
           <RadialBar
+            animationDuration={900}
             background={{ fill: 'var(--muted)' }}
             cornerRadius={10}
             dataKey="value"
             fill={isConfigured ? ringColor : 'transparent'}
-            isAnimationActive={false}
+            isAnimationActive="auto"
           />
         </RadialBarChart>
       </ResponsiveContainer>
@@ -115,7 +118,13 @@ function BudgetRing({ budgetRatio }: { budgetRatio: number | null }) {
   )
 }
 
-export function SummaryCard({ data }: { data: HomeDashboardViewModel }) {
+export function SummaryCard({
+  data,
+  isBudgetPending,
+}: {
+  data: HomeDashboardViewModel
+  isBudgetPending: boolean
+}) {
   const differenceTone =
     data.differenceAmount > 0
       ? 'text-expense'
@@ -155,7 +164,17 @@ export function SummaryCard({ data }: { data: HomeDashboardViewModel }) {
             ) : null}
           </div>
         </div>
-        <BudgetRing budgetRatio={data.budgetRatio} />
+        {isBudgetPending ? (
+          <div
+            aria-label="予算比を読み込んでいます"
+            className="shrink-0"
+            role="status"
+          >
+            <Skeleton className="size-20 rounded-full sm:size-36" />
+          </div>
+        ) : (
+          <BudgetRing budgetRatio={data.budgetRatio} />
+        )}
       </div>
 
       <div className="mt-3 grid grid-cols-3 divide-x sm:mt-7">
