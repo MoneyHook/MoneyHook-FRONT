@@ -11,6 +11,7 @@ export function useAnalysisDashboardController() {
   const selection = resolveAnalysisRange({
     startMonth: searchParams.get('startMonth'),
     endMonth: searchParams.get('endMonth'),
+    month: searchParams.get('month'),
   })
 
   useEffect(() => {
