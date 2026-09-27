@@ -114,13 +114,21 @@ export function getCurrentAnalysisMonth(now = new Date()) {
   return formatDate(now.getFullYear(), now.getMonth(), 1).slice(0, 7)
 }
 
+export function getPreviousAnalysisMonth(now = new Date()) {
+  return getCurrentAnalysisMonth(
+    new Date(now.getFullYear(), now.getMonth() - 1, 1),
+  )
+}
+
 export function resolveAnalysisRange({
   startMonth,
   endMonth,
+  month,
   now = new Date(),
 }: {
   startMonth?: string | null
   endMonth?: string | null
+  month?: string | null
   now?: Date
 }): AnalysisRangeSelection {
   const currentMonth = getCurrentAnalysisMonth(now)
@@ -133,17 +141,32 @@ export function resolveAnalysisRange({
   ).slice(0, 7)
   const requestedStartMonth = startMonth ?? null
   const requestedEndMonth = endMonth ?? null
-  const hasValidSelection =
+  const requestedSingleMonth =
+    requestedStartMonth === null &&
+    requestedEndMonth === null &&
+    month !== null &&
+    month !== undefined &&
+    /^\d{4}-(0[1-9]|1[0-2])(?:-01)?$/.test(month)
+      ? month.slice(0, 7)
+      : null
+  let hasValidSelection = false
+  let resolvedStartMonth = defaultStartMonth
+  let resolvedEndMonth = defaultEndMonth
+
+  if (requestedSingleMonth !== null && requestedSingleMonth <= currentMonth) {
+    hasValidSelection = true
+    resolvedStartMonth = requestedSingleMonth
+    resolvedEndMonth = requestedSingleMonth
+  } else if (
     isMonth(requestedStartMonth) &&
     isMonth(requestedEndMonth) &&
     requestedStartMonth <= requestedEndMonth &&
     requestedEndMonth <= currentMonth
-  const resolvedStartMonth = hasValidSelection
-    ? requestedStartMonth
-    : defaultStartMonth
-  const resolvedEndMonth = hasValidSelection
-    ? requestedEndMonth
-    : defaultEndMonth
+  ) {
+    hasValidSelection = true
+    resolvedStartMonth = requestedStartMonth
+    resolvedEndMonth = requestedEndMonth
+  }
 
   return {
     range: createAnalysisRangeFromMonths(resolvedStartMonth, resolvedEndMonth),

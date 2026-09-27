@@ -9,6 +9,7 @@ import type {
 import {
   buildAnalysisOverviewViewModel,
   createAnalysisRange,
+  getPreviousAnalysisMonth,
   resolveAnalysisRange,
 } from './analysis-overview'
 
@@ -186,6 +187,22 @@ describe('analysis overview model', () => {
       endMonth: '2026-08',
       isDefault: true,
     })
+  })
+
+  it('calculates the previous calendar month across a year boundary', () => {
+    expect(getPreviousAnalysisMonth(new Date(2026, 0, 15))).toBe('2025-12')
+    expect(getPreviousAnalysisMonth(new Date(2026, 8, 27))).toBe('2026-08')
+  })
+
+  it('resolves a single month from the month query parameter', () => {
+    const now = new Date(2026, 7, 30, 12)
+    expect(resolveAnalysisRange({ month: '2026-04', now })).toMatchObject({
+      startMonth: '2026-04',
+      endMonth: '2026-04',
+      isDefault: false,
+      range: { startDate: '2026-04-01', endDate: '2026-04-30' },
+    })
+    expect(resolveAnalysisRange({ month: '2026-09', now }).isDefault).toBe(true)
   })
 
   it('builds summaries, grouped breakdowns, and ranked changes', () => {
