@@ -163,6 +163,7 @@ export function useHomeDashboard(month: MonthContext) {
 
   return {
     data,
+    isBudgetPending: budget.isPending,
     error,
     isError: isError && !data,
     isPending: isPending && !data,
