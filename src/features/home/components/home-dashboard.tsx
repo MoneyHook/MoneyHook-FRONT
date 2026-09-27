@@ -39,7 +39,10 @@ export function HomeDashboard() {
         ) : null}
         {dashboard.data ? (
           <div className="space-y-3 sm:space-y-4">
-            <SummaryCard data={dashboard.data} />
+            <SummaryCard
+              data={dashboard.data}
+              isBudgetPending={dashboard.isBudgetPending}
+            />
             <SpendingPaceCard data={dashboard.data} />
             <div className="grid gap-3 min-[400px]:grid-cols-[1.08fr_0.92fr] sm:gap-4">
               <CategoryCard data={dashboard.data} month={month.month} />
