@@ -9,6 +9,7 @@
 - 不明点は、コード、設定、契約、関連資料から確認できる範囲を調査してから質問する。
 - ユーザーが指定していない機能追加、広範なリファクタリング、別リポジトリの変更を行わない。
 - 既存の構成、命名、実装パターンを優先し、必要性が確認できない共通化や将来向けの抽象化を追加しない。
+- テストの追加・変更を計画する前に [テスト方針](docs/ARCHITECTURE.md#テスト) を確認する。UIの表示・操作を検証するテストは追加せず、UIを介さずに検証できる契約を対象にする。既存のUIテストを追加の前例にしない。
 - 変更範囲に応じて型検査、lint、テスト、buildを実行し、未実行または失敗した確認項目を報告する。
 - ユーザーから明示的に依頼されない限り、branch作成、commit、push、PR作成、tag操作を行わない。
 
@@ -20,6 +21,7 @@
 | ------------------------------------------------------------- | -------------------------------------------- |
 | 対象機能、画面、スコープ外、金額・日付・ID、UI方針            | [docs/PRODUCT.md](docs/PRODUCT.md)           |
 | 採用技術、コード配置、依存方向、状態管理、認証・API・UIの境界 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| テストの追加・変更・レビューで許可する検証対象              | [docs/ARCHITECTURE.md#テスト](docs/ARCHITECTURE.md#テスト) |
 | ローカル環境、環境変数、検証コマンド、トラブルシューティング  | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)   |
 | 確定済みのフロントエンド判断と理由                            | [docs/DECISIONS.md](docs/DECISIONS.md)       |
 | branch戦略、commit message、PR、release、hotfix               | [docs/GIT_WORKFLOW.md](docs/GIT_WORKFLOW.md) |

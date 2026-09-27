@@ -38,7 +38,7 @@ Vite環境変数はブラウザへ配布されます。秘密情報やサーバ�
 
 ## 検証
 
-変更範囲に応じて実行します。
+変更範囲に応じて実行します。テストの追加・変更は [テスト方針](ARCHITECTURE.md#テスト) に従い、UIを介さずに検証できる契約を対象にします。UIの表示や操作は手動で確認し、確認結果と未確認項目を報告してください。
 
 ```bash
 pnpm typecheck
@@ -50,9 +50,9 @@ pnpm e2e
 
 - `typecheck`: TypeScript project referencesの型検査
 - `lint`: ESLintとsemantic color check
-- `test`: Vitestの単体・コンポーネントテスト
+- `test`: Vitestによるロジック・契約の検証（既存のテスト一式を実行）
 - `build`: TypeScript buildとVite production build
-- `e2e`: Playwrightによるブラウザテスト
+- `e2e`: Playwrightによる、ブラウザ環境が必要な認証/API結合の検証
 
 `pnpm e2e`はFirebase Auth Emulatorと実Go APIを前提とします。Playwright設定では開発ユーザー用のmock credentialを有効にし、Authユーザーを削除せず、固定UIDとサンプルデータがAPI経由で利用できることを検証します。外部サービスの起動方法とデータ準備は、それぞれの所有リポジトリを参照してください。
 

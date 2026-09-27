@@ -69,11 +69,13 @@ Viteがターミナルに表示したURLをブラウザで開きます。停止�
 | `pnpm lint`          | ESLintとsemantic color check     |
 | `pnpm test`          | Vitestを実行                     |
 | `pnpm build`         | production buildを作成           |
-| `pnpm e2e`           | Playwright E2Eを実行             |
+| `pnpm e2e`           | Playwrightで認証/API結合を検証   |
 | `pnpm api:generate`  | OpenAPIからAPIクライアントを生成 |
 | `pnpm contract:test` | OpenAPI契約テストを実行          |
 
 `pnpm e2e`はFirebase Auth Emulatorと実Go APIを前提とします。検証条件とAPIクライアントの扱いは [DEVELOPMENT.md](docs/DEVELOPMENT.md) を参照してください。
+
+テストの追加・変更は [テスト方針](docs/ARCHITECTURE.md#テスト) に従ってください。UIの表示・操作を検証するテストは追加しません。
 
 ## ドキュメント
 
