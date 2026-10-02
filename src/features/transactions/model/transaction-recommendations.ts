@@ -1,5 +1,31 @@
 import type { FrequentTransactionResponseTransactionListItem } from '@/shared/api/generated/model/frequentTransactionResponseTransactionListItem'
 
+import type { NewTransactionFormValues } from './new-transaction'
+
+export type TransactionRecommendationOverrides = {
+  category?: boolean
+  fixed?: boolean
+  payment?: boolean
+}
+
+export function applyTransactionRecommendation(
+  form: NewTransactionFormValues,
+  transaction: FrequentTransactionResponseTransactionListItem,
+  overrides: TransactionRecommendationOverrides,
+): NewTransactionFormValues {
+  return {
+    ...form,
+    transactionName: transaction.transaction_name,
+    ...(!overrides.category && {
+      categoryId: transaction.category_id,
+      subcategoryId: transaction.sub_category_id,
+      subcategoryName: '',
+    }),
+    ...(!overrides.fixed && { fixed: transaction.fixed_flg }),
+    ...(!overrides.payment && { paymentId: transaction.payment_id }),
+  }
+}
+
 export type TransactionRecommendationIndex = Array<{
   transaction: FrequentTransactionResponseTransactionListItem
   normalizedName: string
@@ -29,7 +55,7 @@ export function getTransactionRecommendations(
   input: string,
 ): FrequentTransactionResponseTransactionListItem[] {
   const query = normalizeTransactionName(input)
-  if (!query) return []
+  if (!query) return index.slice(0, 6).map(({ transaction }) => transaction)
 
   return index
     .map(({ transaction, normalizedName }) => {

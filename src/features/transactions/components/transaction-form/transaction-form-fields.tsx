@@ -13,11 +13,9 @@ import { cn } from '@/shared/lib/utils'
 
 import type { TransactionFormController } from '../../hooks/use-transaction-form-controller'
 import { formatCalendarDate } from '../../model/transaction-form'
-import {
-  TransactionCandidateChip,
-  TransactionCandidates,
-} from '../transaction-candidates'
+import { TransactionCandidates } from '../transaction-candidates'
 import { CategoryIcon, PaymentIcon } from './transaction-form-icons'
+import { TransactionNameInput } from './transaction-name-input'
 
 function FormSection({
   children,
@@ -68,6 +66,9 @@ type Props = Pick<
   | 'paymentTypeNames'
   | 'paymentsError'
   | 'recommendedTransactions'
+  | 'isEdit'
+  | 'isLoadingRecommendations'
+  | 'recommendationsError'
   | 'handleNameChange'
   | 'handleNameCompositionStart'
   | 'handleNameCompositionEnd'
@@ -92,6 +93,9 @@ export function TransactionFormFields({
   paymentTypeNames,
   paymentsError,
   recommendedTransactions,
+  isEdit,
+  isLoadingRecommendations,
+  recommendationsError,
   handleNameChange,
   handleNameCompositionStart,
   handleNameCompositionEnd,
@@ -206,23 +210,18 @@ export function TransactionFormFields({
             >
               取引名
             </label>
-            <Input
-              aria-describedby={
-                errors.transactionName
-                  ? 'new-transaction-transactionName-error'
-                  : undefined
-              }
-              aria-invalid={errors.transactionName ? true : undefined}
-              className="ml-auto h-11 max-w-64 text-right text-xl placeholder:text-muted-foreground/60"
-              id="new-transaction-name"
-              maxLength={32}
-              onChange={(event) => handleNameChange(event.target.value)}
-              onCompositionStart={handleNameCompositionStart}
-              onCompositionEnd={(event) =>
-                handleNameCompositionEnd(event.currentTarget.value)
-              }
-              placeholder="例: ランチ"
-              value={form.transactionName}
+            <TransactionNameInput
+              form={form}
+              errors={errors}
+              isEdit={isEdit}
+              payments={payments}
+              recommendedTransactions={recommendedTransactions}
+              isLoadingRecommendations={isLoadingRecommendations}
+              recommendationsError={recommendationsError}
+              handleNameChange={handleNameChange}
+              handleNameCompositionStart={handleNameCompositionStart}
+              handleNameCompositionEnd={handleNameCompositionEnd}
+              selectFrequentTransaction={selectFrequentTransaction}
             />
           </FormRow>
           {errors.transactionName ? (
@@ -232,22 +231,6 @@ export function TransactionFormFields({
             >
               {errors.transactionName}
             </p>
-          ) : null}
-          {recommendedTransactions.length ? (
-            <section aria-label="おすすめ" className="px-4 pb-4 sm:px-5">
-              <h2 className="mb-2 text-sm font-medium text-muted-foreground">
-                おすすめ
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {recommendedTransactions.map((transaction) => (
-                  <TransactionCandidateChip
-                    key={`${transaction.transaction_name}-${transaction.category_id}-${transaction.sub_category_id}`}
-                    onSelect={selectFrequentTransaction}
-                    transaction={transaction}
-                  />
-                ))}
-              </div>
-            </section>
           ) : null}
         </FormSection>
 
