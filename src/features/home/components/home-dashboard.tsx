@@ -1,4 +1,5 @@
 import { ErrorState } from '@/shared/components/app-state'
+import { cn } from '@/shared/lib/utils'
 
 import { useHomeDashboardController } from '../hooks/use-home-dashboard-controller'
 import { CategoryCard } from './dashboard/category-card'
@@ -10,7 +11,8 @@ import { SpendingPaceCard } from './dashboard/spending-pace-card'
 import { SummaryCard } from './dashboard/summary-card'
 
 export function HomeDashboard() {
-  const { dashboard, month, handleMonthChange } = useHomeDashboardController()
+  const { dashboard, changes, month, handleMonthChange } =
+    useHomeDashboardController()
 
   return (
     <section
@@ -44,9 +46,14 @@ export function HomeDashboard() {
               isBudgetPending={dashboard.isBudgetPending}
             />
             <SpendingPaceCard data={dashboard.data} />
-            <div className="grid gap-3 min-[400px]:grid-cols-[1.08fr_0.92fr] sm:gap-4">
+            <div
+              className={cn(
+                'grid gap-3 sm:gap-4',
+                changes.data && 'min-[400px]:grid-cols-[1.08fr_0.92fr]',
+              )}
+            >
               <CategoryCard data={dashboard.data} month={month.month} />
-              <ChangesCard data={dashboard.data} />
+              {changes.data ? <ChangesCard data={changes.data} /> : null}
             </div>
             <FixedSummaryCard data={dashboard.data} month={month.month} />
           </div>

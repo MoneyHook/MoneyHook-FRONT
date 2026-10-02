@@ -36,12 +36,6 @@ export type CategorySummary = {
   barRatio: number
 }
 
-export type CategoryChange = {
-  name: string
-  difference: number
-  previousAmount: number
-}
-
 export type HomeDashboardViewModel = {
   expenseAmount: number
   differenceAmount: number
@@ -54,8 +48,6 @@ export type HomeDashboardViewModel = {
   dayCaption: string
   pace: PacePoint[]
   categories: CategorySummary[]
-  increase: CategoryChange | null
-  decrease: CategoryChange | null
   fixedMonthlyAmount: number
   fixedAnnualizedAmount: number
   fixedTotalExpenseRatio: number
@@ -238,25 +230,6 @@ export function buildHomeDashboardViewModel({
     barRatio: ratio(amount, maxCategoryAmount),
   }))
 
-  const categoryNames = new Set([
-    ...currentCategories.keys(),
-    ...previousCategories.keys(),
-  ])
-  const changes = [...categoryNames].map((name) => ({
-    name,
-    difference:
-      (currentCategories.get(name) ?? 0) - (previousCategories.get(name) ?? 0),
-    previousAmount: previousCategories.get(name) ?? 0,
-  }))
-  const increase =
-    changes
-      .filter((change) => change.difference > 0)
-      .sort((left, right) => right.difference - left.difference)[0] ?? null
-  const decrease =
-    changes
-      .filter((change) => change.difference < 0)
-      .sort((left, right) => left.difference - right.difference)[0] ?? null
-
   const fixedExpenseAmount = currentOverview.summary.fixed_expense_amount
   const variableExpenseAmount = currentOverview.summary.variable_expense_amount
   const budgetRatio =
@@ -281,8 +254,6 @@ export function buildHomeDashboardViewModel({
       : `${month.daysInMonth}日間`,
     pace,
     categories,
-    increase,
-    decrease,
     fixedMonthlyAmount: fixed.summary.expense_amount,
     fixedAnnualizedAmount: fixed.summary.annualized_amount,
     fixedTotalExpenseRatio: fixed.summary.total_expense_ratio,
