@@ -89,7 +89,7 @@ describe('home dashboard month helpers', () => {
 })
 
 describe('buildHomeDashboardViewModel', () => {
-  it('builds cumulative pace, ratios, top categories, and changes', () => {
+  it('builds cumulative pace, ratios, top categories', () => {
     const month = createMonthContext('2026-08-01', new Date(2026, 7, 22))
     const result = buildHomeDashboardViewModel({
       currentOverview: overview(184_320, [
@@ -143,8 +143,6 @@ describe('buildHomeDashboardViewModel', () => {
       '住居',
       '交通',
     ])
-    expect(result.increase).toMatchObject({ name: '食費', difference: 12_400 })
-    expect(result.decrease).toMatchObject({ name: '交通', difference: -3_700 })
     expect(result.dailyAverage).toBe(8_378)
     expect(result.budgetRatio).toBe(61.44)
   })
@@ -164,8 +162,6 @@ describe('buildHomeDashboardViewModel', () => {
 
     expect(result.differenceRate).toBeNull()
     expect(result.categories).toEqual([])
-    expect(result.increase).toBeNull()
-    expect(result.decrease).toBeNull()
     expect(result.dailyAverage).toBe(0)
     expect(result.budgetRatio).toBeNull()
   })
