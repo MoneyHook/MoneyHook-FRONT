@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 
+import { Button } from '@/shared/components/ui/button'
 import { cn } from '@/shared/lib/utils'
 
 type BrandProps = {
@@ -34,14 +35,18 @@ export function Brand({
 
   if (onClick) {
     return (
-      <button
+      <Button
+        variant="ghost"
         aria-label={ariaLabel}
-        className={sharedClassName}
+        className={cn(
+          'h-auto border-0 p-0 font-normal hover:bg-transparent active:translate-y-0 dark:hover:bg-transparent',
+          sharedClassName,
+        )}
         onClick={onClick}
         type="button"
       >
         {content}
-      </button>
+      </Button>
     )
   }
 

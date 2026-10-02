@@ -1,5 +1,11 @@
 import { AnalysisDashboard } from '@/features/analysis'
 
+import { LegacyFamilyRedirect } from '../households/family-page'
+
 export function AnalysisPage() {
-  return <AnalysisDashboard />
+  return (
+    <LegacyFamilyRedirect analysis>
+      <AnalysisDashboard />
+    </LegacyFamilyRedirect>
+  )
 }

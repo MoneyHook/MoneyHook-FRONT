@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { ErrorState } from '@/shared/components/app-state'
 import { Button } from '@/shared/components/ui/button'
 import { Sheet, SheetContent } from '@/shared/components/ui/sheet'
+import { Tabs, TabsContent } from '@/shared/components/ui/tabs'
 
 import { useTransactionsController } from '../hooks/use-transactions-controller'
 import { EMPTY_TRANSACTION_FILTERS } from '../model/transaction-filters'
@@ -54,14 +55,14 @@ export function TransactionsView() {
           </div>
         </header>
 
-        <div
-          className={`flex min-h-0 flex-1 flex-col transition-[margin-top] duration-200 ease-out motion-reduce:transition-none ${isHeaderCompact ? 'mt-1' : 'mt-3 sm:mt-4'}`}
+        <Tabs
+          className={`flex min-h-0 flex-1 flex-col gap-0 transition-[margin-top] duration-200 ease-out motion-reduce:transition-none ${isHeaderCompact ? 'mt-1' : 'mt-3 sm:mt-4'}`}
+          onValueChange={(value) =>
+            controller.changeView(value as typeof controller.view)
+          }
+          value={controller.view}
         >
-          <TransactionsViewTabs
-            compact={isHeaderCompact}
-            onChange={controller.changeView}
-            value={controller.view}
-          />
+          <TransactionsViewTabs compact={isHeaderCompact} />
           <div
             className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-2"
             data-slot="transactions-scroll-area"
@@ -100,32 +101,32 @@ export function TransactionsView() {
                 title="取引を表示できません"
               />
             ) : null}
-            {controller.data &&
-            controller.filteredData &&
-            controller.view === 'list' ? (
-              <TransactionsListPanel
-                data={controller.filteredData}
-                hasFilters={Boolean(controller.activeFilterCount)}
-                month={controller.month}
-                onClearFilters={controller.clearAppliedFilters}
-                onMonthChange={controller.changeMonth}
-                onOpen={controller.openTransaction}
-              />
-            ) : null}
-            {controller.data &&
-            controller.filteredData &&
-            controller.view === 'calendar' ? (
-              <TransactionsCalendarPanel
-                data={controller.filteredData}
-                month={controller.month}
-                onDateChange={controller.changeDate}
-                onMonthChange={controller.changeMonth}
-                onOpen={controller.openTransaction}
-                selectedDate={controller.selectedDate}
-              />
-            ) : null}
+            <TabsContent value="list">
+              {controller.data && controller.filteredData ? (
+                <TransactionsListPanel
+                  data={controller.filteredData}
+                  hasFilters={Boolean(controller.activeFilterCount)}
+                  month={controller.month}
+                  onClearFilters={controller.clearAppliedFilters}
+                  onMonthChange={controller.changeMonth}
+                  onOpen={controller.openTransaction}
+                />
+              ) : null}
+            </TabsContent>
+            <TabsContent value="calendar">
+              {controller.data && controller.filteredData ? (
+                <TransactionsCalendarPanel
+                  data={controller.filteredData}
+                  month={controller.month}
+                  onDateChange={controller.changeDate}
+                  onMonthChange={controller.changeMonth}
+                  onOpen={controller.openTransaction}
+                  selectedDate={controller.selectedDate}
+                />
+              ) : null}
+            </TabsContent>
           </div>
-        </div>
+        </Tabs>
       </section>
 
       <Sheet

@@ -8,7 +8,7 @@ import {
   Settings,
 } from 'lucide-react'
 import { useMemo } from 'react'
-import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { useAuth } from '@/features/auth'
@@ -22,7 +22,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu'
@@ -46,17 +45,26 @@ type NavigationItem = {
   label: string
   path: string
   icon: LucideIcon
+  exact?: boolean
+  relatedPaths?: string[]
 }
 
-const navigationItems: NavigationItem[] = [
+const personalNavigationItems: NavigationItem[] = [
   { label: 'ホーム', path: '/app/home', icon: House },
   { label: '取引', path: '/app/transactions', icon: ArrowLeftRight },
   { label: '分析', path: '/app/analysis', icon: ChartPie },
   { label: '設定', path: '/app/settings', icon: Settings },
 ]
 
-function isNavigationItemActive(pathname: string, itemPath: string) {
-  return pathname === itemPath || pathname.startsWith(`${itemPath}/`)
+const familyNavigationItems: NavigationItem[] = [
+  { label: 'ホーム', path: '/app/family', icon: House, exact: true },
+]
+
+function isNavigationItemActive(pathname: string, item: NavigationItem) {
+  return [item.path, ...(item.relatedPaths ?? [])].some(
+    (path) =>
+      pathname === path || (!item.exact && pathname.startsWith(`${path}/`)),
+  )
 }
 
 function SidebarAccountMenu() {
@@ -98,16 +106,21 @@ function SidebarAccountMenu() {
         </SidebarMenuButton>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuLabel className="space-y-1">
-          <span className="block truncate font-medium">
-            {user?.displayName || 'MoneyHooksユーザー'}
-          </span>
-          {user?.email ? (
-            <span className="block truncate text-xs font-normal text-muted-foreground">
-              {user.email}
+        <DropdownMenuItem
+          asChild
+          className="block cursor-pointer space-y-1 text-xs font-medium text-muted-foreground"
+        >
+          <Link aria-label="設定画面を開く" to="/app/settings">
+            <span className="block truncate font-medium">
+              {user?.displayName || 'MoneyHooksユーザー'}
             </span>
-          ) : null}
-        </DropdownMenuLabel>
+            {user?.email ? (
+              <span className="block truncate text-xs font-normal text-muted-foreground">
+                {user.email}
+              </span>
+            ) : null}
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={handleSignOut} variant="destructive">
           <LogOut aria-hidden="true" />
@@ -118,7 +131,15 @@ function SidebarAccountMenu() {
   )
 }
 
-function DesktopSidebar({ pathname }: { pathname: string }) {
+function DesktopSidebar({
+  pathname,
+  navigationItems,
+  suffix,
+}: {
+  pathname: string
+  navigationItems: NavigationItem[]
+  suffix: string
+}) {
   const { state, toggleSidebar } = useSidebar()
   const sidebarToggleLabel =
     state === 'expanded' ? 'サイドバーを閉じる' : 'サイドバーを開く'
@@ -137,7 +158,7 @@ function DesktopSidebar({ pathname }: { pathname: string }) {
           <SidebarGroupContent>
             <SidebarMenu>
               {navigationItems.map((item) => {
-                const isActive = isNavigationItemActive(pathname, item.path)
+                const isActive = isNavigationItemActive(pathname, item)
                 const Icon = item.icon
                 return (
                   <SidebarMenuItem key={item.path}>
@@ -148,7 +169,8 @@ function DesktopSidebar({ pathname }: { pathname: string }) {
                     >
                       <NavLink
                         aria-current={isActive ? 'page' : undefined}
-                        to={item.path}
+                        end={item.exact}
+                        to={`${item.path}${suffix}`}
                       >
                         <Icon aria-hidden="true" />
                         <span>{item.label}</span>
@@ -172,29 +194,40 @@ function DesktopSidebar({ pathname }: { pathname: string }) {
   )
 }
 
-function MobileNavigation({ pathname }: { pathname: string }) {
-  const mobileNavigationItems = [
-    navigationItems[0],
-    navigationItems[1],
-    { label: '追加', path: '/app/transactions/new', icon: Plus },
-    navigationItems[2],
-    navigationItems[3],
-  ]
+function MobileNavigation({
+  pathname,
+  navigationItems,
+  suffix,
+  addPath,
+}: {
+  pathname: string
+  navigationItems: NavigationItem[]
+  suffix: string
+  addPath?: string
+}) {
+  const mobileNavigationItems = addPath
+    ? [
+        ...navigationItems.slice(0, 2),
+        { label: '追加', path: addPath, icon: Plus, exact: true },
+        ...navigationItems.slice(2),
+      ]
+    : navigationItems
 
   return (
     <nav
       aria-label="メインナビゲーション"
       className="fixed inset-x-0 bottom-0 z-30 border-t bg-surface-elevated/95 px-2 pt-1 pb-[max(0.35rem,env(safe-area-inset-bottom))] backdrop-blur md:hidden"
     >
-      <ul className="grid grid-cols-5">
+      <ul className="grid auto-cols-fr grid-flow-col">
         {mobileNavigationItems.map((item) => {
-          const isActive = isNavigationItemActive(pathname, item.path)
-          const isAddAction = item.path === '/app/transactions/new'
+          const isActive = isNavigationItemActive(pathname, item)
+          const isAddAction = item.path === addPath
           const Icon = item.icon
           return (
             <li key={item.path}>
               <NavLink
                 aria-current={isActive ? 'page' : undefined}
+                end={item.exact}
                 aria-label={isAddAction ? '新しい取引を追加' : undefined}
                 className={({ isPending }) =>
                   [
@@ -208,7 +241,7 @@ function MobileNavigation({ pathname }: { pathname: string }) {
                     isPending ? 'opacity-60' : '',
                   ].join(' ')
                 }
-                to={item.path}
+                to={`${item.path}${suffix}`}
               >
                 <span
                   className={cn(
@@ -233,11 +266,31 @@ function MobileNavigation({ pathname }: { pathname: string }) {
   )
 }
 
-export function AppShell() {
+export function AppShell({
+  scope = 'personal',
+}: {
+  scope?: 'personal' | 'family'
+}) {
   const location = useLocation()
+  const isFamily =
+    scope === 'family' || location.pathname === '/app/settings/family'
+  const navigationItems = isFamily
+    ? familyNavigationItems
+    : personalNavigationItems
+  const context = new URLSearchParams()
+  if (isFamily) {
+    const search = new URLSearchParams(location.search)
+    for (const key of ['household', 'month']) {
+      const value = search.get(key)
+      if (value) context.set(key, value)
+    }
+  }
+  const suffix = context.size ? `?${context}` : ''
   const isTransactionComposer =
     location.pathname === '/app/transactions/new' ||
-    /^\/app\/transactions\/[^/]+\/edit$/.test(location.pathname)
+    /^\/app\/transactions\/[^/]+\/edit$/.test(location.pathname) ||
+    location.pathname === '/app/family/new' ||
+    /^\/app\/family\/transactions\/[^/]+\/edit$/.test(location.pathname)
 
   return (
     <SidebarProvider>
@@ -248,11 +301,20 @@ export function AppShell() {
         本文へ移動
       </a>
 
-      <DesktopSidebar pathname={location.pathname} />
+      <DesktopSidebar
+        pathname={location.pathname}
+        navigationItems={navigationItems}
+        suffix={suffix}
+      />
       <SidebarInset id="main-content" tabIndex={-1}>
         <Outlet />
         {!isTransactionComposer ? (
-          <MobileNavigation pathname={location.pathname} />
+          <MobileNavigation
+            pathname={location.pathname}
+            navigationItems={navigationItems}
+            suffix={suffix}
+            addPath={isFamily ? undefined : '/app/transactions/new'}
+          />
         ) : null}
       </SidebarInset>
     </SidebarProvider>

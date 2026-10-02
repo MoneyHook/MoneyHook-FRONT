@@ -1,6 +1,8 @@
 import { FileUp, LoaderCircle } from 'lucide-react'
 
 import { Card } from '@/shared/components/ui/card'
+import { Input } from '@/shared/components/ui/input'
+import { RadioGroup, RadioGroupItem } from '@/shared/components/ui/radio-group'
 import { cn } from '@/shared/lib/utils'
 
 import type { ImportSign } from '../model/csv-import'
@@ -21,10 +23,11 @@ export function CsvImportSetup({
   return (
     <div className="grid gap-5 self-start">
       <Card className="grid gap-4 p-5">
-        <div
+        <RadioGroup
           aria-label="取引種別"
           className="grid grid-cols-2 rounded-2xl bg-muted p-0.5 sm:p-1.5"
-          role="tablist"
+          onValueChange={(value) => onSignChange(value as ImportSign)}
+          value={sign}
         >
           {[
             { sign: 'expense' as const, label: '支出' },
@@ -32,26 +35,29 @@ export function CsvImportSetup({
           ].map((item) => {
             const isSelected = sign === item.sign
             return (
-              <button
-                aria-selected={isSelected}
-                className={cn(
-                  'min-h-10 rounded-xl px-3 text-sm font-semibold transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-12 sm:px-4 sm:text-base',
-                  isSelected
-                    ? item.sign === 'expense'
-                      ? 'bg-card text-expense shadow-sm'
-                      : 'bg-card text-income shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground',
-                )}
-                key={item.sign}
-                onClick={() => onSignChange(item.sign)}
-                role="tab"
-                type="button"
-              >
-                {item.label}
-              </button>
+              <div className="relative" key={item.sign}>
+                <RadioGroupItem
+                  className="peer sr-only"
+                  id={`csv-import-sign-${item.sign}`}
+                  value={item.sign}
+                />
+                <label
+                  className={cn(
+                    'flex min-h-10 cursor-pointer items-center justify-center rounded-xl px-3 text-sm font-semibold transition-colors peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50 sm:min-h-12 sm:px-4 sm:text-base',
+                    isSelected
+                      ? item.sign === 'expense'
+                        ? 'bg-card text-expense shadow-sm'
+                        : 'bg-card text-income shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground',
+                  )}
+                  htmlFor={`csv-import-sign-${item.sign}`}
+                >
+                  {item.label}
+                </label>
+              </div>
             )
           })}
-        </div>
+        </RadioGroup>
       </Card>
       <label
         className="grid min-h-36 cursor-pointer place-items-center rounded-2xl border-2 border-dashed bg-muted/20 p-5 text-center transition-colors hover:bg-muted/45"
@@ -62,7 +68,7 @@ export function CsvImportSetup({
           if (droppedFile && !importing) onParseFile(droppedFile)
         }}
       >
-        <input
+        <Input
           accept=".csv,text/csv"
           className="sr-only"
           disabled={importing}

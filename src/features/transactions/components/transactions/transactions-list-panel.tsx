@@ -157,12 +157,7 @@ export function TransactionsListPanel({
   onClearFilters: () => void
 }) {
   return (
-    <div
-      aria-labelledby="transactions-list-tab"
-      className="motion-route-enter space-y-4 pt-4 sm:space-y-5 sm:pt-6"
-      id="transactions-list-panel"
-      role="tabpanel"
-    >
+    <div className="motion-route-enter space-y-4 pt-4 sm:space-y-5 sm:pt-6">
       <MonthlySummary data={data} month={month} onMonthChange={onMonthChange} />
       {data.groups.length ? (
         <div className="space-y-5 sm:space-y-6">

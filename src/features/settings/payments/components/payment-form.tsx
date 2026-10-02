@@ -4,6 +4,7 @@ import { type FormEvent, useState } from 'react'
 import type { PaymentTypeListResponsePaymentTypeListItem } from '@/shared/api/generated/model'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
+import { RadioGroup, RadioGroupItem } from '@/shared/components/ui/radio-group'
 import { cn } from '@/shared/lib/utils'
 
 import {
@@ -93,33 +94,38 @@ export function PaymentForm({
 
       <fieldset className="space-y-2">
         <legend className="text-sm font-medium">支払いの種類</legend>
-        <div
+        <RadioGroup
           aria-label="支払いの種類"
           className="grid grid-cols-3 gap-2"
-          role="radiogroup"
+          disabled={isSaving}
+          onValueChange={(value) => update('paymentTypeId', value)}
+          value={values.paymentTypeId}
         >
           {paymentTypes.map((type) => {
             const isSelected = values.paymentTypeId === type.payment_type_id
+            const id = `payment-type-${type.payment_type_id}`
 
             return (
-              <button
-                aria-checked={isSelected}
-                className={cn(
-                  'flex min-h-11 items-center justify-center gap-2 rounded-lg border px-2 text-sm font-medium transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50',
-                  isSelected && 'border-primary bg-primary/5 text-primary',
-                )}
-                disabled={isSaving}
-                key={type.payment_type_id}
-                onClick={() => update('paymentTypeId', type.payment_type_id)}
-                role="radio"
-                type="button"
-              >
-                <PaymentTypeIcon paymentTypeName={type.payment_type_name} />
-                <span className="truncate">{type.payment_type_name}</span>
-              </button>
+              <div className="relative" key={type.payment_type_id}>
+                <RadioGroupItem
+                  className="peer sr-only"
+                  id={id}
+                  value={type.payment_type_id}
+                />
+                <label
+                  className={cn(
+                    'flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-lg border px-2 text-sm font-medium transition-colors peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 hover:bg-muted',
+                    isSelected && 'border-primary bg-primary/5 text-primary',
+                  )}
+                  htmlFor={id}
+                >
+                  <PaymentTypeIcon paymentTypeName={type.payment_type_name} />
+                  <span className="truncate">{type.payment_type_name}</span>
+                </label>
+              </div>
             )
           })}
-        </div>
+        </RadioGroup>
         {errors.paymentTypeId ? (
           <p className="text-sm text-destructive" role="alert">
             {errors.paymentTypeId}
