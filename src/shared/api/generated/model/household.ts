@@ -15,11 +15,17 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
+import type { HouseholdState } from './householdState'
+import type { Identifier } from './identifier'
 
-export type V1TransactionCreateInputSign =
-  (typeof V1TransactionCreateInputSign)[keyof typeof V1TransactionCreateInputSign]
-
-export const V1TransactionCreateInputSign = {
-  NUMBER_MINUS_1: -1,
-  NUMBER_1: 1,
-} as const
+export interface Household {
+  household_id: Identifier
+  name: string
+  state: HouseholdState
+  version: number
+  created_at: string
+  /** @nullable */
+  archived_at: string | null
+  role: string
+  member_id: Identifier
+}

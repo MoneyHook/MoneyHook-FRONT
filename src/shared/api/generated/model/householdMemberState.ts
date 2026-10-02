@@ -16,10 +16,11 @@
  * OpenAPI spec version: 0.2.0-v1
  */
 
-export type V1TransactionCreateInputSign =
-  (typeof V1TransactionCreateInputSign)[keyof typeof V1TransactionCreateInputSign]
+export type HouseholdMemberState =
+  (typeof HouseholdMemberState)[keyof typeof HouseholdMemberState]
 
-export const V1TransactionCreateInputSign = {
-  NUMBER_MINUS_1: -1,
-  NUMBER_1: 1,
+export const HouseholdMemberState = {
+  active: 'active',
+  left: 'left',
+  archived: 'archived',
 } as const

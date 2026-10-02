@@ -8,7 +8,7 @@
     "node": "^20.19.0 || >=22.12.0"
   },
   "scripts": {
-    "api:generate": "orval --config orval.config.ts && node scripts/clean-generated-imports.mjs",
+    "api:generate": "orval --config orval.config.ts && node scripts/clean-generated-imports.mjs && prettier --ignore-path /dev/null --write src/shared/api/generated",
     "api:check": "pnpm api:generate && git diff --exit-code -- src/shared/api/generated",
     "dev": "vite",
     "build": "tsc -b && vite build",

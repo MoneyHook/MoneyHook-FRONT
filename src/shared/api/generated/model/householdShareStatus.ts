@@ -15,11 +15,13 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
+import type { HouseholdShareStatusKind } from './householdShareStatusKind'
+import type { HouseholdShareStatusState } from './householdShareStatusState'
+import type { Identifier } from './identifier'
 
-export type V1TransactionCreateInputSign =
-  (typeof V1TransactionCreateInputSign)[keyof typeof V1TransactionCreateInputSign]
-
-export const V1TransactionCreateInputSign = {
-  NUMBER_MINUS_1: -1,
-  NUMBER_1: 1,
-} as const
+export interface HouseholdShareStatus {
+  entry_id?: Identifier
+  version: number
+  state: HouseholdShareStatusState
+  kind?: HouseholdShareStatusKind
+}

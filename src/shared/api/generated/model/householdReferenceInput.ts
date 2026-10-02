@@ -16,10 +16,17 @@
  * OpenAPI spec version: 0.2.0-v1
  */
 
-export type V1TransactionCreateInputSign =
-  (typeof V1TransactionCreateInputSign)[keyof typeof V1TransactionCreateInputSign]
-
-export const V1TransactionCreateInputSign = {
-  NUMBER_MINUS_1: -1,
-  NUMBER_1: 1,
-} as const
+export interface HouseholdReferenceInput {
+  /** @minimum 1 */
+  expected_version?: number
+  name?: string
+  /** @nullable */
+  category_id?: string | null
+  /** @nullable */
+  payment_type_id?: string | null
+  /** @nullable */
+  payment_date?: number | null
+  /** @nullable */
+  closing_date?: number | null
+  active?: boolean
+}

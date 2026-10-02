@@ -7,14 +7,41 @@ class OpenApiContractTest < Minitest::Test
   SPEC_PATH = File.expand_path("openapi.yaml", __dir__)
   HTTP_METHODS = %w[get post put patch delete options head trace].freeze
   V1_OPERATIONS = {
-    "/api/v1/transactions" => %w[post],
+    "/api/v1/transactions" => %w[get post],
     "/api/v1/transactions/{transactionId}" => %w[get patch delete],
     "/api/v1/analytics/overview" => %w[get],
     "/api/v1/analytics/categories" => %w[get],
     "/api/v1/analytics/fixed" => %w[get],
     "/api/v1/analytics/payments" => %w[get],
     "/api/v1/budget" => %w[get put],
-    "/api/v1/settings" => %w[get patch]
+    "/api/v1/settings" => %w[get patch],
+    "/api/v1/households" => %w[get post],
+    "/api/v1/households/{householdId}" => %w[get patch],
+    "/api/v1/households/{householdId}/members" => %w[get],
+    "/api/v1/households/{householdId}/members/me" => %w[patch],
+    "/api/v1/households/{householdId}/admin-transfer" => %w[post],
+    "/api/v1/households/{householdId}/leave" => %w[post],
+    "/api/v1/households/{householdId}/archive" => %w[post],
+    "/api/v1/households/{householdId}/members/{memberId}" => %w[delete],
+    "/api/v1/households/{householdId}/invitations" => %w[get post],
+    "/api/v1/households/{householdId}/invitations/{invitationId}/reissue" => %w[post],
+    "/api/v1/households/{householdId}/invitations/{invitationId}" => %w[delete],
+    "/api/v1/household-invitations/preview" => %w[post],
+    "/api/v1/household-invitations/accept" => %w[post],
+    "/api/v1/households/{householdId}/entries" => %w[get],
+    "/api/v1/households/{householdId}/entries/{entryId}" => %w[get],
+    "/api/v1/households/{householdId}/entries/{entryId}/corrections" => %w[post],
+    "/api/v1/households/{householdId}/own-transactions" => %w[post],
+    "/api/v1/households/{householdId}/proxy-transactions" => %w[post],
+    "/api/v1/households/{householdId}/proxy-transactions/{entryId}" => %w[patch delete],
+    "/api/v1/households/{householdId}/shares/{transactionId}" => %w[get put delete],
+    "/api/v1/households/{householdId}/payments" => %w[get post],
+    "/api/v1/households/{householdId}/payments/{referenceId}" => %w[patch],
+    "/api/v1/households/{householdId}/categories" => %w[get],
+    "/api/v1/households/{householdId}/subcategories" => %w[post],
+    "/api/v1/households/{householdId}/subcategories/{referenceId}" => %w[patch],
+    "/api/v1/households/{householdId}/analytics/{group}" => %w[get],
+    "/api/v1/households/{householdId}/duplicate-candidates" => %w[get]
   }.freeze
 
   def setup
@@ -43,7 +70,7 @@ class OpenApiContractTest < Minitest::Test
     end
 
     assert_equal V1_OPERATIONS, actual
-    assert_equal 12, actual.values.sum(&:length)
+    assert_equal 47, actual.values.sum(&:length)
   end
 
   def test_v1_operations_require_bearer_auth_and_declare_common_errors
@@ -93,7 +120,7 @@ class OpenApiContractTest < Minitest::Test
 
     assert_equal false, schema.fetch("additionalProperties")
     assert_equal expected_fields.sort, schema.fetch("required").sort
-    assert_equal expected_fields.sort, schema.fetch("properties").keys.sort
+    assert_equal (expected_fields + %w[version shared]).sort, schema.fetch("properties").keys.sort
   end
 
   def test_v1_create_transaction_accepts_exactly_one_subcategory_reference_shape

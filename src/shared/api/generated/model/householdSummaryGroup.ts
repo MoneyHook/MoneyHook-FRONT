@@ -16,10 +16,8 @@
  * OpenAPI spec version: 0.2.0-v1
  */
 
-export type V1TransactionCreateInputSign =
-  (typeof V1TransactionCreateInputSign)[keyof typeof V1TransactionCreateInputSign]
-
-export const V1TransactionCreateInputSign = {
-  NUMBER_MINUS_1: -1,
-  NUMBER_1: 1,
-} as const
+export interface HouseholdSummaryGroup {
+  id: string
+  name: string
+  amount: number
+}

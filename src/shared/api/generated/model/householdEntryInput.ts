@@ -15,10 +15,24 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { V1TransactionInput } from './v1TransactionInput'
+import type { HouseholdPayer } from './householdPayer'
+import type { HouseholdTransactionInput } from './householdTransactionInput'
 
-export interface V1TransactionRequest {
+export interface HouseholdEntryInput {
   /** @minimum 1 */
   expected_version?: number
-  transaction: V1TransactionInput
+  transaction?: HouseholdTransactionInput
+  payer?: HouseholdPayer
+  /**
+   * 代理記録・控え訂正で指定する家族支払い方法。本人の登録・共有では指定値を使用せず、個人原本から自動解決する。
+   * @nullable
+   */
+  household_payment_id?: string | null
+  /**
+   * 代理記録・控え訂正で指定する家族サブカテゴリ。本人の登録・共有では指定値を使用せず、個人原本から自動解決する。
+   * @nullable
+   */
+  household_sub_category_id?: string | null
+  source_version?: number
+  excluded_from_totals?: boolean
 }
