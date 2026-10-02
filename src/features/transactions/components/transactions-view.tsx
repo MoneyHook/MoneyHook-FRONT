@@ -1,4 +1,5 @@
 import { Plus, X } from 'lucide-react'
+import { useState } from 'react'
 
 import { ErrorState } from '@/shared/components/app-state'
 import { Button } from '@/shared/components/ui/button'
@@ -19,16 +20,21 @@ import { TransactionsViewTabs } from './transactions/transactions-view-tabs'
 
 export function TransactionsView() {
   const controller = useTransactionsController()
+  const [isHeaderCompact, setIsHeaderCompact] = useState(false)
 
   return (
     <>
       <section
         aria-labelledby="transactions-page-title"
-        className="motion-route-enter mx-auto flex h-svh min-h-0 w-full max-w-6xl flex-col overflow-hidden px-4 pt-2 sm:px-6 md:px-8 md:pt-5"
+        className={`motion-route-enter mx-auto flex h-svh min-h-0 w-full max-w-6xl flex-col overflow-hidden px-4 transition-[padding-top] duration-200 ease-out motion-reduce:transition-none sm:px-6 md:px-8 ${isHeaderCompact ? 'pt-1' : 'pt-2 md:pt-5'}`}
       >
-        <header className="flex shrink-0 items-center justify-between gap-4">
+        <header
+          className="flex shrink-0 items-center justify-between gap-4"
+          data-compact={isHeaderCompact || undefined}
+          data-slot="transactions-page-header"
+        >
           <h1
-            className="text-xl font-semibold tracking-[-0.04em] sm:text-2xl"
+            className={`font-semibold tracking-[-0.04em] transition-[font-size] duration-200 ease-out motion-reduce:transition-none ${isHeaderCompact ? 'text-base' : 'text-xl sm:text-2xl'}`}
             id="transactions-page-title"
           >
             取引
@@ -48,14 +54,23 @@ export function TransactionsView() {
           </div>
         </header>
 
-        <div className="mt-3 flex min-h-0 flex-1 flex-col sm:mt-4">
+        <div
+          className={`flex min-h-0 flex-1 flex-col transition-[margin-top] duration-200 ease-out motion-reduce:transition-none ${isHeaderCompact ? 'mt-1' : 'mt-3 sm:mt-4'}`}
+        >
           <TransactionsViewTabs
+            compact={isHeaderCompact}
             onChange={controller.changeView}
             value={controller.view}
           />
           <div
             className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-2"
             data-slot="transactions-scroll-area"
+            onScroll={(event) => {
+              const { scrollTop } = event.currentTarget
+              setIsHeaderCompact((compact) =>
+                compact ? scrollTop > 0 : scrollTop > 16,
+              )
+            }}
           >
             {controller.data && controller.activeFilterCount ? (
               <div className="space-y-3 pt-4 sm:pt-5">

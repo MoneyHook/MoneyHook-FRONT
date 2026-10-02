@@ -28,11 +28,13 @@ import {
 } from '../../model/analysis-overview'
 
 export function AnalysisHeader({
+  compact = false,
   view,
   selection,
   onRangeChange,
   getViewLink,
 }: {
+  compact?: boolean
   getViewLink: (view: AnalysisView) => { search: string }
   view: AnalysisView
   selection: AnalysisRangeSelection
@@ -52,9 +54,16 @@ export function AnalysisHeader({
 
   return (
     <>
-      <header className="flex items-center justify-between gap-4">
+      <header
+        className="flex shrink-0 items-center justify-between gap-4"
+        data-compact={compact || undefined}
+        data-slot="analysis-page-header"
+      >
         <h1
-          className="text-xl font-semibold tracking-[-0.04em] sm:text-2xl"
+          className={cn(
+            'font-semibold tracking-[-0.04em] transition-[font-size] duration-200 ease-out motion-reduce:transition-none',
+            compact ? 'text-base' : 'text-xl sm:text-2xl',
+          )}
           id="analysis-page-title"
         >
           分析
@@ -66,7 +75,10 @@ export function AnalysisHeader({
                 <Button
                   aria-label="表示期間を変更"
                   aria-expanded={periodOpen}
-                  className="min-h-10 gap-2 px-2 text-sm font-semibold text-primary sm:text-base"
+                  className={cn(
+                    'gap-2 px-2 text-sm font-semibold text-primary duration-200 ease-out motion-reduce:transition-none',
+                    compact ? 'min-h-9' : 'min-h-10 sm:text-base',
+                  )}
                   type="button"
                   variant="ghost"
                 >
@@ -132,7 +144,13 @@ export function AnalysisHeader({
         </Popover>
       </header>
 
-      <nav aria-label="分析表示" className="mt-3 border-b sm:mt-5">
+      <nav
+        aria-label="分析表示"
+        className={cn(
+          'shrink-0 border-b transition-[margin-top] duration-200 ease-out motion-reduce:transition-none',
+          compact ? 'mt-1' : 'mt-3 sm:mt-5',
+        )}
+      >
         <ul className="grid grid-cols-4">
           {analysisViews.map((item) => {
             const isActive = item.value === view
@@ -141,7 +159,8 @@ export function AnalysisHeader({
                 <Link
                   aria-current={isActive ? 'page' : undefined}
                   className={cn(
-                    'relative flex min-h-12 items-center justify-center px-1 text-center text-xs font-medium transition-colors sm:text-base',
+                    'relative flex items-center justify-center px-1 text-center text-xs font-medium transition-[min-height,color,font-size] duration-200 ease-out motion-reduce:transition-none',
+                    compact ? 'min-h-9 sm:text-sm' : 'min-h-12 sm:text-base',
                     isActive
                       ? 'text-primary after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:rounded-full after:bg-primary'
                       : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground',
