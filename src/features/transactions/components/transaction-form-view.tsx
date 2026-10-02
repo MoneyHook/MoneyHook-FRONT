@@ -220,6 +220,9 @@ export function TransactionFormView({
         paymentTypeNames={controller.paymentTypeNames}
         paymentsError={controller.paymentsError}
         recommendedTransactions={controller.recommendedTransactions}
+        isEdit={controller.isEdit}
+        isLoadingRecommendations={controller.isLoadingRecommendations}
+        recommendationsError={controller.recommendationsError}
         handleNameChange={controller.handleNameChange}
         handleNameCompositionStart={controller.handleNameCompositionStart}
         handleNameCompositionEnd={controller.handleNameCompositionEnd}

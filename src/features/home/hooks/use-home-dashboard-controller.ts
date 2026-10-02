@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
+import { useHomeChanges } from '../api/use-home-changes'
 import { useHomeDashboard } from '../api/use-home-dashboard'
 import {
   createMonthContext,
@@ -19,6 +20,7 @@ export function useHomeDashboardController() {
     [normalizedMonth],
   )
   const dashboard = useHomeDashboard(month)
+  const changes = useHomeChanges(month)
 
   useEffect(() => {
     if (rawMonth === normalizedMonth) {
@@ -38,5 +40,5 @@ export function useHomeDashboardController() {
     setSearchParams(next)
   }
 
-  return { dashboard, month, handleMonthChange }
+  return { dashboard, changes, month, handleMonthChange }
 }

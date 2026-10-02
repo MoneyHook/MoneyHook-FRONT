@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
+import { createNewTransactionValues } from './new-transaction'
 import {
+  applyTransactionRecommendation,
   createTransactionRecommendationIndex,
   getTransactionRecommendations,
   normalizeTransactionName,
@@ -48,7 +50,7 @@ describe('transaction recommendations', () => {
     expect(transactions.map((item) => item.transaction_name)).toEqual(names)
   })
 
-  it.each(['', ' 　\t', 'ディナー', 'ランテ', 'ランチセット'])(
+  it.each(['ディナー', 'ランテ', 'ランチセット'])(
     'returns no matches for %j',
     (input) => {
       expect(
@@ -59,6 +61,23 @@ describe('transaction recommendations', () => {
       ).toEqual([])
     },
   )
+
+  it.each(['', ' 　\t'])('returns the top six in API order for %j', (input) => {
+    const transactions = Array.from({ length: 10 }, (_, index) =>
+      candidate(`候補${index}`),
+    )
+    expect(
+      getTransactionRecommendations(
+        createTransactionRecommendationIndex(transactions),
+        input,
+      ),
+    ).toEqual(transactions.slice(0, 6))
+  })
+
+  it('returns no recommendations when history is empty', () => {
+    expect(getTransactionRecommendations([], '')).toEqual([])
+    expect(getTransactionRecommendations([], 'ランチ')).toEqual([])
+  })
 
   it('accepts one character and limits recommendations to six', () => {
     const transactions = Array.from({ length: 20 }, (_, index) =>
@@ -86,5 +105,74 @@ describe('transaction recommendations', () => {
       'ＡＢＣ ガス',
       'ランチ',
     ])
+  })
+})
+
+describe('applying transaction recommendations', () => {
+  const form = {
+    ...createNewTransactionValues(new Date(2026, 9, 2), 'default-payment'),
+    transactionTime: '12:30',
+    amount: '980',
+    sign: 1 as const,
+  }
+  const transaction = {
+    ...candidate('ランチ'),
+    fixed_flg: true,
+    payment_id: 'recommended-payment',
+  }
+
+  it('fills related fields while preserving date, time, amount and sign', () => {
+    expect(applyTransactionRecommendation(form, transaction, {})).toEqual({
+      ...form,
+      transactionName: 'ランチ',
+      categoryId: '10',
+      subcategoryId: '11',
+      subcategoryName: '',
+      fixed: true,
+      paymentId: 'recommended-payment',
+    })
+    expect(form.paymentId).toBe('default-payment')
+    expect(form.transactionName).toBe('')
+  })
+
+  it('preserves manually selected categories and a new subcategory together', () => {
+    const edited = {
+      ...form,
+      categoryId: '20',
+      subcategoryId: '',
+      subcategoryName: '新しいサブカテゴリ',
+    }
+    expect(
+      applyTransactionRecommendation(edited, transaction, { category: true }),
+    ).toEqual({
+      ...edited,
+      transactionName: 'ランチ',
+      fixed: true,
+      paymentId: 'recommended-payment',
+    })
+  })
+
+  it('preserves explicit false and no-payment selections', () => {
+    const edited = { ...form, paymentId: null, fixed: false }
+    const result = applyTransactionRecommendation(edited, transaction, {
+      fixed: true,
+      payment: true,
+    })
+    expect(result.fixed).toBe(false)
+    expect(result.paymentId).toBeNull()
+    expect(result.categoryId).toBe('10')
+  })
+
+  it('allows switching recommendations without treating autofill as a manual edit', () => {
+    const first = applyTransactionRecommendation(form, transaction, {})
+    const second = applyTransactionRecommendation(
+      first,
+      { ...candidate('夕食'), category_id: '30', payment_id: null },
+      {},
+    )
+    expect(second.transactionName).toBe('夕食')
+    expect(second.categoryId).toBe('30')
+    expect(second.paymentId).toBeNull()
+    expect(second.fixed).toBe(false)
   })
 })
