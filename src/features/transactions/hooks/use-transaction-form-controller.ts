@@ -23,8 +23,10 @@ import {
   parseCalendarDate,
 } from '../model/transaction-form'
 import {
+  applyTransactionRecommendation,
   createTransactionRecommendationIndex,
   getTransactionRecommendations,
+  type TransactionRecommendationOverrides,
 } from '../model/transaction-recommendations'
 
 type SelectionSheet = 'category' | 'payment' | 'candidate' | null
@@ -70,6 +72,7 @@ export function useTransactionFormController(transactionId?: string) {
   const form = formOverride ?? initialForm
   const [recommendationInput, setRecommendationInput] = useState('')
   const isComposingName = useRef(false)
+  const recommendationOverrides = useRef<TransactionRecommendationOverrides>({})
   const [errors, setErrors] = useState<NewTransactionErrors>({})
   const [selectionSheet, setSelectionSheet] = useState<SelectionSheet>(null)
   const [categorySelectionStep, setCategorySelectionStep] =
@@ -156,6 +159,17 @@ export function useTransactionFormController(transactionId?: string) {
     key: K,
     value: NewTransactionFormValues[K],
   ) => {
+    if (
+      key === 'categoryId' ||
+      key === 'subcategoryId' ||
+      key === 'subcategoryName'
+    ) {
+      recommendationOverrides.current.category = true
+    } else if (key === 'fixed') {
+      recommendationOverrides.current.fixed = true
+    } else if (key === 'paymentId') {
+      recommendationOverrides.current.payment = true
+    }
     setFormOverride((current) => ({
       ...(current ?? initialForm),
       [key]: value,
@@ -182,6 +196,7 @@ export function useTransactionFormController(transactionId?: string) {
   }
 
   const selectCategory = (categoryId: string) => {
+    recommendationOverrides.current.category = true
     const options =
       categories
         .find((category) => category.category_id === categoryId)
@@ -209,21 +224,23 @@ export function useTransactionFormController(transactionId?: string) {
   const selectFrequentTransaction = (
     transaction: (typeof frequentTransactions)[number],
   ) => {
-    setRecommendationInput('')
-    setFormOverride((current) => ({
-      ...(current ?? initialForm),
-      transactionName: transaction.transaction_name,
-      categoryId: transaction.category_id,
-      subcategoryId: transaction.sub_category_id,
-      subcategoryName: '',
-      fixed: transaction.fixed_flg,
-      paymentId: transaction.payment_id,
-    }))
+    const overrides = { ...recommendationOverrides.current }
+    setRecommendationInput(transaction.transaction_name)
+    setFormOverride((current) =>
+      applyTransactionRecommendation(
+        current ?? initialForm,
+        transaction,
+        overrides,
+      ),
+    )
     setErrors((current) => ({
       ...current,
       transactionName: undefined,
-      categoryId: undefined,
-      subcategoryId: undefined,
+      ...(!overrides.category && {
+        categoryId: undefined,
+        subcategoryId: undefined,
+        subcategoryName: undefined,
+      }),
     }))
   }
 
@@ -241,6 +258,7 @@ export function useTransactionFormController(transactionId?: string) {
       }))
       return
     }
+    recommendationOverrides.current.category = true
     setFormOverride((current) => ({
       ...(current ?? initialForm),
       subcategoryId: '',
@@ -343,6 +361,9 @@ export function useTransactionFormController(transactionId?: string) {
     selectedDate,
     frequentTransactions,
     recommendedTransactions,
+    isLoadingRecommendations: frequentTransactionsQuery.isPending,
+    recommendationsError:
+      frequentTransactionsQuery.isError && !frequentTransactionsQuery.data,
     handleNameChange,
     handleNameCompositionStart,
     handleNameCompositionEnd,
