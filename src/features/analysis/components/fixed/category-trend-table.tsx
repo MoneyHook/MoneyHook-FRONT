@@ -120,17 +120,68 @@ export function CategoryTrendTable({
 }) {
   return (
     <AnalysisPanel className="overflow-hidden p-0">
-      <div className="flex items-center justify-between gap-3 px-4 py-4 sm:px-6">
+      <div className="flex flex-col gap-2 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-6">
         <h2 className="text-base font-semibold sm:text-lg">
           固定費のカテゴリ別推移
         </h2>
-        <CategorySelector
-          categories={data.categories}
-          onChange={onCategoryChange}
-          selectedCategoryIds={selectedCategoryIds}
-        />
+        <div className="self-end sm:self-auto">
+          <CategorySelector
+            categories={data.categories}
+            onChange={onCategoryChange}
+            selectedCategoryIds={selectedCategoryIds}
+          />
+        </div>
       </div>
-      <div className="border-t">
+      <div className="divide-y border-t sm:hidden">
+        {categories.map((category) => {
+          const byBucket = new Map(
+            category.series.map((item) => [item.bucket, item.expenseAmount]),
+          )
+          return (
+            <details className="group" key={category.id}>
+              <summary className="flex min-h-16 cursor-pointer list-none items-center gap-3 px-4 py-3 outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset [&::-webkit-details-marker]:hidden">
+                <CategoryIcon name={category.name} />
+                <span className="min-w-0 flex-1 text-sm font-semibold wrap-anywhere">
+                  {category.name}
+                </span>
+                <span className="shrink-0 text-right">
+                  <span className="block text-xs text-muted-foreground">
+                    月平均
+                  </span>
+                  <span className="block text-sm font-semibold tabular-nums">
+                    {formatCurrency(category.monthlyAverage)}
+                  </span>
+                </span>
+                <ChevronDown
+                  aria-hidden="true"
+                  className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180 motion-reduce:transition-none"
+                />
+              </summary>
+              <div className="px-4 pb-4">
+                <dl className="grid grid-cols-2 gap-x-4 gap-y-3 border-t pt-3">
+                  {data.series.map((item) => (
+                    <div className="min-w-0" key={item.bucket}>
+                      <dt className="text-xs text-muted-foreground">
+                        {item.label}
+                      </dt>
+                      <dd className="mt-1 text-sm font-medium tabular-nums">
+                        {formatCurrency(byBucket.get(item.bucket) ?? 0)}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+                <dl className="mt-3 flex items-baseline justify-between gap-3 border-t pt-3">
+                  <dt className="text-xs text-muted-foreground">年間換算</dt>
+                  <dd className="text-sm font-semibold tabular-nums">
+                    {formatCurrency(category.annualizedAmount)}
+                  </dd>
+                </dl>
+              </div>
+            </details>
+          )
+        })}
+      </div>
+      <div className="hidden border-t sm:block">
         <Table className="w-full min-w-208 border-collapse text-xs tabular-nums sm:text-sm">
           <TableCaption className="sr-only">
             選択した固定費カテゴリの月平均、月別支出、年間換算

@@ -28,43 +28,50 @@ function TransactionRow({
     <li>
       <button
         aria-label={`${item.name}を編集`}
-        className="grid w-full grid-cols-[minmax(5.8rem,auto)_auto_minmax(0,1fr)_auto_auto] items-center gap-2 px-1 py-3 text-left transition-colors outline-none hover:bg-muted/45 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset sm:grid-cols-[8rem_auto_minmax(0,1fr)_auto_auto] sm:gap-4 sm:px-2"
+        className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 px-1 py-4 text-left transition-colors outline-none hover:bg-muted/45 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset sm:grid-cols-[8rem_auto_minmax(0,1fr)_auto_auto] sm:gap-4 sm:px-2 sm:py-3"
         onClick={() => onOpen(item.id)}
         type="button"
       >
-        <span className="text-[0.6875rem] font-medium sm:text-sm">
+        <span className="col-span-3 flex items-baseline justify-between gap-2 text-xs font-medium text-muted-foreground sm:col-span-1 sm:block sm:text-sm sm:text-foreground">
           {formatTransactionDate(item.date)}
+          {item.time ? (
+            <span className="tabular-nums sm:hidden">
+              {item.time.slice(0, 5)}
+            </span>
+          ) : null}
         </span>
-        <CategoryIcon name={item.categoryName} />
-        <span className="flex min-w-0 items-baseline gap-2">
-          <span className="truncate text-xs font-semibold sm:text-sm">
+        <span className="row-start-2 self-start sm:row-auto sm:self-auto">
+          <CategoryIcon name={item.categoryName} />
+        </span>
+        <span className="row-start-2 flex min-w-0 flex-col gap-1 sm:row-auto sm:flex-row sm:items-baseline sm:gap-2">
+          <span className="text-sm font-semibold wrap-anywhere sm:truncate">
             {item.name}
           </span>
-          <span className="truncate text-[0.625rem] text-muted-foreground sm:text-xs">
+          <span className="text-xs wrap-anywhere text-muted-foreground sm:truncate">
             {item.categoryName} · {item.subcategoryName}
           </span>
         </span>
-        <span className="flex items-baseline justify-end gap-2 text-right whitespace-nowrap">
+        <span className="col-start-2 row-start-3 flex min-w-0 flex-wrap items-baseline justify-between gap-2 sm:col-auto sm:row-auto sm:flex-nowrap sm:justify-end sm:text-right sm:whitespace-nowrap">
           {item.paymentName ? (
             <Badge
-              className="hidden max-w-28 truncate bg-muted px-2 py-1 text-xs font-normal text-muted-foreground min-[390px]:inline-flex sm:text-sm"
+              className="max-w-full bg-muted px-2 py-1 text-xs font-normal whitespace-normal text-muted-foreground sm:max-w-28 sm:truncate sm:text-sm sm:whitespace-nowrap"
               variant="ghost"
             >
               {item.paymentName}
             </Badge>
           ) : null}
-          <span className="text-xs font-semibold text-expense tabular-nums sm:text-sm">
+          <span className="ml-auto text-sm font-semibold whitespace-nowrap text-expense tabular-nums">
             {formatCurrency(item.amount)}
           </span>
           {item.time ? (
-            <span className="text-[0.625rem] text-muted-foreground tabular-nums sm:text-xs">
+            <span className="hidden text-xs text-muted-foreground tabular-nums sm:inline">
               {item.time.slice(0, 5)}
             </span>
           ) : null}
         </span>
         <ChevronRight
           aria-hidden="true"
-          className="size-4 text-muted-foreground"
+          className="col-start-3 row-span-2 row-start-2 size-4 text-muted-foreground sm:col-auto sm:row-auto sm:row-span-1"
         />
       </button>
     </li>
