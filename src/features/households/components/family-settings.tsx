@@ -1,4 +1,4 @@
-import { ArrowUpRight, Check, HousePlus, Users } from 'lucide-react'
+import { Check, HousePlus, Users } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 
@@ -18,8 +18,8 @@ import {
   useRequestKey,
 } from '../api/household-queries'
 import { FamilyInvitations } from './family-invitations'
+import { FamilyLifecycleActions } from './family-lifecycle-actions'
 import { FamilyMembers } from './family-members'
-import { FamilyReferences } from './family-references'
 import { FamilyError, FamilyField, FamilySelect } from './fields'
 import { JoinFamily } from './join-family'
 
@@ -108,8 +108,8 @@ export function FamilySettings() {
                 </p>
               </div>
 
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                {(families.data?.length ?? 0) > 1 && (
+              {(families.data?.length ?? 0) > 1 && (
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
                   <FamilyField label="表示する家族">
                     <FamilySelect
                       className="sm:w-64"
@@ -134,14 +134,8 @@ export function FamilySettings() {
                       ))}
                     </FamilySelect>
                   </FamilyField>
-                )}
-                <Button asChild className="h-10" variant="outline">
-                  <Link to={`/app/family?household=${current.household_id}`}>
-                    家族の記録を見る
-                    <ArrowUpRight aria-hidden="true" />
-                  </Link>
-                </Button>
-              </div>
+                </div>
+              )}
             </div>
           </section>
 
@@ -179,12 +173,9 @@ export function FamilySettings() {
                   />
                 )}
               </div>
-
-              <FamilyReferences
-                key={current.household_id}
-                id={current.household_id}
-                payments={detail.data.payments}
-                subcategories={detail.data.subcategories}
+              <FamilyLifecycleActions
+                family={detail.data.family}
+                memberCount={activeMembers.length}
               />
             </>
           )}

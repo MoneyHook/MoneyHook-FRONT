@@ -52,6 +52,16 @@ export function FamilyInvitations({
       if (response.status === 201) setSecret(response.data)
     })
   const openSlots = Math.max(0, 3 - memberCount)
+  const copyInvitation = async (value: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(value)
+      toast.success(`${label}をコピーしました`)
+    } catch {
+      toast.error(
+        'コピーできませんでした。招待コードを選択してコピーしてください',
+      )
+    }
+  }
 
   return (
     <section
@@ -92,9 +102,18 @@ export function FamilyInvitations({
             <p className="text-xs font-medium text-muted-foreground">
               招待コード
             </p>
-            <p className="mt-1 font-mono text-2xl font-semibold tracking-[0.16em]">
-              {secret.code}
-            </p>
+            <Button
+              aria-label="招待コードをコピー"
+              className="mt-1 h-auto min-h-11 max-w-full justify-start gap-2 px-0 hover:bg-background/60"
+              type="button"
+              variant="ghost"
+              onClick={() => void copyInvitation(secret.code, '招待コード')}
+            >
+              <Copy aria-hidden="true" className="size-4" />
+              <span className="font-mono text-xl font-semibold tracking-[0.16em] select-text">
+                {secret.code}
+              </span>
+            </Button>
           </div>
           <p className="flex items-center gap-2 text-xs text-muted-foreground">
             <Clock3 aria-hidden="true" className="size-3.5" />
@@ -104,16 +123,10 @@ export function FamilyInvitations({
             className="w-full"
             variant="outline"
             onClick={() =>
-              void navigator.clipboard
-                .writeText(
-                  `${window.location.origin}/family/join#${secret.token}`,
-                )
-                .then(() => toast.success('招待リンクをコピーしました'))
-                .catch(() =>
-                  toast.error(
-                    'コピーできませんでした。招待コードを共有してください',
-                  ),
-                )
+              void copyInvitation(
+                `${window.location.origin}/family/join#${secret.token}`,
+                '招待リンク',
+              )
             }
           >
             <Copy aria-hidden="true" />

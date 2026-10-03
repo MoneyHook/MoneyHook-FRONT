@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, Navigate } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 
 import { JoinFamily } from '@/features/households'
 // Remove the bearer invitation from the URL before entering the login flow.
@@ -26,9 +26,6 @@ export function HouseholdJoinPage() {
   )
   return (
     <section className="mx-auto w-full max-w-xl space-y-6 p-6 pb-24">
-      <Link to="/app/settings/family" className="text-primary underline">
-        家族設定に戻る
-      </Link>
       <JoinFamily token={token} />
     </section>
   )
