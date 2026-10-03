@@ -2,6 +2,7 @@ import { ChevronDown, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 
 import { Badge } from '@/shared/components/ui/badge'
+import { Button } from '@/shared/components/ui/button'
 import { cn } from '@/shared/lib/utils'
 
 import type { FixedTransactionItem } from '../../model/analysis-fixed'
@@ -26,9 +27,10 @@ function TransactionRow({
 }) {
   return (
     <li>
-      <button
+      <Button
+        variant="ghost"
         aria-label={`${item.name}を編集`}
-        className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 px-1 py-4 text-left transition-colors outline-none hover:bg-muted/45 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset sm:grid-cols-[8rem_auto_minmax(0,1fr)_auto_auto] sm:gap-4 sm:px-2 sm:py-3"
+        className="grid h-auto w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 rounded-none border-0 px-1 py-4 text-left font-normal whitespace-normal transition-colors outline-none hover:bg-muted/45 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset active:translate-y-0 sm:grid-cols-[8rem_auto_minmax(0,1fr)_auto_auto] sm:gap-4 sm:px-2 sm:py-3 dark:hover:bg-muted/45"
         onClick={() => onOpen(item.id)}
         type="button"
       >
@@ -73,7 +75,7 @@ function TransactionRow({
           aria-hidden="true"
           className="col-start-3 row-span-2 row-start-2 size-4 text-muted-foreground sm:col-auto sm:row-auto sm:row-span-1"
         />
-      </button>
+      </Button>
     </li>
   )
 }
@@ -113,9 +115,10 @@ export function TransactionsPanel({
       )}
       {items.length > 5 ? (
         <div className="border-t p-3 sm:p-4">
-          <button
+          <Button
+            variant="ghost"
             aria-expanded={expanded}
-            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border text-sm font-medium transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="flex h-auto min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-border p-0 text-sm font-medium whitespace-normal transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-0 aria-expanded:bg-transparent dark:hover:bg-muted"
             onClick={() => setExpanded((current) => !current)}
             type="button"
           >
@@ -127,7 +130,7 @@ export function TransactionsPanel({
                 expanded && 'rotate-180',
               )}
             />
-          </button>
+          </Button>
         </div>
       ) : null}
     </AnalysisPanel>

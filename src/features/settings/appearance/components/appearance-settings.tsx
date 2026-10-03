@@ -2,6 +2,7 @@ import { Check, Monitor, Moon, Sun } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 import { Card } from '@/shared/components/ui/card'
+import { RadioGroup, RadioGroupItem } from '@/shared/components/ui/radio-group'
 import {
   type AccentColor,
   type ChartPalette,
@@ -74,20 +75,25 @@ function AppearancePanel({
 function ThemePicker() {
   const { setTheme, theme } = useAppearance()
   return (
-    <div className="grid grid-cols-3 gap-2 sm:gap-3">
+    <RadioGroup
+      aria-label="テーマ"
+      className="grid grid-cols-3 gap-2 sm:gap-3"
+      onValueChange={(value) => setTheme(value as typeof theme)}
+      value={theme}
+    >
       {themeOptions.map((option) => {
         const Icon = option.icon
         return (
-          <label className="group relative block" key={option.value}>
-            <input
-              checked={theme === option.value}
+          <div className="group relative block" key={option.value}>
+            <RadioGroupItem
               className="peer sr-only"
-              name="theme"
-              onChange={() => setTheme(option.value)}
-              type="radio"
+              id={`theme-${option.value}`}
               value={option.value}
             />
-            <span className="flex min-h-20 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-border bg-background px-1.5 py-2 text-center transition-colors peer-checked:border-foreground peer-checked:bg-muted peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50 hover:bg-muted sm:min-h-24 sm:gap-2 sm:px-3 sm:py-3">
+            <label
+              className="flex min-h-20 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-border bg-background px-1.5 py-2 text-center transition-colors peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50 peer-data-[state=checked]:border-foreground peer-data-[state=checked]:bg-muted hover:bg-muted sm:min-h-24 sm:gap-2 sm:px-3 sm:py-3"
+              htmlFor={`theme-${option.value}`}
+            >
               <Icon aria-hidden="true" className="size-5 sm:size-6" />
               <span className="text-xs leading-4 font-semibold sm:text-sm sm:leading-5">
                 {option.label}
@@ -98,29 +104,34 @@ function ThemePicker() {
                   className="absolute top-2 right-2 size-4 text-foreground sm:top-3 sm:right-3 sm:size-5"
                 />
               ) : null}
-            </span>
-          </label>
+            </label>
+          </div>
         )
       })}
-    </div>
+    </RadioGroup>
   )
 }
 
 function AccentColorPicker() {
   const { accent, setAccent } = useAppearance()
   return (
-    <div className="grid grid-cols-3 gap-2 sm:gap-3">
+    <RadioGroup
+      aria-label="アクセントカラー"
+      className="grid grid-cols-3 gap-2 sm:gap-3"
+      onValueChange={(value) => setAccent(value as typeof accent)}
+      value={accent}
+    >
       {accentOptions.map((option) => (
-        <label key={option.value} className="group relative block">
-          <input
-            checked={accent === option.value}
+        <div key={option.value} className="group relative block">
+          <RadioGroupItem
             className="peer sr-only"
-            name="accent-color"
-            onChange={() => setAccent(option.value)}
-            type="radio"
+            id={`accent-${option.value}`}
             value={option.value}
           />
-          <span className="flex min-h-24 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-border bg-background px-1.5 py-2 text-center transition-colors peer-checked:border-foreground peer-checked:bg-muted peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50 hover:bg-muted sm:min-h-28 sm:gap-2 sm:px-3 sm:py-3">
+          <label
+            className="flex min-h-24 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-border bg-background px-1.5 py-2 text-center transition-colors peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50 peer-data-[state=checked]:border-foreground peer-data-[state=checked]:bg-muted hover:bg-muted sm:min-h-28 sm:gap-2 sm:px-3 sm:py-3"
+            htmlFor={`accent-${option.value}`}
+          >
             <span
               aria-hidden="true"
               className="size-6 shrink-0 rounded-full border border-foreground/15 shadow-sm sm:size-7"
@@ -142,28 +153,33 @@ function AccentColorPicker() {
                 className="absolute top-2 right-2 size-4 text-foreground sm:top-3 sm:right-3 sm:size-5"
               />
             ) : null}
-          </span>
-        </label>
+          </label>
+        </div>
       ))}
-    </div>
+    </RadioGroup>
   )
 }
 
 function ChartPalettePicker() {
   const { chartPalette, setChartPalette } = useAppearance()
   return (
-    <div className="grid grid-cols-3 gap-2 sm:gap-3">
+    <RadioGroup
+      aria-label="グラフカラーセット"
+      className="grid grid-cols-3 gap-2 sm:gap-3"
+      onValueChange={(value) => setChartPalette(value as typeof chartPalette)}
+      value={chartPalette}
+    >
       {chartPaletteOptions.map((option) => (
-        <label key={option.value} className="group relative block">
-          <input
-            checked={chartPalette === option.value}
+        <div key={option.value} className="group relative block">
+          <RadioGroupItem
             className="peer sr-only"
-            name="chart-palette"
-            onChange={() => setChartPalette(option.value)}
-            type="radio"
+            id={`chart-palette-${option.value}`}
             value={option.value}
           />
-          <span className="flex min-h-24 cursor-pointer flex-col items-center justify-center rounded-xl border border-border bg-background px-1.5 py-2 text-center transition-colors peer-checked:border-foreground peer-checked:bg-muted peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50 hover:bg-muted sm:min-h-28 sm:px-3 sm:py-3">
+          <label
+            className="flex min-h-24 cursor-pointer flex-col items-center justify-center rounded-xl border border-border bg-background px-1.5 py-2 text-center transition-colors peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50 peer-data-[state=checked]:border-foreground peer-data-[state=checked]:bg-muted hover:bg-muted sm:min-h-28 sm:px-3 sm:py-3"
+            htmlFor={`chart-palette-${option.value}`}
+          >
             <span
               className="flex flex-nowrap items-center justify-center gap-0.5 sm:gap-1.5"
               aria-hidden="true"
@@ -190,10 +206,10 @@ function ChartPalettePicker() {
                 className="absolute top-2 right-2 size-4 text-foreground sm:top-3 sm:right-3 sm:size-5"
               />
             ) : null}
-          </span>
-        </label>
+          </label>
+        </div>
       ))}
-    </div>
+    </RadioGroup>
   )
 }
 

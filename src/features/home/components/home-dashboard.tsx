@@ -10,7 +10,11 @@ import { MonthHeader } from './dashboard/month-header'
 import { SpendingPaceCard } from './dashboard/spending-pace-card'
 import { SummaryCard } from './dashboard/summary-card'
 
-export function HomeDashboard() {
+export function HomeDashboard({
+  hasActiveFamily = false,
+}: {
+  hasActiveFamily?: boolean
+}) {
   const { dashboard, changes, month, handleMonthChange } =
     useHomeDashboardController()
 
@@ -20,6 +24,7 @@ export function HomeDashboard() {
       className="motion-route-enter mx-auto w-full max-w-7xl px-4 pt-2 pb-24 sm:px-6 sm:pt-4 md:px-8 md:pt-6 md:pb-10"
     >
       <MonthHeader
+        hasActiveFamily={hasActiveFamily}
         maxMonth={month.currentMonthInput}
         monthInput={month.monthInput}
         monthLabel={month.monthLabel}

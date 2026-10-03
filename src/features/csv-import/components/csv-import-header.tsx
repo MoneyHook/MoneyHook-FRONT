@@ -7,9 +7,9 @@ export function CsvImportHeader() {
   return (
     <header className="border-b pb-6">
       <Button asChild className="mb-4 -ml-2" variant="ghost">
-        <Link to="/app/transactions">
+        <Link to="/app/transactions/new">
           <ArrowLeft />
-          取引一覧へ戻る
+          取引の登録へ戻る
         </Link>
       </Button>
       <h1 className="text-2xl font-semibold tracking-[-0.035em] md:text-3xl">

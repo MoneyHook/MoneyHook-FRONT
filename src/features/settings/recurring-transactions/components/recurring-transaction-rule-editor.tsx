@@ -3,6 +3,7 @@ import { type FormEvent, useState } from 'react'
 
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
+import { RadioGroup, RadioGroupItem } from '@/shared/components/ui/radio-group'
 import {
   Select,
   SelectContent,
@@ -76,39 +77,43 @@ export function RecurringTransactionRuleEditor({
       noValidate
       onSubmit={(event) => void handleSubmit(event)}
     >
-      <div
+      <RadioGroup
         aria-label="収支区分"
         className="grid grid-cols-2 gap-2"
-        role="tablist"
+        onValueChange={(value) => update('sign', Number(value) as -1 | 1)}
+        value={String(values.sign)}
       >
         {[
           { label: '支出', sign: -1 as const },
           { label: '収入', sign: 1 as const },
         ].map(({ label, sign }) => (
-          <button
-            aria-selected={values.sign === sign}
-            className={cn(
-              'flex min-h-10 items-center justify-center gap-2 rounded-lg border px-3 text-sm font-semibold transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50',
-              values.sign === sign
-                ? sign === -1
-                  ? 'border-expense/35 bg-expense/10 text-expense'
-                  : 'border-income/35 bg-income/10 text-income'
-                : 'text-muted-foreground',
-            )}
-            key={sign}
-            onClick={() => update('sign', sign)}
-            role="tab"
-            type="button"
-          >
-            {sign === -1 ? (
-              <ArrowDown aria-hidden="true" className="size-4" />
-            ) : (
-              <ArrowUp aria-hidden="true" className="size-4" />
-            )}
-            {label}
-          </button>
+          <div className="relative" key={sign}>
+            <RadioGroupItem
+              className="peer sr-only"
+              id={`recurring-sign-${sign}`}
+              value={String(sign)}
+            />
+            <label
+              className={cn(
+                'flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border px-3 text-sm font-semibold transition-colors peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50 hover:bg-muted',
+                values.sign === sign
+                  ? sign === -1
+                    ? 'border-expense/35 bg-expense/10 text-expense'
+                    : 'border-income/35 bg-income/10 text-income'
+                  : 'text-muted-foreground',
+              )}
+              htmlFor={`recurring-sign-${sign}`}
+            >
+              {sign === -1 ? (
+                <ArrowDown aria-hidden="true" className="size-4" />
+              ) : (
+                <ArrowUp aria-hidden="true" className="size-4" />
+              )}
+              {label}
+            </label>
+          </div>
         ))}
-      </div>
+      </RadioGroup>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2 sm:col-span-2">
           <label

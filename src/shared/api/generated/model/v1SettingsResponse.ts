@@ -17,9 +17,11 @@
  */
 import type { V1SettingsResponseAccentColor } from './v1SettingsResponseAccentColor'
 import type { V1SettingsResponseChartPalette } from './v1SettingsResponseChartPalette'
+import type { V1SettingsResponseDefaultTransactionScope } from './v1SettingsResponseDefaultTransactionScope'
 import type { V1SettingsResponseThemeMode } from './v1SettingsResponseThemeMode'
 
 export interface V1SettingsResponse {
+  default_transaction_scope?: V1SettingsResponseDefaultTransactionScope
   accent_color: V1SettingsResponseAccentColor
   theme_mode: V1SettingsResponseThemeMode
   chart_palette: V1SettingsResponseChartPalette

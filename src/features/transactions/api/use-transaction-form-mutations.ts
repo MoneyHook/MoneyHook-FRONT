@@ -50,10 +50,12 @@ export function useTransactionFormMutations() {
   const update = async (
     transactionId: string,
     form: NewTransactionFormValues,
+    expectedVersion?: number,
   ) => {
     const response = await updateMutation.mutateAsync({
       transactionId,
       data: {
+        expected_version: expectedVersion,
         transaction: {
           transaction_date: form.transactionDate,
           transaction_time: form.transactionTime,
@@ -76,8 +78,11 @@ export function useTransactionFormMutations() {
       queryKey: getGetV1TransactionQueryKey(transactionId),
     })
   }
-  const remove = async (transactionId: string) => {
-    const response = await deleteMutation.mutateAsync({ transactionId })
+  const remove = async (transactionId: string, expectedVersion?: number) => {
+    const response = await deleteMutation.mutateAsync({
+      transactionId,
+      params: { expected_version: expectedVersion },
+    })
     if (response.status !== 204) {
       throw new Error('取引を削除できませんでした。もう一度お試しください。')
     }

@@ -1,6 +1,5 @@
-import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import {
   clearDefaultPaymentId,
@@ -10,12 +9,12 @@ import {
 import { useTransactionDetail } from '../api/use-transaction-detail'
 import { useTransactionFormMutations } from '../api/use-transaction-form-mutations'
 import { useTransactionFormReferences } from '../api/use-transaction-form-references'
+import type { TransactionFormExtension } from '../model/form-extension'
 import {
   createNewTransactionValues,
   type NewTransactionErrors,
   type NewTransactionFormValues,
   type NewTransactionSign,
-  validateNewTransaction,
 } from '../model/new-transaction'
 import {
   getReturnTo,
@@ -23,16 +22,21 @@ import {
   parseCalendarDate,
 } from '../model/transaction-form'
 import {
-  applyTransactionRecommendation,
   createTransactionRecommendationIndex,
   getTransactionRecommendations,
   type TransactionRecommendationOverrides,
 } from '../model/transaction-recommendations'
+import { useTransactionDraft } from './use-transaction-draft'
+import { useTransactionFormActions } from './use-transaction-form-actions'
+import { useTransactionFormSelection } from './use-transaction-form-selection'
 
 type SelectionSheet = 'category' | 'payment' | 'candidate' | null
 type CategorySelectionStep = 'category' | 'subcategory'
 
-export function useTransactionFormController(transactionId?: string) {
+export function useTransactionFormController(
+  transactionId?: string,
+  extension: TransactionFormExtension = {},
+) {
   const isEdit = Boolean(transactionId)
   const defaultPaymentId = isEdit ? null : readDefaultPaymentId()
   const navigate = useNavigate()
@@ -67,8 +71,9 @@ export function useTransactionFormController(transactionId?: string) {
         : createNewTransactionValues(undefined, defaultPaymentId),
     [defaultPaymentId, transaction],
   )
-  const [formOverride, setFormOverride] =
-    useState<NewTransactionFormValues | null>(null)
+  const draft = useTransactionDraft(transaction?.version)
+  const formOverride = draft.form
+  const setFormOverride = draft.setForm
   const form = formOverride ?? initialForm
   const [recommendationInput, setRecommendationInput] = useState('')
   const isComposingName = useRef(false)
@@ -81,22 +86,29 @@ export function useTransactionFormController(transactionId?: string) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [datePickerOpen, setDatePickerOpen] = useState(false)
 
-  const fallbackReturnTo = transaction
-    ? `/app/transactions?month=${getTransactionMonth(transaction.transaction_date)}&view=list`
-    : '/app/transactions'
+  const familyContext = location.pathname.startsWith('/app/family/')
+  const familySearch = new URLSearchParams(location.search)
+  familySearch.delete('scope')
+  const fallbackReturnTo = familyContext
+    ? `/app/family?${familySearch}`
+    : transaction
+      ? `/app/transactions?month=${getTransactionMonth(transaction.transaction_date)}&view=list`
+      : '/app/transactions'
   const returnTo = getReturnTo(location.state, fallbackReturnTo)
 
   const categories =
-    categoriesQuery.data?.status === 200
+    extension.references?.categories ??
+    (categoriesQuery.data?.status === 200
       ? (categoriesQuery.data.data.category_list ?? [])
-      : []
-  const payments = useMemo(
+      : [])
+  const personalPayments = useMemo(
     () =>
       paymentsQuery.data?.status === 200
         ? paymentsQuery.data.data.payment_list
         : [],
     [paymentsQuery.data],
   )
+  const payments = extension.references?.payments ?? personalPayments
   const paymentTypeNames = useMemo(
     () =>
       new Map(
@@ -122,12 +134,16 @@ export function useTransactionFormController(transactionId?: string) {
     (payment) => payment.payment_id === form.paymentId,
   )
   const selectedDate = parseCalendarDate(form.transactionDate)
-  const frequentTransactions = useMemo(
+  const personalFrequentTransactions = useMemo(
     () =>
       frequentTransactionsQuery.data?.status === 200
         ? frequentTransactionsQuery.data.data.transaction_list
         : [],
     [frequentTransactionsQuery.data],
+  )
+  const frequentTransactions = useMemo(
+    () => (extension.references ? [] : personalFrequentTransactions),
+    [extension.references, personalFrequentTransactions],
   )
   const recommendationIndex = useMemo(
     () => createTransactionRecommendationIndex(frequentTransactions),
@@ -137,6 +153,7 @@ export function useTransactionFormController(transactionId?: string) {
   useEffect(() => {
     if (
       isEdit ||
+      extension.references ||
       !defaultPaymentId ||
       paymentsQuery.data?.status !== 200 ||
       payments.some((payment) => payment.payment_id === defaultPaymentId)
@@ -146,14 +163,22 @@ export function useTransactionFormController(transactionId?: string) {
 
     clearDefaultPaymentId()
     // The fetched payment list invalidates the locally stored selection.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+
     setFormOverride((current) => {
       const currentForm = current ?? initialForm
       return currentForm.paymentId === defaultPaymentId
         ? { ...currentForm, paymentId: null }
         : currentForm
     })
-  }, [defaultPaymentId, initialForm, isEdit, payments, paymentsQuery.data])
+  }, [
+    defaultPaymentId,
+    initialForm,
+    isEdit,
+    payments,
+    paymentsQuery.data,
+    extension.references,
+    setFormOverride,
+  ])
 
   const setValue = <K extends keyof NewTransactionFormValues>(
     key: K,
@@ -195,146 +220,45 @@ export function useTransactionFormController(transactionId?: string) {
     setRecommendationInput(name)
   }
 
-  const selectCategory = (categoryId: string) => {
-    recommendationOverrides.current.category = true
-    const options =
-      categories
-        .find((category) => category.category_id === categoryId)
-        ?.sub_category_list.filter((subcategory) => subcategory.enable) ?? []
-    const onlyOption = isEdit && options.length === 1 ? options[0] : undefined
-    setFormOverride((current) => ({
-      ...(current ?? initialForm),
-      categoryId,
-      subcategoryId: onlyOption?.sub_category_id ?? '',
-      subcategoryName: '',
-    }))
-    setErrors((current) => ({
-      ...current,
-      categoryId: undefined,
-      subcategoryId: undefined,
-    }))
-    if (onlyOption) {
-      setSelectionSheet(null)
-      setCategorySelectionStep('category')
-    } else {
-      setCategorySelectionStep('subcategory')
-    }
-  }
-
-  const selectFrequentTransaction = (
-    transaction: (typeof frequentTransactions)[number],
-  ) => {
-    const overrides = { ...recommendationOverrides.current }
-    setRecommendationInput(transaction.transaction_name)
-    setFormOverride((current) =>
-      applyTransactionRecommendation(
-        current ?? initialForm,
-        transaction,
-        overrides,
-      ),
-    )
-    setErrors((current) => ({
-      ...current,
-      transactionName: undefined,
-      ...(!overrides.category && {
-        categoryId: undefined,
-        subcategoryId: undefined,
-        subcategoryName: undefined,
-      }),
-    }))
-  }
-
-  const openCategorySelection = () => {
-    setCategorySelectionStep('category')
-    setSelectionSheet('category')
-  }
-
-  const confirmNewSubcategory = () => {
-    const name = newSubcategoryName.trim()
-    if (name.length < 1 || name.length > 16) {
-      setErrors((current) => ({
-        ...current,
-        subcategoryName: 'サブカテゴリ名は1〜16文字で入力してください。',
-      }))
-      return
-    }
-    recommendationOverrides.current.category = true
-    setFormOverride((current) => ({
-      ...(current ?? initialForm),
-      subcategoryId: '',
-      subcategoryName: name,
-    }))
-    setErrors((current) => ({
-      ...current,
-      subcategoryId: undefined,
-      subcategoryName: undefined,
-    }))
-    setSelectionSheet(null)
-    setCategorySelectionStep('category')
-  }
-
-  const changeNewSubcategoryName = (name: string) => {
-    setNewSubcategoryName(name)
-    setErrors((current) => ({ ...current, subcategoryName: undefined }))
-  }
+  const {
+    selectCategory,
+    selectFrequentTransaction,
+    openCategorySelection,
+    confirmNewSubcategory,
+    changeNewSubcategoryName,
+  } = useTransactionFormSelection({
+    categories,
+    isEdit,
+    setFormOverride,
+    initialForm,
+    setErrors,
+    setSelectionSheet,
+    setCategorySelectionStep,
+    setRecommendationInput,
+    newSubcategoryName,
+    setNewSubcategoryName,
+    recommendationOverrides,
+  })
 
   const handleSignChange = (sign: NewTransactionSign) => {
     setValue('sign', sign)
   }
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const nextErrors = validateNewTransaction(form)
-    setErrors(nextErrors)
-    if (Object.keys(nextErrors).length) {
-      const formElement = event.currentTarget
-      requestAnimationFrame(() => {
-        const firstInvalid = formElement.querySelector<HTMLElement>(
-          '[aria-invalid="true"]',
-        )
-        firstInvalid?.focus()
-        firstInvalid?.scrollIntoView({ block: 'center', behavior: 'smooth' })
-      })
-      return
-    }
+  const { handleSubmit, handleDelete } = useTransactionFormActions({
+    form,
+    setErrors,
+    isEdit,
+    transactionId,
+    transaction,
+    expectedVersion: draft.version,
+    mutations,
+    navigate,
+    returnTo,
+    setDeleteDialogOpen,
+    extension,
+  })
 
-    try {
-      if (isEdit && transactionId) {
-        await mutations.update(transactionId, form)
-        toast.success('取引を更新しました。')
-        navigate(returnTo, { replace: true })
-        return
-      }
-
-      await mutations.create(form)
-      const month = getTransactionMonth(form.transactionDate)
-      toast.success('取引を保存しました。')
-      navigate(`/app/transactions?month=${month}&view=list`, { replace: true })
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : '取引を保存できませんでした。',
-      )
-    }
-  }
-
-  const handleDelete = async () => {
-    if (!transactionId || !transaction) {
-      return
-    }
-
-    try {
-      await mutations.remove(transactionId)
-      setDeleteDialogOpen(false)
-      toast.success('取引を削除しました。')
-      navigate(returnTo, { replace: true })
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : '取引を削除できませんでした。',
-      )
-    }
-  }
-
-  const isSaving = mutations.isSaving
+  const isSaving = mutations.isSaving || Boolean(extension.isSaving)
   const isDeleting = mutations.isDeleting
   const isLoading =
     categoriesQuery.isPending || (isEdit && transactionQuery.isPending)
@@ -342,6 +266,13 @@ export function useTransactionFormController(transactionId?: string) {
   return {
     isEdit,
     form,
+    resetReferences: () =>
+      setFormOverride((current) => ({
+        ...(current ?? initialForm),
+        subcategoryId: '',
+        subcategoryName: '',
+        paymentId: null,
+      })),
     errors,
     selectionSheet,
     categorySelectionStep,

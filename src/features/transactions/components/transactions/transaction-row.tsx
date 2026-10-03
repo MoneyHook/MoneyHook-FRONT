@@ -1,5 +1,6 @@
 import { ChevronRight } from 'lucide-react'
 
+import { Button } from '@/shared/components/ui/button'
 import { getCategoryPresentation } from '@/shared/lib/category-presentation'
 import { cn } from '@/shared/lib/utils'
 
@@ -31,9 +32,10 @@ export function TransactionRow({
   onOpen: (id: string) => void
 }) {
   return (
-    <button
-      aria-label={`${item.name}を編集`}
-      className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-2 px-3 py-3 text-left transition-colors outline-none hover:bg-muted/45 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset sm:gap-x-3 sm:px-4"
+    <Button
+      variant="ghost"
+      aria-label={`${item.name}${item.openLabel ?? 'を編集'}`}
+      className="grid h-auto w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-2 gap-y-0 rounded-none border-0 px-3 py-3 text-left font-normal whitespace-normal transition-colors outline-none hover:bg-muted/45 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset active:translate-y-0 sm:gap-x-3 sm:px-4 dark:hover:bg-muted/45"
       onClick={() => onOpen(item.id)}
       type="button"
     >
@@ -46,6 +48,11 @@ export function TransactionRow({
           {item.categoryName} <span aria-hidden="true">›</span>{' '}
           {item.subcategoryName}
         </span>
+        {item.detailLabel ? (
+          <span className="mt-0.5 block truncate text-[0.6875rem] text-muted-foreground sm:text-xs">
+            {item.detailLabel}
+          </span>
+        ) : null}
       </span>
       <span className="flex min-w-0 items-center gap-2 sm:gap-4">
         {item.paymentName ? (
@@ -67,6 +74,6 @@ export function TransactionRow({
           className="size-4 text-muted-foreground"
         />
       </span>
-    </button>
+    </Button>
   )
 }

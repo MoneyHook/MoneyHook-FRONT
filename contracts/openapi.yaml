@@ -41,6 +41,97 @@ paths:
               schema: { type: string, const: 'Success, running' }
 
   /api/v1/transactions:
+    get:
+      {
+        'tags': ['Transaction'],
+        'operationId': 'listV1Transactions',
+        'security': [{ 'BearerAuth': [] }],
+        'parameters':
+          [
+            {
+              'in': 'query',
+              'name': 'month',
+              'required': true,
+              'schema': { 'type': 'string' },
+            },
+            {
+              'in': 'query',
+              'name': 'sharing',
+              'required': false,
+              'schema':
+                { 'type': 'string', 'enum': ['all', 'private', 'shared'] },
+            },
+            {
+              'in': 'query',
+              'name': 'cursor',
+              'required': false,
+              'schema': { 'type': 'string' },
+            },
+          ],
+        'responses':
+          {
+            '200':
+              {
+                'description': 'Personal transactions',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1TransactionPage' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Error',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Error',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Error',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Error',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+      }
     post:
       tags: [Transaction]
       operationId: createV1Transaction
@@ -87,6 +178,7 @@ paths:
       tags: [Transaction]
       operationId: updateV1Transaction
       summary: Update a transaction and return its previous date
+      description: 共有中の取引では、変更されたサブカテゴリ・支払い方法を家族側へ自動反映する。有効な一致項目がなければ同じトランザクションで作成する。金額などの変更だけでは家族側の分類を変更しない。
       security: [BearerAuth: []]
       requestBody:
         required: true
@@ -107,6 +199,12 @@ paths:
         '422': { $ref: '#/components/responses/V1ValidationError' }
         '500': { $ref: '#/components/responses/V1InternalError' }
     delete:
+      parameters:
+        - {
+            in: query,
+            name: expected_version,
+            schema: { type: integer, minimum: 1 },
+          }
       tags: [Transaction]
       operationId: deleteV1Transaction
       summary: Delete a transaction owned by the authenticated user
@@ -944,6 +1042,5001 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               example: { status: error, message: Failed to insert transaction }
 
+  /api/v1/households:
+    get:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdList',
+        'summary': 'List household resource',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '200':
+              {
+                'description': 'Success',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          {
+                            'type': 'array',
+                            'items':
+                              { '$ref': '#/components/schemas/Household' },
+                          },
+                      },
+                  },
+              },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+      }
+    post:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdCreate',
+        'summary': 'Create household resource',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '201':
+              {
+                'description': 'Success',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema': { '$ref': '#/components/schemas/Household' },
+                      },
+                  },
+              },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+        'parameters':
+          [
+            {
+              'in': 'header',
+              'name': 'Idempotency-Key',
+              'required': true,
+              'schema': { 'type': 'string' },
+            },
+          ],
+        'requestBody':
+          {
+            'required': true,
+            'content':
+              {
+                'application/json':
+                  {
+                    'schema':
+                      { '$ref': '#/components/schemas/HouseholdFamilyInput' },
+                  },
+              },
+          },
+      }
+  /api/v1/households/{householdId}:
+    get:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdGet',
+        'summary': 'Get household resource',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '200':
+              {
+                'description': 'Success',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema': { '$ref': '#/components/schemas/Household' },
+                      },
+                  },
+              },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+        'parameters':
+          [
+            {
+              'in': 'path',
+              'name': 'householdId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+          ],
+      }
+    patch:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdRename',
+        'summary': 'Rename household resource',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '200':
+              {
+                'description': 'Success',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema': { '$ref': '#/components/schemas/Household' },
+                      },
+                  },
+              },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+        'parameters':
+          [
+            {
+              'in': 'path',
+              'name': 'householdId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+          ],
+        'requestBody':
+          {
+            'required': true,
+            'content':
+              {
+                'application/json':
+                  {
+                    'schema':
+                      { '$ref': '#/components/schemas/HouseholdFamilyInput' },
+                  },
+              },
+          },
+      }
+  /api/v1/households/{householdId}/members:
+    get:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdMembers',
+        'summary': 'Members household resource',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '200':
+              {
+                'description': 'Success',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          {
+                            'type': 'array',
+                            'items':
+                              {
+                                '$ref': '#/components/schemas/HouseholdMember',
+                              },
+                          },
+                      },
+                  },
+              },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+        'parameters':
+          [
+            {
+              'in': 'path',
+              'name': 'householdId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+          ],
+      }
+  /api/v1/households/{householdId}/members/me:
+    patch:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdRenameMember',
+        'summary': 'RenameMember household resource',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '204': { 'description': 'Success' },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+        'parameters':
+          [
+            {
+              'in': 'path',
+              'name': 'householdId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+          ],
+        'requestBody':
+          {
+            'required': true,
+            'content':
+              {
+                'application/json':
+                  {
+                    'schema':
+                      { '$ref': '#/components/schemas/HouseholdMemberInput' },
+                  },
+              },
+          },
+      }
+  /api/v1/households/{householdId}/admin-transfer:
+    post:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdTransfer',
+        'summary': 'Transfer household resource',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '204': { 'description': 'Success' },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+        'parameters':
+          [
+            {
+              'in': 'path',
+              'name': 'householdId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+          ],
+        'requestBody':
+          {
+            'required': true,
+            'content':
+              {
+                'application/json':
+                  {
+                    'schema':
+                      { '$ref': '#/components/schemas/HouseholdMemberInput' },
+                  },
+              },
+          },
+      }
+  /api/v1/households/{householdId}/leave:
+    post:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdLeave',
+        'summary': 'Leave household resource',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '204': { 'description': 'Success' },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+        'parameters':
+          [
+            {
+              'in': 'path',
+              'name': 'householdId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+          ],
+        'requestBody':
+          {
+            'required': true,
+            'content':
+              {
+                'application/json':
+                  {
+                    'schema':
+                      { '$ref': '#/components/schemas/HouseholdVersion' },
+                  },
+              },
+          },
+      }
+  /api/v1/households/{householdId}/archive:
+    post:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdArchive',
+        'summary': 'Archive household resource',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '204': { 'description': 'Success' },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+        'parameters':
+          [
+            {
+              'in': 'path',
+              'name': 'householdId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+          ],
+        'requestBody':
+          {
+            'required': true,
+            'content':
+              {
+                'application/json':
+                  {
+                    'schema':
+                      { '$ref': '#/components/schemas/HouseholdVersion' },
+                  },
+              },
+          },
+      }
+  /api/v1/households/{householdId}/members/{memberId}:
+    delete:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdRemoveMember',
+        'summary': 'RemoveMember household resource',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '204': { 'description': 'Success' },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+        'parameters':
+          [
+            {
+              'in': 'path',
+              'name': 'householdId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+            {
+              'in': 'path',
+              'name': 'memberId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+            {
+              'in': 'query',
+              'name': 'expected_version',
+              'required': true,
+              'schema': { 'type': 'integer' },
+            },
+          ],
+      }
+  /api/v1/households/{householdId}/invitations:
+    get:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdInvitations',
+        'summary': 'Invitations household resource',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '200':
+              {
+                'description': 'Success',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          {
+                            'type': 'array',
+                            'items':
+                              {
+                                '$ref': '#/components/schemas/HouseholdInvitation',
+                              },
+                          },
+                      },
+                  },
+              },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+        'parameters':
+          [
+            {
+              'in': 'path',
+              'name': 'householdId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+          ],
+      }
+    post:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdIssue',
+        'summary': 'Issue household resource',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '201':
+              {
+                'description': 'Success',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          {
+                            '$ref': '#/components/schemas/HouseholdInviteSecret',
+                          },
+                      },
+                  },
+              },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+        'parameters':
+          [
+            {
+              'in': 'path',
+              'name': 'householdId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+            {
+              'in': 'header',
+              'name': 'Idempotency-Key',
+              'required': true,
+              'schema': { 'type': 'string' },
+            },
+          ],
+        'requestBody':
+          {
+            'required': true,
+            'content':
+              {
+                'application/json':
+                  {
+                    'schema':
+                      {
+                        'type': 'object',
+                        'additionalProperties': false,
+                        'properties': {},
+                        'required': [],
+                      },
+                  },
+              },
+          },
+      }
+  /api/v1/households/{householdId}/invitations/{invitationId}/reissue:
+    post:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdReissue',
+        'summary': 'Reissue household resource',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '201':
+              {
+                'description': 'Success',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          {
+                            '$ref': '#/components/schemas/HouseholdInviteSecret',
+                          },
+                      },
+                  },
+              },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+        'parameters':
+          [
+            {
+              'in': 'path',
+              'name': 'householdId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+            {
+              'in': 'path',
+              'name': 'invitationId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+            {
+              'in': 'header',
+              'name': 'Idempotency-Key',
+              'required': true,
+              'schema': { 'type': 'string' },
+            },
+          ],
+        'requestBody':
+          {
+            'required': true,
+            'content':
+              {
+                'application/json':
+                  {
+                    'schema':
+                      {
+                        'type': 'object',
+                        'additionalProperties': false,
+                        'properties': {},
+                        'required': [],
+                      },
+                  },
+              },
+          },
+      }
+  /api/v1/households/{householdId}/invitations/{invitationId}:
+    delete:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdRevoke',
+        'summary': 'Revoke household resource',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '204': { 'description': 'Success' },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+        'parameters':
+          [
+            {
+              'in': 'path',
+              'name': 'householdId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+            {
+              'in': 'path',
+              'name': 'invitationId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+          ],
+      }
+  /api/v1/household-invitations/preview:
+    post:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdPreview',
+        'summary': 'Preview household resource',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '200':
+              {
+                'description': 'Success',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/HouseholdPreview' },
+                      },
+                  },
+              },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+        'requestBody':
+          {
+            'required': true,
+            'content':
+              {
+                'application/json':
+                  {
+                    'schema':
+                      { '$ref': '#/components/schemas/HouseholdCredential' },
+                  },
+              },
+          },
+      }
+  /api/v1/household-invitations/accept:
+    post:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdAccept',
+        'summary': 'Accept household resource',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '201':
+              {
+                'description': 'Success',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema': { '$ref': '#/components/schemas/Household' },
+                      },
+                  },
+              },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+        'parameters':
+          [
+            {
+              'in': 'header',
+              'name': 'Idempotency-Key',
+              'required': true,
+              'schema': { 'type': 'string' },
+            },
+          ],
+        'requestBody':
+          {
+            'required': true,
+            'content':
+              {
+                'application/json':
+                  {
+                    'schema':
+                      { '$ref': '#/components/schemas/HouseholdCredential' },
+                  },
+              },
+          },
+      }
+  /api/v1/households/{householdId}/entries:
+    get:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdEntries',
+        'summary': 'Entries household resource',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '200':
+              {
+                'description': 'Success',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/HouseholdEntryPage' },
+                      },
+                  },
+              },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+        'parameters':
+          [
+            {
+              'in': 'path',
+              'name': 'householdId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+            {
+              'in': 'query',
+              'name': 'month',
+              'required': true,
+              'schema': { 'type': 'string' },
+            },
+            {
+              'in': 'query',
+              'name': 'payer',
+              'required': false,
+              'schema': { 'type': 'string' },
+            },
+            {
+              'in': 'query',
+              'name': 'kind',
+              'required': false,
+              'schema': { 'type': 'string' },
+            },
+            {
+              'in': 'query',
+              'name': 'cursor',
+              'required': false,
+              'schema': { 'type': 'string' },
+            },
+          ],
+      }
+  /api/v1/households/{householdId}/entries/{entryId}:
+    get:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdEntry',
+        'summary': 'Entry household resource',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '200':
+              {
+                'description': 'Success',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/HouseholdEntry' },
+                      },
+                  },
+              },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+        'parameters':
+          [
+            {
+              'in': 'path',
+              'name': 'householdId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+            {
+              'in': 'path',
+              'name': 'entryId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+          ],
+      }
+  /api/v1/households/{householdId}/entries/{entryId}/corrections:
+    post:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdCorrect',
+        'summary': 'Correct household resource',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '201':
+              {
+                'description': 'Success',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/HouseholdEntry' },
+                      },
+                  },
+              },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+        'parameters':
+          [
+            {
+              'in': 'path',
+              'name': 'householdId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+            {
+              'in': 'path',
+              'name': 'entryId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+          ],
+        'requestBody':
+          {
+            'required': true,
+            'content':
+              {
+                'application/json':
+                  {
+                    'schema':
+                      { '$ref': '#/components/schemas/HouseholdEntryInput' },
+                  },
+              },
+          },
+      }
+  /api/v1/households/{householdId}/own-transactions:
+    post:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdOwn',
+        'summary': 'Own household resource',
+        'description': '個人原本と家族記録を一括保存する。選択した個人サブカテゴリ・支払い方法から家族項目を自動解決し、有効な一致項目がなければ同じトランザクションで作成する。サブカテゴリは親カテゴリと名前、支払い方法は名前・種別・締め日・支払日で照合する。無効な項目は復活させない。',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '201':
+              {
+                'description': 'Success',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/HouseholdEntry' },
+                      },
+                  },
+              },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+        'parameters':
+          [
+            {
+              'in': 'path',
+              'name': 'householdId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+            {
+              'in': 'header',
+              'name': 'Idempotency-Key',
+              'required': true,
+              'schema': { 'type': 'string' },
+            },
+          ],
+        'requestBody':
+          {
+            'required': true,
+            'content':
+              {
+                'application/json':
+                  {
+                    'schema':
+                      { '$ref': '#/components/schemas/HouseholdEntryInput' },
+                  },
+              },
+          },
+      }
+  /api/v1/households/{householdId}/proxy-transactions:
+    post:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdProxy',
+        'summary': 'Proxy household resource',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '201':
+              {
+                'description': 'Success',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/HouseholdEntry' },
+                      },
+                  },
+              },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+        'parameters':
+          [
+            {
+              'in': 'path',
+              'name': 'householdId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+            {
+              'in': 'header',
+              'name': 'Idempotency-Key',
+              'required': true,
+              'schema': { 'type': 'string' },
+            },
+          ],
+        'requestBody':
+          {
+            'required': true,
+            'content':
+              {
+                'application/json':
+                  {
+                    'schema':
+                      { '$ref': '#/components/schemas/HouseholdEntryInput' },
+                  },
+              },
+          },
+      }
+  /api/v1/households/{householdId}/proxy-transactions/{entryId}:
+    patch:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdUpdateProxy',
+        'summary': 'UpdateProxy household resource',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '200':
+              {
+                'description': 'Success',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/HouseholdEntry' },
+                      },
+                  },
+              },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+        'parameters':
+          [
+            {
+              'in': 'path',
+              'name': 'householdId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+            {
+              'in': 'path',
+              'name': 'entryId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+          ],
+        'requestBody':
+          {
+            'required': true,
+            'content':
+              {
+                'application/json':
+                  {
+                    'schema':
+                      { '$ref': '#/components/schemas/HouseholdEntryInput' },
+                  },
+              },
+          },
+      }
+    delete:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdDeleteProxy',
+        'summary': 'DeleteProxy household resource',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '204': { 'description': 'Success' },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+        'parameters':
+          [
+            {
+              'in': 'path',
+              'name': 'householdId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+            {
+              'in': 'path',
+              'name': 'entryId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+            {
+              'in': 'query',
+              'name': 'expected_version',
+              'required': true,
+              'schema': { 'type': 'integer' },
+            },
+          ],
+      }
+  /api/v1/households/{householdId}/shares/{transactionId}:
+    get:
+      tags: [household]
+      operationId: householdShareStatus
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - {
+            name: householdId,
+            in: path,
+            required: true,
+            schema: { $ref: '#/components/schemas/Identifier' },
+          }
+        - {
+            name: transactionId,
+            in: path,
+            required: true,
+            schema: { $ref: '#/components/schemas/Identifier' },
+          }
+      responses:
+        '200':
+          description: Owner-only sharing state, including a withdrawn share. State is none before first sharing.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HouseholdShareStatus' }
+        '400': { $ref: '#/components/responses/V1BadRequest' }
+        '401': { $ref: '#/components/responses/V1Unauthorized' }
+        '404': { $ref: '#/components/responses/V1NotFound' }
+        '409': { $ref: '#/components/responses/AuthIdentityConflict' }
+        '500': { $ref: '#/components/responses/V1InternalError' }
+    put:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdShare',
+        'summary': 'Share household resource',
+        'description': '個人原本のサブカテゴリ・支払い方法から家族項目を自動解決して共有する。有効な一致項目がなければ一括作成する。個人の参照IDは家族へ公開しない。',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '200':
+              {
+                'description': 'Success',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/HouseholdEntry' },
+                      },
+                  },
+              },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+        'parameters':
+          [
+            {
+              'in': 'path',
+              'name': 'householdId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+            {
+              'in': 'path',
+              'name': 'transactionId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+          ],
+        'requestBody':
+          {
+            'required': true,
+            'content':
+              {
+                'application/json':
+                  {
+                    'schema':
+                      { '$ref': '#/components/schemas/HouseholdEntryInput' },
+                  },
+              },
+          },
+      }
+    delete:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdUnshare',
+        'summary': 'Unshare household resource',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '204': { 'description': 'Success' },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+        'parameters':
+          [
+            {
+              'in': 'path',
+              'name': 'householdId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+            {
+              'in': 'path',
+              'name': 'transactionId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+            {
+              'in': 'query',
+              'name': 'expected_version',
+              'required': true,
+              'schema': { 'type': 'integer' },
+            },
+          ],
+      }
+  /api/v1/households/{householdId}/payments:
+    get:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdPayments',
+        'summary': 'Payments household resource',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '200':
+              {
+                'description': 'Success',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          {
+                            'type': 'array',
+                            'items':
+                              {
+                                '$ref': '#/components/schemas/HouseholdReference',
+                              },
+                          },
+                      },
+                  },
+              },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+        'parameters':
+          [
+            {
+              'in': 'path',
+              'name': 'householdId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+          ],
+      }
+    post:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdSavePaymentsCreate',
+        'summary': 'SavePayments household resource',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '200':
+              {
+                'description': 'Success',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/HouseholdReference' },
+                      },
+                  },
+              },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+        'parameters':
+          [
+            {
+              'in': 'path',
+              'name': 'householdId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+          ],
+        'requestBody':
+          {
+            'required': true,
+            'content':
+              {
+                'application/json':
+                  {
+                    'schema':
+                      {
+                        '$ref': '#/components/schemas/HouseholdReferenceInput',
+                      },
+                  },
+              },
+          },
+      }
+  /api/v1/households/{householdId}/payments/{referenceId}:
+    patch:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdSavePayments',
+        'summary': 'SavePayments household resource',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '200':
+              {
+                'description': 'Success',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/HouseholdReference' },
+                      },
+                  },
+              },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+        'parameters':
+          [
+            {
+              'in': 'path',
+              'name': 'householdId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+            {
+              'in': 'path',
+              'name': 'referenceId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+          ],
+        'requestBody':
+          {
+            'required': true,
+            'content':
+              {
+                'application/json':
+                  {
+                    'schema':
+                      {
+                        '$ref': '#/components/schemas/HouseholdReferenceInput',
+                      },
+                  },
+              },
+          },
+      }
+  /api/v1/households/{householdId}/categories:
+    get:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdSubcategories',
+        'summary': 'Subcategories household resource',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '200':
+              {
+                'description': 'Success',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          {
+                            'type': 'array',
+                            'items':
+                              {
+                                '$ref': '#/components/schemas/HouseholdReference',
+                              },
+                          },
+                      },
+                  },
+              },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+        'parameters':
+          [
+            {
+              'in': 'path',
+              'name': 'householdId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+          ],
+      }
+  /api/v1/households/{householdId}/subcategories:
+    post:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdSaveSubcategoriesCreate',
+        'summary': 'SaveSubcategories household resource',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '200':
+              {
+                'description': 'Success',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/HouseholdReference' },
+                      },
+                  },
+              },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+        'parameters':
+          [
+            {
+              'in': 'path',
+              'name': 'householdId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+          ],
+        'requestBody':
+          {
+            'required': true,
+            'content':
+              {
+                'application/json':
+                  {
+                    'schema':
+                      {
+                        '$ref': '#/components/schemas/HouseholdReferenceInput',
+                      },
+                  },
+              },
+          },
+      }
+  /api/v1/households/{householdId}/subcategories/{referenceId}:
+    patch:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdSaveSubcategories',
+        'summary': 'SaveSubcategories household resource',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '200':
+              {
+                'description': 'Success',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/HouseholdReference' },
+                      },
+                  },
+              },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+        'parameters':
+          [
+            {
+              'in': 'path',
+              'name': 'householdId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+            {
+              'in': 'path',
+              'name': 'referenceId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+          ],
+        'requestBody':
+          {
+            'required': true,
+            'content':
+              {
+                'application/json':
+                  {
+                    'schema':
+                      {
+                        '$ref': '#/components/schemas/HouseholdReferenceInput',
+                      },
+                  },
+              },
+          },
+      }
+  /api/v1/households/{householdId}/analytics/{group}:
+    get:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdAnalytics',
+        'summary': 'Analytics household resource',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '200':
+              {
+                'description': 'Success',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/HouseholdSummary' },
+                      },
+                  },
+              },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+        'parameters':
+          [
+            {
+              'in': 'path',
+              'name': 'householdId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+            {
+              'in': 'path',
+              'name': 'group',
+              'required': true,
+              'schema':
+                {
+                  'type': 'string',
+                  'enum': ['overview', 'categories', 'payers'],
+                },
+            },
+            {
+              'in': 'query',
+              'name': 'month',
+              'required': true,
+              'schema': { 'type': 'string' },
+            },
+          ],
+      }
+  /api/v1/households/{householdId}/duplicate-candidates:
+    get:
+      {
+        'tags': ['Household'],
+        'operationId': 'householdDuplicates',
+        'summary': 'Duplicates household resource',
+        'security': [{ 'BearerAuth': [] }],
+        'responses':
+          {
+            '200':
+              {
+                'description': 'Success',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          {
+                            'type': 'array',
+                            'items':
+                              { '$ref': '#/components/schemas/HouseholdEntry' },
+                          },
+                      },
+                  },
+              },
+            '400':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '401':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '403':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '404':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '409':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '422':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '429':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '500':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+            '503':
+              {
+                'description': 'Request failed',
+                'content':
+                  {
+                    'application/json':
+                      {
+                        'schema':
+                          { '$ref': '#/components/schemas/V1ErrorResponse' },
+                      },
+                  },
+              },
+          },
+        'parameters':
+          [
+            {
+              'in': 'path',
+              'name': 'householdId',
+              'required': true,
+              'schema': { '$ref': '#/components/schemas/Identifier' },
+            },
+            {
+              'in': 'query',
+              'name': 'date',
+              'required': true,
+              'schema': { 'type': 'string' },
+            },
+            {
+              'in': 'query',
+              'name': 'amount',
+              'required': true,
+              'schema': { 'type': 'integer' },
+            },
+            {
+              'in': 'query',
+              'name': 'sign',
+              'required': true,
+              'schema': { 'type': 'integer' },
+            },
+            {
+              'in': 'query',
+              'name': 'payer',
+              'required': true,
+              'schema': { 'type': 'string' },
+            },
+            {
+              'in': 'query',
+              'name': 'exclude',
+              'required': false,
+              'schema': { 'type': 'string' },
+            },
+          ],
+      }
+
 components:
   securitySchemes:
     BearerAuth:
@@ -1051,6 +6144,14 @@ components:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
           example: { status: error, message: 削除に失敗しました }
   schemas:
+    HouseholdShareStatus:
+      type: object
+      required: [version, state]
+      properties:
+        entry_id: { $ref: '#/components/schemas/Identifier' }
+        version: { type: integer, format: int64 }
+        state: { type: string, enum: [none, active, withdrawn, deleted] }
+        kind: { type: string, enum: [shared, proxy, snapshot] }
     V1ErrorResponse:
       type: object
       additionalProperties: false
@@ -1148,6 +6249,7 @@ components:
       type: object
       additionalProperties: false
       properties:
+        default_transaction_scope: { type: string, enum: [personal, household] }
         accent_color: { type: string, enum: [blue, green, violet, rose, black] }
         theme_mode: { type: string, enum: [light, dark, system] }
         chart_palette: { type: string, enum: [default, colorful, monochrome] }
@@ -1157,6 +6259,7 @@ components:
       additionalProperties: false
       required: [accent_color, theme_mode, chart_palette]
       properties:
+        default_transaction_scope: { type: string, enum: [personal, household] }
         accent_color: { type: string, enum: [blue, green, violet, rose, black] }
         theme_mode: { type: string, enum: [light, dark, system] }
         chart_palette: { type: string, enum: [default, colorful, monochrome] }
@@ -1165,6 +6268,7 @@ components:
       additionalProperties: false
       required: [transaction]
       properties:
+        expected_version: { type: integer, minimum: 1 }
         transaction: { $ref: '#/components/schemas/V1TransactionInput' }
     V1TransactionCreateRequest:
       type: object
@@ -1193,6 +6297,8 @@ components:
           payment_name,
         ]
       properties:
+        version: { type: integer }
+        shared: { type: boolean }
         transaction_id: { $ref: '#/components/schemas/Identifier' }
         transaction_date: { $ref: '#/components/schemas/DateString' }
         transaction_time: { $ref: '#/components/schemas/V1NullableTime' }
@@ -2213,3 +7319,409 @@ components:
               payment_type_id: { $ref: '#/components/schemas/Identifier' }
               payment_type_name: { type: string }
               is_payment_due_later: { type: boolean }
+
+    Household:
+      {
+        'type': 'object',
+        'additionalProperties': false,
+        'properties':
+          {
+            'household_id': { '$ref': '#/components/schemas/Identifier' },
+            'name': { 'type': 'string' },
+            'state': { 'type': 'string', 'enum': ['active', 'archived'] },
+            'version': { 'type': 'integer' },
+            'created_at': { 'type': 'string' },
+            'archived_at': { 'type': ['string', 'null'] },
+            'role': { 'type': 'string' },
+            'member_id': { '$ref': '#/components/schemas/Identifier' },
+          },
+        'required':
+          [
+            'household_id',
+            'name',
+            'state',
+            'version',
+            'created_at',
+            'archived_at',
+            'role',
+            'member_id',
+          ],
+      }
+    HouseholdMember:
+      {
+        'type': 'object',
+        'additionalProperties': false,
+        'properties':
+          {
+            'member_id': { '$ref': '#/components/schemas/Identifier' },
+            'household_id': { '$ref': '#/components/schemas/Identifier' },
+            'role': { 'type': 'string', 'enum': ['admin', 'member'] },
+            'state':
+              { 'type': 'string', 'enum': ['active', 'left', 'archived'] },
+            'display_name': { 'type': 'string' },
+            'joined_at': { 'type': 'string' },
+            'left_at': { 'type': ['string', 'null'] },
+          },
+        'required':
+          [
+            'member_id',
+            'household_id',
+            'role',
+            'state',
+            'display_name',
+            'joined_at',
+            'left_at',
+          ],
+      }
+    HouseholdInvitation:
+      {
+        'type': 'object',
+        'additionalProperties': false,
+        'properties':
+          {
+            'invitation_id': { '$ref': '#/components/schemas/Identifier' },
+            'expires_at': { 'type': 'string' },
+            'consumed_at': { 'type': ['string', 'null'] },
+            'revoked_at': { 'type': ['string', 'null'] },
+            'created_at': { 'type': 'string' },
+            'state': { 'type': 'string' },
+          },
+        'required':
+          [
+            'invitation_id',
+            'expires_at',
+            'consumed_at',
+            'revoked_at',
+            'created_at',
+            'state',
+          ],
+      }
+    HouseholdInviteSecret:
+      {
+        'type': 'object',
+        'additionalProperties': false,
+        'properties':
+          {
+            'invitation_id': { '$ref': '#/components/schemas/Identifier' },
+            'expires_at': { 'type': 'string' },
+            'consumed_at': { 'type': ['string', 'null'] },
+            'revoked_at': { 'type': ['string', 'null'] },
+            'created_at': { 'type': 'string' },
+            'state': { 'type': 'string' },
+            'code': { 'type': 'string' },
+            'token': { 'type': 'string' },
+          },
+        'required':
+          [
+            'invitation_id',
+            'expires_at',
+            'consumed_at',
+            'revoked_at',
+            'created_at',
+            'state',
+            'code',
+            'token',
+          ],
+      }
+    HouseholdCredential:
+      {
+        'type': 'object',
+        'additionalProperties': false,
+        'properties':
+          { 'code': { 'type': 'string' }, 'token': { 'type': 'string' } },
+        'required': [],
+      }
+    HouseholdPreview:
+      {
+        'type': 'object',
+        'additionalProperties': false,
+        'properties':
+          {
+            'household_name': { 'type': 'string' },
+            'inviter_name': { 'type': 'string' },
+            'expires_at': { 'type': 'string' },
+          },
+        'required': ['household_name', 'inviter_name', 'expires_at'],
+      }
+    HouseholdFamilyInput:
+      {
+        'type': 'object',
+        'additionalProperties': false,
+        'properties':
+          {
+            'expected_version': { 'type': 'integer', 'minimum': 1 },
+            'name': { 'type': 'string' },
+            'display_name': { 'type': 'string' },
+          },
+        'required': ['name'],
+      }
+    HouseholdMemberInput:
+      {
+        'type': 'object',
+        'additionalProperties': false,
+        'properties':
+          {
+            'expected_version': { 'type': 'integer', 'minimum': 1 },
+            'target_member_id': { 'type': 'string' },
+            'display_name': { 'type': 'string' },
+          },
+        'required': [],
+      }
+    HouseholdVersion:
+      {
+        'type': 'object',
+        'additionalProperties': false,
+        'properties':
+          { 'expected_version': { 'type': 'integer', 'minimum': 1 } },
+        'required': ['expected_version'],
+      }
+    HouseholdPayer:
+      {
+        'type': 'object',
+        'additionalProperties': false,
+        'properties':
+          {
+            'kind': { 'type': 'string', 'enum': ['member', 'common'] },
+            'member_id': { 'type': ['string', 'null'] },
+            'display_name': { 'type': 'string' },
+            'state': { 'type': 'string' },
+          },
+        'required': ['kind', 'member_id'],
+      }
+    HouseholdTransactionInput:
+      {
+        'type': 'object',
+        'additionalProperties': false,
+        'properties':
+          {
+            'transaction_date': { 'type': 'string' },
+            'transaction_time': { 'type': ['string', 'null'] },
+            'transaction_name': { 'type': 'string' },
+            'amount': { 'type': 'integer' },
+            'sign': { 'type': 'integer', 'enum': [-1, 1] },
+            'category_id': { '$ref': '#/components/schemas/Identifier' },
+            'fixed_flg': { 'type': 'boolean' },
+            'sub_category_id': { 'type': 'string' },
+            'sub_category_name': { 'type': 'string' },
+            'payment_id': { 'type': ['string', 'null'] },
+          },
+        'required':
+          [
+            'transaction_date',
+            'transaction_name',
+            'amount',
+            'sign',
+            'category_id',
+            'fixed_flg',
+          ],
+      }
+    HouseholdEntryInput:
+      {
+        'type': 'object',
+        'additionalProperties': false,
+        'properties':
+          {
+            'expected_version': { 'type': 'integer', 'minimum': 1 },
+            'transaction':
+              { '$ref': '#/components/schemas/HouseholdTransactionInput' },
+            'payer': { '$ref': '#/components/schemas/HouseholdPayer' },
+            'household_payment_id':
+              {
+                'type': ['string', 'null'],
+                'description': '代理記録・控え訂正で指定する家族支払い方法。本人の登録・共有では指定値を使用せず、個人原本から自動解決する。',
+              },
+            'household_sub_category_id':
+              {
+                'type': ['string', 'null'],
+                'description': '代理記録・控え訂正で指定する家族サブカテゴリ。本人の登録・共有では指定値を使用せず、個人原本から自動解決する。',
+              },
+            'source_version': { 'type': 'integer' },
+            'excluded_from_totals': { 'type': 'boolean' },
+          },
+        'required': [],
+      }
+    HouseholdPermissions:
+      {
+        'type': 'object',
+        'additionalProperties': false,
+        'properties':
+          {
+            'can_edit': { 'type': 'boolean' },
+            'can_delete': { 'type': 'boolean' },
+            'can_unshare': { 'type': 'boolean' },
+            'can_correct': { 'type': 'boolean' },
+          },
+        'required': ['can_edit', 'can_delete', 'can_unshare', 'can_correct'],
+      }
+    HouseholdEntry:
+      {
+        'type': 'object',
+        'additionalProperties': false,
+        'properties':
+          {
+            'transaction_date': { 'type': 'string' },
+            'transaction_time': { 'type': ['string', 'null'] },
+            'transaction_name': { 'type': 'string' },
+            'amount': { 'type': 'integer' },
+            'sign': { 'type': 'integer', 'enum': [-1, 1] },
+            'category_id': { '$ref': '#/components/schemas/Identifier' },
+            'fixed_flg': { 'type': 'boolean' },
+            'sub_category_id': { 'type': 'string' },
+            'sub_category_name': { 'type': 'string' },
+            'payment_id': { 'type': ['string', 'null'] },
+            'entry_id': { '$ref': '#/components/schemas/Identifier' },
+            'kind':
+              { 'type': 'string', 'enum': ['shared', 'proxy', 'snapshot'] },
+            'version': { 'type': 'integer' },
+            'signed_amount': { 'type': 'integer' },
+            'category_name': { 'type': 'string' },
+            'household_payment_id': { 'type': ['string', 'null'] },
+            'household_payment_name': { 'type': ['string', 'null'] },
+            'household_sub_category_id': { 'type': ['string', 'null'] },
+            'household_sub_category_name': { 'type': ['string', 'null'] },
+            'payer': { '$ref': '#/components/schemas/HouseholdPayer' },
+            'created_by': { '$ref': '#/components/schemas/Identifier' },
+            'updated_by': { '$ref': '#/components/schemas/Identifier' },
+            'updated_at': { 'type': 'string' },
+            'source_transaction_id':
+              { '$ref': '#/components/schemas/Identifier' },
+            'source_version': { 'type': 'integer' },
+            'permissions':
+              { '$ref': '#/components/schemas/HouseholdPermissions' },
+            'captured_at': { 'type': ['string', 'null'] },
+            'corrected': { 'type': 'boolean' },
+            'excluded_from_totals': { 'type': 'boolean' },
+          },
+        'required':
+          [
+            'transaction_date',
+            'transaction_time',
+            'transaction_name',
+            'amount',
+            'sign',
+            'category_id',
+            'fixed_flg',
+            'payment_id',
+            'entry_id',
+            'kind',
+            'version',
+            'signed_amount',
+            'category_name',
+            'household_payment_id',
+            'household_payment_name',
+            'household_sub_category_id',
+            'household_sub_category_name',
+            'payer',
+            'created_by',
+            'updated_by',
+            'updated_at',
+            'permissions',
+            'captured_at',
+            'corrected',
+            'excluded_from_totals',
+          ],
+      }
+    HouseholdEntryPage:
+      {
+        'type': 'object',
+        'additionalProperties': false,
+        'properties':
+          {
+            'entries':
+              {
+                'type': 'array',
+                'items': { '$ref': '#/components/schemas/HouseholdEntry' },
+              },
+            'next_cursor': { 'type': ['string', 'null'] },
+          },
+        'required': ['entries', 'next_cursor'],
+      }
+    HouseholdReference:
+      {
+        'type': 'object',
+        'additionalProperties': false,
+        'properties':
+          {
+            'id': { '$ref': '#/components/schemas/Identifier' },
+            'name': { 'type': 'string' },
+            'category_id': { 'type': ['string', 'null'] },
+            'payment_type_id': { 'type': ['string', 'null'] },
+            'payment_date': { 'type': ['integer', 'null'] },
+            'closing_date': { 'type': ['integer', 'null'] },
+            'active': { 'type': 'boolean' },
+            'version': { 'type': 'integer' },
+          },
+        'required':
+          [
+            'id',
+            'name',
+            'category_id',
+            'payment_type_id',
+            'payment_date',
+            'closing_date',
+            'active',
+            'version',
+          ],
+      }
+    HouseholdReferenceInput:
+      {
+        'type': 'object',
+        'additionalProperties': false,
+        'properties':
+          {
+            'expected_version': { 'type': 'integer', 'minimum': 1 },
+            'name': { 'type': 'string' },
+            'category_id': { 'type': ['string', 'null'] },
+            'payment_type_id': { 'type': ['string', 'null'] },
+            'payment_date': { 'type': ['integer', 'null'] },
+            'closing_date': { 'type': ['integer', 'null'] },
+            'active': { 'type': 'boolean' },
+          },
+        'required': [],
+      }
+    HouseholdSummaryGroup:
+      {
+        'type': 'object',
+        'additionalProperties': false,
+        'properties':
+          {
+            'id': { 'type': 'string' },
+            'name': { 'type': 'string' },
+            'amount': { 'type': 'integer' },
+          },
+        'required': ['id', 'name', 'amount'],
+      }
+    HouseholdSummary:
+      {
+        'type': 'object',
+        'additionalProperties': false,
+        'properties':
+          {
+            'income': { 'type': 'integer' },
+            'expense': { 'type': 'integer' },
+            'balance': { 'type': 'integer' },
+            'groups':
+              {
+                'type': 'array',
+                'items':
+                  { '$ref': '#/components/schemas/HouseholdSummaryGroup' },
+              },
+          },
+        'required': ['income', 'expense', 'balance', 'groups'],
+      }
+    V1TransactionPage:
+      {
+        'type': 'object',
+        'additionalProperties': false,
+        'properties':
+          {
+            'transactions':
+              {
+                'type': 'array',
+                'items':
+                  { '$ref': '#/components/schemas/V1TransactionResource' },
+              },
+            'next_cursor': { 'type': ['string', 'null'] },
+          },
+        'required': ['transactions', 'next_cursor'],
+      }

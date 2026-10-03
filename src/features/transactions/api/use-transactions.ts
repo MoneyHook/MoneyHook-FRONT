@@ -1,33 +1,42 @@
-import { useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 
-import type { TimelineResponse } from '@/shared/api/generated/model'
-import { useGetTimelineData } from '@/shared/api/generated/transaction/transaction'
-import { usePersistedQueryData } from '@/shared/hooks/use-persisted-query-data'
+import type { V1TransactionResource } from '@/shared/api/generated/model'
+import { listV1Transactions } from '@/shared/api/generated/transaction/transaction'
 
 import { buildTransactionsViewModel } from '../model/transactions'
 
 export function useTransactions(month: string) {
-  const cache = usePersistedQueryData({
-    isValue: (value): value is TimelineResponse =>
-      Boolean(value) &&
-      typeof value === 'object' &&
-      Array.isArray((value as TimelineResponse).transaction_list),
-    parameters: { month },
-    resource: 'transaction-timeline',
+  const sharing = 'all'
+  const query = useQuery({
+    queryKey: ['/api/v1/transactions', { month, sharing }],
+    queryFn: async ({ signal }) => {
+      // Complete the month before rendering calendar totals, including every page.
+      const rows: V1TransactionResource[] = []
+      let cursor = ''
+      do {
+        const r = await listV1Transactions(
+          { month, sharing, cursor },
+          { signal },
+        )
+        if (r.status !== 200)
+          throw new Error('個人の取引を取得できませんでした')
+        rows.push(...r.data.transactions)
+        cursor = r.data.next_cursor ?? ''
+      } while (cursor)
+      return buildTransactionsViewModel(
+        rows.map((t) => ({
+          ...t,
+          transaction_amount: t.amount,
+          transaction_sign: t.sign,
+        })),
+      )
+    },
   })
-  const query = useGetTimelineData({ month }, { query: cache.queryOptions })
-  useEffect(() => {
-    cache.persist(query.data)
-  }, [cache, query.data])
-  const response = query.data?.status === 200 ? query.data.data : null
-
   return {
-    data: response
-      ? buildTransactionsViewModel(response.transaction_list)
-      : null,
+    data: query.data ?? null,
     error: query.error,
-    isError: query.isError && !response,
-    isPending: query.isPending && !response,
+    isError: query.isError,
+    isPending: query.isPending,
     refetch: query.refetch,
   }
 }
