@@ -1,7 +1,7 @@
 import { ArrowLeft, Settings } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useEffect, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
 import { useAuth } from '@/features/auth'
 import { FamilySettings } from '@/features/households'
@@ -120,16 +120,8 @@ export function SettingsPage() {
 }
 
 export function HouseholdSettingsPage() {
-  const [search] = useSearchParams()
-  const context = new URLSearchParams()
-  for (const key of ['household', 'month']) {
-    const value = search.get(key)
-    if (value) context.set(key, value)
-  }
   return (
     <SettingsDetailPage
-      backLabel="家族ホームへ"
-      backTo={`/app/family${context.size ? `?${context}` : ''}`}
       description="家族の管理、メンバーの招待、新規入力の入力先を設定できます。"
       title="家族の家計"
     >

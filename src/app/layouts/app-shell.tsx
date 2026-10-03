@@ -272,8 +272,7 @@ export function AppShell({
   scope?: 'personal' | 'family'
 }) {
   const location = useLocation()
-  const isFamily =
-    scope === 'family' || location.pathname === '/app/settings/family'
+  const isFamily = scope === 'family'
   const navigationItems = isFamily
     ? familyNavigationItems
     : personalNavigationItems
