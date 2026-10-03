@@ -68,6 +68,8 @@ describe('family transaction data', () => {
       expenseAmount: 1200,
       incomeAmount: 5000,
     })
+    expect(result.payerTotals).toMatchObject([{ id: 'common', amount: 1200 }])
+    expect(result.familyGroups[0].entries).toHaveLength(4)
     expect(
       result.items.find((item) => item.id === '2')?.excludedFromTotals,
     ).toBe(true)
@@ -100,6 +102,15 @@ describe('family transaction data', () => {
     expect(
       buildFamilyTransactionsViewModel(rows, 'missing').balanceAmount,
     ).toBe(0)
+    expect(
+      buildFamilyTransactionsViewModel(rows, '5', 'shared').payerTotals,
+    ).toMatchObject([{ id: 'member:5', amount: 1200 }])
+    expect(
+      buildFamilyTransactionsViewModel(rows, 'common').payerTotals,
+    ).toMatchObject([{ id: 'common', amount: 1200 }])
+    expect(
+      buildFamilyTransactionsViewModel(rows, 'missing').payerTotals,
+    ).toEqual([])
   })
 
   it('uses family references and orders day groups newest first without changing input', () => {
@@ -119,5 +130,82 @@ describe('family transaction data', () => {
       paymentName: '家族カード',
       subcategoryName: '食材',
     })
+    expect(
+      result.familyGroups.map((group) =>
+        group.entries.map((item) => item.entry_id),
+      ),
+    ).toEqual([['2'], ['1']])
+  })
+
+  it('aggregates expenses by member identity, keeping common and departed payers separate', () => {
+    const rows = [
+      entry(),
+      entry({
+        entry_id: '2',
+        amount: 300,
+        payer: { kind: 'member', member_id: '5', display_name: '同じ名前' },
+      }),
+      entry({
+        entry_id: '3',
+        amount: 500,
+        payer: { kind: 'member', member_id: '5', display_name: '同じ名前' },
+      }),
+      entry({
+        entry_id: '4',
+        amount: 2000,
+        payer: {
+          kind: 'member',
+          member_id: '6',
+          display_name: '同じ名前',
+          state: 'left',
+        },
+      }),
+      entry({
+        entry_id: '5',
+        amount: 400,
+        payer: {
+          kind: 'member',
+          member_id: 'common',
+          display_name: '家族共通',
+        },
+      }),
+      entry({
+        entry_id: '6',
+        amount: 5000,
+        sign: 1,
+        payer: { kind: 'member', member_id: '5' },
+      }),
+      entry({
+        entry_id: '7',
+        amount: 8000,
+        excluded_from_totals: true,
+        payer: { kind: 'member', member_id: '6' },
+      }),
+    ]
+    const original = structuredClone(rows)
+    const result = buildFamilyTransactionsViewModel(rows)
+    expect(
+      result.payerTotals.map(({ id, amount }) => ({ id, amount })),
+    ).toEqual([
+      { id: 'member:6', amount: 2000 },
+      { id: 'common', amount: 1200 },
+      { id: 'member:5', amount: 800 },
+      { id: 'member:common', amount: 400 },
+    ])
+    expect(result.payerTotals[0].payer.state).toBe('left')
+    expect(
+      result.payerTotals.reduce((sum, total) => sum + total.amount, 0),
+    ).toBe(result.expenseAmount)
+    expect(rows).toEqual(original)
+  })
+
+  it('returns no payer expenses for empty, income-only or excluded-only records', () => {
+    for (const rows of [
+      [],
+      [entry({ sign: 1 })],
+      [entry({ excluded_from_totals: true })],
+    ]) {
+      expect(buildFamilyTransactionsViewModel(rows).payerTotals).toEqual([])
+    }
   })
 })

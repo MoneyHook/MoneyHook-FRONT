@@ -6,6 +6,7 @@ import {
   FamilyEntryDetail,
   FamilyField,
   FamilySelect,
+  FamilyTransactionsListPanel,
   useFamilyData,
   useFamilyTransactions,
 } from '@/features/households'
@@ -15,7 +16,6 @@ import {
   normalizeTransactionView,
   TransactionFilterButton,
   TransactionsCalendarPanel,
-  TransactionsListPanel,
   TransactionsSkeleton,
   TransactionsViewTabs,
 } from '@/features/transactions'
@@ -181,7 +181,7 @@ export function FamilyTransactionsView({
             )}
             <TabsContent value="list">
               {entries.data && (
-                <TransactionsListPanel
+                <FamilyTransactionsListPanel
                   data={data}
                   month={month}
                   hasFilters={activeCount > 0}
