@@ -19,7 +19,7 @@
 | `app/db/migration/schema.go` の `users`・`transaction`                         | 設定、更新版、論理削除の列を追加                                     |
 | ユーザー別 `payment_resource`・`sub_category`・`budget`・`monthly_transaction` | 個人用として維持。家族用の支払方法・独自分類は別テーブル             |
 | `app/handler/routes.go`                                                        | 家族APIをv1へ登録。route契約テストも更新                             |
-| `app/handler/transaction` と `app/store_postgres/transaction*.go`              | 本人による原本更新と共有参照の同期、削除と共有終了を一括処理               |
+| `app/handler/transaction` と `app/store_postgres/transaction*.go`              | 本人による原本更新と共有参照の同期、削除と共有終了を一括処理         |
 | 旧取引APIとv1 APIの併存                                                        | 外部の既存path・JSON・statusを維持。内部の共有整合性処理は両方に適用 |
 | `contracts/openapi.yaml` → Orval                                               | 新API・追加フィールドを契約化し生成。生成物を手編集しない            |
 | 個人一覧は旧 `getTimelineData` を使用                                          | 共有状態の絞り込みが必要な新一覧をv1に追加し、React一覧を段階移行    |
@@ -27,29 +27,32 @@
 
 ## 2. テーブル一覧
 
-既存のIDはbigint、新規の業務IDもbigintを基本とし、HTTP上はすべてstringで扱う。監査時刻は `timestamptz`、取引日は `date`。金額のDB保存は既存どおり符号付き整数とし、HTTPでは絶対額とsignへ変換する。
+既存のIDはbigint、新規の業務IDもbigintを基本とし、HTTP上はすべてstringで扱う。作成・更新・参加・退出等の時刻は `timestamptz`、取引日は `date`。金額のDB保存は既存どおり符号付き整数とし、HTTPでは絶対額とsignへ変換する。
 
-| 区分 | テーブル                   | 主な列                                                                                                                                                            | 目的                                                           |
-| ---- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| 変更 | `users`                    | `default_transaction_scope`（personal / household、default personal）                                                                                             | ユーザーごとの入力先設定                                       |
-| 変更 | `transaction`              | `version` default 1、`updated_at`、`deleted_at` nullable                                                                                                          | 本人原本。更新競合と論理削除を扱う                             |
-| 新規 | `household`                | `household_id` PK、`name`、`state`（active / archived）、`version`、作成・終了日時                                                                                | 家族本体                                                       |
-| 新規 | `household_member`         | `member_id` PK、`household_id` FK、`user_no` FK、`role`、`state`（active / left / archived）、`slot_no`、`display_name`、参加・退出日時                           | 所属と家族内の支払者参照                                       |
-| 新規 | `household_invitation`     | `invitation_id` PK、家族・発行者FK、`code_digest`、`token_digest`、`expires_at`、`consumed_by`、`consumed_at`、`revoked_at`、作成日時                             | 1回限りの招待。平文は保存しない                                |
-| 新規 | `household_payment`        | `payment_id` PK、家族FK、`payment_type_id` FK、名前、締め日・支払日、`active`、`version`                                                                          | 家族専用の支払方法                                             |
-| 新規 | `household_sub_category`   | `sub_category_id` PK、家族FK、共通カテゴリFK、名前、`active`、`version`                                                                                           | 家族専用のサブカテゴリ                                         |
-| 新規 | `household_entry`          | `entry_id` PK、家族FK、`kind`、`source_transaction_id` nullable FK、`payer_member_id` nullable FK、家族支払方法・分類FK、`state`、`version`、登録者・更新者・日時 | 家族一覧の安定した記録IDと出所                                 |
-| 新規 | `household_entry_data`     | `entry_id` PK/FK、公開DTOの `payload jsonb`、最新訂正の `corrected_payload jsonb`、`captured_at`、`source_version`（金額・日付・分類・表示名をpayloadに保存）                                           | 代理記録の実値、または退出時の不変な控え。共有中は行を作らない |
-| 新規 | `household_event`          | `event_id` PK、家族FK、実行者FK、対象メンバー・招待ID、イベント種別、時刻                                                                                         | 参加・退出・管理者交代・招待取消など。招待の秘密は記録しない   |
-| 新規 | `api_idempotency`          | ユーザーFK、操作名、キー、request digest、結果resource ID、作成日時（結果は同一DB transaction内で保存、期限なし）                                                 | 家族・記録作成、招待承諾等の再送による重複防止                 |
+| 区分 | テーブル                 | 主な列                                                                                                                                                            | 目的                                                           |
+| ---- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| 変更 | `users`                  | `default_transaction_scope`（personal / household、default personal）                                                                                             | ユーザーごとの入力先設定                                       |
+| 変更 | `transaction`            | `version` default 1、`updated_at`、`deleted_at` nullable                                                                                                          | 本人原本。更新競合と論理削除を扱う                             |
+| 新規 | `household`              | `household_id` PK、`name`、`state`（active / archived）、`version`、作成・終了日時                                                                                | 家族本体                                                       |
+| 新規 | `household_member`       | `member_id` PK、`household_id` FK、`user_no` FK、`role`、`state`（active / left / archived）、`slot_no`、`display_name`、参加・退出日時                           | 所属と家族内の支払者参照                                       |
+| 新規 | `household_invitation`   | `invitation_id` PK、家族・発行者FK、`code_digest`、`token_digest`、`expires_at`、`consumed_by`、`consumed_at`、`revoked_at`、作成日時                             | 1回限りの招待。平文は保存しない                                |
+| 新規 | `household_payment`      | `payment_id` PK、家族FK、`payment_type_id` FK、名前、締め日・支払日、`active`、`version`                                                                          | 家族専用の支払方法                                             |
+| 新規 | `household_sub_category` | `sub_category_id` PK、家族FK、共通カテゴリFK、名前、`active`、`version`                                                                                           | 家族専用のサブカテゴリ                                         |
+| 新規 | `household_entry`        | `entry_id` PK、家族FK、`kind`、`source_transaction_id` nullable FK、`payer_member_id` nullable FK、家族支払方法・分類FK、`state`、`version`、登録者・更新者・日時 | 家族一覧の安定した記録IDと出所                                 |
+| 新規 | `household_entry_data`   | `entry_id` PK/FK、公開DTOの `payload jsonb`、最新訂正の `corrected_payload jsonb`、`captured_at`（金額・日付・分類・表示名をpayloadに保存）                       | 代理記録の実値、または退出時の不変な控え。共有中は行を作らない |
+| 新規 | `api_idempotency`        | ユーザーFK、操作名、キー、request digest、結果resource ID、作成日時（結果は同一DB transaction内で保存、期限なし）                                                 | 家族・記録作成、招待承諾等の再送による重複防止                 |
 
 招待試行の保存先として `household_invitation_attempt(bucket PK, attempts, expires_at)` も追加する。アカウントと接続元IPのHMAC bucketをDBで更新し、それぞれ15分間に20回までとする。期限切れbucketは次の試行でリセットする。
+
+家族の操作履歴は保存しない。旧 `household_event` がある場合はmigrationで削除する。現在の所属・役割・招待状態は各業務テーブルで管理する。
+
+控え作成時の原本の版は保存しない。旧 `household_entry_data.source_version` 列がある場合はmigrationで削除する。
 
 `household_entry.kind` は `shared / proxy / snapshot`、`state` は `active / withdrawn / deleted`。snapshotの集計除外は最新の訂正内容で管理し、不変な控え自体を消さない。family共通の支払者は `payer_member_id = null` とし、レスポンスでは `payer_kind: common` を明示する。
 
 ### 制約と索引
 
-- `household_member(household_id, user_no)` は一意。再参加時は同じmember IDを再利用し、参加履歴はeventに残す。退出済み人物への過去参照を切らない。
+- `household_member(household_id, user_no)` は一意。再参加時は同じmember IDを再利用し、現在の所属状態と参加・退出日時を更新する。退出済み人物への過去参照を切らない。
 - `user_no WHERE state = 'active'` に一意索引を置き、有効所属を1つにする。
 - `slot_no` はactiveなら1〜3、非activeならnull。`(household_id, slot_no) WHERE state = 'active'` を一意にしてDBでも4人目を防ぐ。
 - `household_id WHERE state = 'active' AND role = 'admin'` を一意にする。active家族に管理者が必ず1人いる条件は、家族行のロックを取る作成・交代・退出処理で保証する。
@@ -79,18 +82,18 @@
 
 ### DBトランザクションの境界
 
-| 操作                       | 一括で行う内容                                                                         |
-| -------------------------- | -------------------------------------------------------------------------------------- |
-| 家族作成                   | household + 作成者member(slot 1/admin) + event                                         |
-| 本人支出を家族用で新規登録 | 個人原本 + shared entry + 冪等処理結果                                      |
-| 既存原本の共有開始         | 所有権・所属検証 + shared entryの作成/再有効化                              |
-| 本人の原本編集             | 所有者とversion検証 + 原本更新 + 関連shared entry version更新            |
-| 本人の原本削除             | 原本論理削除 + 有効shared entryをwithdrawnへ。snapshotは触らない            |
-| 代理入力・編集・削除       | 家族所属・kind・version検証 + entry/data変更。個人transactionには書かない     |
-| 退出・参加解除             | 本人の有効sharedをsnapshotへ切替・公開値保存 + member終了 + event。IDと合計を維持      |
-| 家族アーカイブ             | 全sharedをsnapshot化 + 全active memberをarchivedへ + 全招待失効 + household終了        |
-| 招待承諾                   | 招待再検証 + 所属/slot追加 + 招待消費 + event + 冪等処理結果                           |
-| 管理者交代                 | 現管理者をmemberへ、新管理者をadminへ + 未使用招待失効 + household version更新 + event |
+| 操作                       | 一括で行う内容                                                                  |
+| -------------------------- | ------------------------------------------------------------------------------- |
+| 家族作成                   | household + 作成者member(slot 1/admin) + 冪等処理結果                           |
+| 本人支出を家族用で新規登録 | 個人原本 + shared entry + 冪等処理結果                                          |
+| 既存原本の共有開始         | 所有権・所属検証 + shared entryの作成/再有効化                                  |
+| 本人の原本編集             | 所有者とversion検証 + 原本更新 + 関連shared entry version更新                   |
+| 本人の原本削除             | 原本論理削除 + 有効shared entryをwithdrawnへ。snapshotは触らない                |
+| 代理入力・編集・削除       | 家族所属・kind・version検証 + entry/data変更。個人transactionには書かない       |
+| 退出・参加解除             | 本人の有効sharedをsnapshotへ切替・公開値保存 + member終了。IDと合計を維持       |
+| 家族アーカイブ             | 全sharedをsnapshot化 + 全active memberをarchivedへ + 全招待失効 + household終了 |
+| 招待承諾                   | 招待再検証 + 所属/slot追加 + 招待消費 + 冪等処理結果                            |
+| 管理者交代                 | 現管理者をmemberへ、新管理者をadminへ + 未使用招待失効 + household version更新  |
 
 所有者に関する共有・原本更新・退出はuser行を先にロックし、次にhousehold、原本、entryの順にロックする。管理者交代は家族行をロックして役割を切り替える。archiveは最後の1人に限定し、対象userを先にロックする。家族側だけの代理更新・招待発行はhouseholdから取得し、その後にuserロックを要求しない。事前読み取りした所属・所有者はロック後に再検証する。デッドロックや直列化失敗の再試行は冪等性と組み合わせる。
 
@@ -154,7 +157,7 @@ Reactの参加URLは `/family/join#<token>` とする。公開routeでfragment�
 | POST             | `H/proxy-transactions`                         | 所属者が代理/共通財布記録          | payer、transaction、家族側参照 → entry（201）                                     |
 | PATCH            | `H/proxy-transactions/{entryId}`               | 所属者。proxyのみ                  | expected_version、変更項目 → entry                                                |
 | DELETE           | `H/proxy-transactions/{entryId}`               | 所属者。proxyのみ                  | expected_version（query）→ 204                                                    |
-| POST             | `H/entries/{entryId}/corrections`              | 所属者。snapshotのみ               | expected_version、完全な公開内容または除外指定 → entry（201）             |
+| POST             | `H/entries/{entryId}/corrections`              | 所属者。snapshotのみ               | expected_version、完全な公開内容または除外指定 → entry（201）                     |
 | GET              | `H/duplicate-candidates`                       | v1の重複候補                       | 日付、絶対額、sign、payer、任意の除外entry ID → 候補一覧                          |
 
 原本は本人用APIで編集し、家族用の汎用PATCH APIは作らない。family detailの `source_transaction_id` は所有者本人にのみ返す。他の家族へ返す `permissions` は can_edit=false/can_delete=false/can_unshare=false。代理APIへsharedのentry IDを渡してもStoreで拒否する。
