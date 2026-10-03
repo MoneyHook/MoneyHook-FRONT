@@ -34,6 +34,7 @@ import type {
 import type {
   AuthIdentityConflictResponse,
   DeleteFailureResponse,
+  DeleteV1TransactionParams,
   ErrorResponse,
   FrequentTransactionResponse,
   GetFrequentTransactionNamesParams,
@@ -51,6 +52,7 @@ import type {
   GetV1AnalyticsPaymentsParams,
   GroupTransactionsByPaymentParams,
   HomeResponse,
+  ListV1TransactionsParams,
   MonthlyFixedResponse,
   MonthlySpendingResponse,
   MonthlyVariableResponse,
@@ -72,6 +74,7 @@ import type {
   V1OverviewResponse,
   V1PaymentsResponse,
   V1TransactionCreateRequest,
+  V1TransactionPage,
   V1TransactionRequest,
   V1TransactionResponse,
   V1TransactionUpdateResponse,
@@ -98,6 +101,217 @@ const withQueryKey = <T extends object, K>(
     })
   }
   return result
+}
+
+export type listV1TransactionsResponse200 = {
+  data: V1TransactionPage
+  status: 200
+}
+
+export type listV1TransactionsResponse401 = {
+  data: V1ErrorResponse
+  status: 401
+}
+
+export type listV1TransactionsResponse409 = {
+  data: V1ErrorResponse
+  status: 409
+}
+
+export type listV1TransactionsResponse422 = {
+  data: V1ErrorResponse
+  status: 422
+}
+
+export type listV1TransactionsResponse500 = {
+  data: V1ErrorResponse
+  status: 500
+}
+
+export type listV1TransactionsResponseSuccess =
+  listV1TransactionsResponse200 & {
+    headers: Headers
+  }
+export type listV1TransactionsResponseError = (
+  | listV1TransactionsResponse401
+  | listV1TransactionsResponse409
+  | listV1TransactionsResponse422
+  | listV1TransactionsResponse500
+) & {
+  headers: Headers
+}
+
+export type listV1TransactionsResponse =
+  listV1TransactionsResponseSuccess | listV1TransactionsResponseError
+
+export const getListV1TransactionsUrl = (params: ListV1TransactionsParams) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `/api/v1/transactions?${stringifiedParams}`
+    : `/api/v1/transactions`
+}
+
+export const listV1Transactions = async (
+  params: ListV1TransactionsParams,
+  options?: RequestInit,
+): Promise<listV1TransactionsResponse> => {
+  return apiFetch<listV1TransactionsResponse>(
+    getListV1TransactionsUrl(params),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
+}
+
+export const getListV1TransactionsQueryKey = (
+  params?: ListV1TransactionsParams,
+) => {
+  return [`/api/v1/transactions`, ...(params ? [params] : [])] as const
+}
+
+export const getListV1TransactionsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listV1Transactions>>,
+  TError = V1ErrorResponse,
+>(
+  params: ListV1TransactionsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof listV1Transactions>>,
+        TError,
+        TData
+      >
+    >
+  },
+) => {
+  const { query: queryOptions } = options ?? {}
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListV1TransactionsQueryKey(params)
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listV1Transactions>>
+  > = ({ signal }) => listV1Transactions(params, { signal })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listV1Transactions>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListV1TransactionsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listV1Transactions>>
+>
+export type ListV1TransactionsQueryError = V1ErrorResponse
+
+export function useListV1Transactions<
+  TData = Awaited<ReturnType<typeof listV1Transactions>>,
+  TError = V1ErrorResponse,
+>(
+  params: ListV1TransactionsParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof listV1Transactions>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listV1Transactions>>,
+          TError,
+          Awaited<ReturnType<typeof listV1Transactions>>
+        >,
+        'initialData'
+      >
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+export function useListV1Transactions<
+  TData = Awaited<ReturnType<typeof listV1Transactions>>,
+  TError = V1ErrorResponse,
+>(
+  params: ListV1TransactionsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof listV1Transactions>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listV1Transactions>>,
+          TError,
+          Awaited<ReturnType<typeof listV1Transactions>>
+        >,
+        'initialData'
+      >
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+export function useListV1Transactions<
+  TData = Awaited<ReturnType<typeof listV1Transactions>>,
+  TError = V1ErrorResponse,
+>(
+  params: ListV1TransactionsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof listV1Transactions>>,
+        TError,
+        TData
+      >
+    >
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+
+export function useListV1Transactions<
+  TData = Awaited<ReturnType<typeof listV1Transactions>>,
+  TError = V1ErrorResponse,
+>(
+  params: ListV1TransactionsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof listV1Transactions>>,
+        TError,
+        TData
+      >
+    >
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+} {
+  const queryOptions = getListV1TransactionsQueryOptions(params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+
+  return withQueryKey(query, queryOptions.queryKey)
 }
 
 export type createV1TransactionResponse201 = {
@@ -575,6 +789,7 @@ export const getUpdateV1TransactionUrl = (transactionId: string) => {
 }
 
 /**
+ * 共有中の取引では、変更されたサブカテゴリ・支払い方法を家族側へ自動反映する。有効な一致項目がなければ同じトランザクションで作成する。金額などの変更だけでは家族側の分類を変更しない。
  * @summary Update a transaction and return its previous date
  */
 export const updateV1Transaction = async (
@@ -743,8 +958,23 @@ export type deleteV1TransactionResponseError = (
 export type deleteV1TransactionResponse =
   deleteV1TransactionResponseSuccess | deleteV1TransactionResponseError
 
-export const getDeleteV1TransactionUrl = (transactionId: string) => {
-  return `/api/v1/transactions/${transactionId}`
+export const getDeleteV1TransactionUrl = (
+  transactionId: string,
+  params?: DeleteV1TransactionParams,
+) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `/api/v1/transactions/${transactionId}?${stringifiedParams}`
+    : `/api/v1/transactions/${transactionId}`
 }
 
 /**
@@ -752,10 +982,11 @@ export const getDeleteV1TransactionUrl = (transactionId: string) => {
  */
 export const deleteV1Transaction = async (
   transactionId: string,
+  params?: DeleteV1TransactionParams,
   options?: RequestInit,
 ): Promise<deleteV1TransactionResponse> => {
   return apiFetch<deleteV1TransactionResponse>(
-    getDeleteV1TransactionUrl(transactionId),
+    getDeleteV1TransactionUrl(transactionId, params),
     {
       ...options,
       method: 'DELETE',
@@ -797,9 +1028,9 @@ export const getDeleteV1TransactionMutationOptions = <
     Awaited<ReturnType<typeof deleteV1Transaction>>,
     DeleteV1TransactionMutationVariables
   > = (props) => {
-    const { transactionId } = props ?? {}
+    const { transactionId, params } = props ?? {}
 
-    return deleteV1Transaction(transactionId)
+    return deleteV1Transaction(transactionId, params)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -815,7 +1046,10 @@ export type DeleteV1TransactionMutationError =
   | V1NotFoundResponse
   | AuthIdentityConflictResponse
   | V1InternalErrorResponse
-export type DeleteV1TransactionMutationVariables = { transactionId: string }
+export type DeleteV1TransactionMutationVariables = {
+  transactionId: string
+  params?: DeleteV1TransactionParams
+}
 
 /**
  * @summary Delete a transaction owned by the authenticated user

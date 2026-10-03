@@ -50,10 +50,11 @@ function FilterChoice({
   selected: boolean
 }) {
   return (
-    <button
+    <Button
+      variant="ghost"
       aria-pressed={selected}
       className={cn(
-        'min-h-9 rounded-xl border px-3 text-sm font-medium transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none',
+        'h-auto min-h-9 rounded-xl border px-3 py-0 text-sm font-medium transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none active:translate-y-0',
         selected
           ? 'border-primary bg-primary/10 text-primary'
           : 'border-border bg-background text-muted-foreground hover:border-primary/45 hover:text-foreground',
@@ -62,7 +63,7 @@ function FilterChoice({
       type="button"
     >
       {children}
-    </button>
+    </Button>
   )
 }
 
@@ -242,16 +243,17 @@ export function ActiveFilterChips({
   return (
     <div aria-label="適用中の絞り込み" className="flex flex-wrap gap-2">
       {entries.map((entry) => (
-        <button
+        <Button
+          variant="ghost"
           aria-label={`${entry.label}を解除`}
-          className="inline-flex h-8 items-center gap-1 rounded-full bg-primary/10 px-3 text-sm font-medium text-primary transition-colors hover:bg-primary/15 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+          className="inline-flex h-8 items-center gap-1 rounded-full border-0 bg-primary/10 px-3 py-0 text-sm font-medium text-primary transition-colors hover:bg-primary/15 hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none active:translate-y-0 dark:hover:bg-primary/15"
           key={entry.key}
           onClick={() => onRemove(entry.key)}
           type="button"
         >
           <span aria-hidden="true">{entry.label}</span>
           <X aria-hidden="true" className="size-3.5" />
-        </button>
+        </Button>
       ))}
     </div>
   )

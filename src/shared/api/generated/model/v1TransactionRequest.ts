@@ -18,5 +18,7 @@
 import type { V1TransactionInput } from './v1TransactionInput'
 
 export interface V1TransactionRequest {
+  /** @minimum 1 */
+  expected_version?: number
   transaction: V1TransactionInput
 }

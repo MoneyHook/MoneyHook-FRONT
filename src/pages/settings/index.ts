@@ -4,6 +4,7 @@ export {
   AppearanceSettingsPage,
   BudgetSettingsPage,
   CategorySettingsPage,
+  HouseholdSettingsPage,
   PaymentSettingsPage,
   RecurringTransactionSettingsPage,
   SettingsPage,

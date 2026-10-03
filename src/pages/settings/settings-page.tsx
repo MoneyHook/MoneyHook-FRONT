@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { useAuth } from '@/features/auth'
+import { FamilySettings } from '@/features/households'
 import {
   AccountSettings,
   AppearanceSettings,
@@ -16,10 +17,14 @@ import {
 import { Button } from '@/shared/components/ui/button'
 
 function SettingsDetailPage({
+  backLabel = '設定へ戻る',
+  backTo = '/app/settings',
   children,
   description,
   title,
 }: {
+  backLabel?: string
+  backTo?: string
   children: ReactNode
   description: string
   title: string
@@ -28,9 +33,9 @@ function SettingsDetailPage({
     <div className="motion-route-enter mx-auto w-full max-w-5xl px-5 pt-5 pb-24 md:px-10 md:pt-8 md:pb-12">
       <header className="border-b pb-4">
         <Button asChild className="mb-4 -ml-2" type="button" variant="ghost">
-          <Link to="/app/settings">
+          <Link to={backTo}>
             <ArrowLeft aria-hidden="true" />
-            設定へ戻る
+            {backLabel}
           </Link>
         </Button>
         <div className="space-y-1.5">
@@ -111,6 +116,17 @@ export function SettingsPage() {
         <SettingsSummary />
       </div>
     </section>
+  )
+}
+
+export function HouseholdSettingsPage() {
+  return (
+    <SettingsDetailPage
+      description="家族の管理、メンバーの招待、新規入力の入力先を設定できます。"
+      title="家族の家計"
+    >
+      <FamilySettings />
+    </SettingsDetailPage>
   )
 }
 

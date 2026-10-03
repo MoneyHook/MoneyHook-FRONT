@@ -36,9 +36,10 @@ function TransactionRow({
   onOpen: (id: string) => void
 }) {
   return (
-    <button
+    <Button
+      variant="ghost"
       aria-label={`${item.name}を編集`}
-      className="grid w-full grid-cols-[minmax(5.8rem,auto)_auto_minmax(0,1fr)_auto] items-center gap-2 px-1 py-3 text-left transition-colors outline-none hover:bg-muted/45 focus-visible:ring-3 focus-visible:ring-ring/50 sm:grid-cols-[8rem_auto_minmax(0,1fr)_auto] sm:gap-4 sm:px-2"
+      className="grid h-auto w-full grid-cols-[minmax(5.8rem,auto)_auto_minmax(0,1fr)_auto] items-center gap-2 rounded-none border-0 px-1 py-3 text-left font-normal whitespace-normal transition-colors outline-none hover:bg-muted/45 focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-0 sm:grid-cols-[8rem_auto_minmax(0,1fr)_auto] sm:gap-4 sm:px-2 dark:hover:bg-muted/45"
       onClick={() => onOpen(item.id)}
       type="button"
     >
@@ -75,7 +76,7 @@ function TransactionRow({
           className="size-4 text-muted-foreground"
         />
       </span>
-    </button>
+    </Button>
   )
 }
 
@@ -131,10 +132,11 @@ export function CategoryTransactionsPanel({
               aria-label="サブカテゴリで絞り込む"
               className="mt-2 grid gap-1"
             >
-              <button
+              <Button
+                variant="ghost"
                 aria-pressed={!selectedSubcategory}
                 className={cn(
-                  'min-h-10 rounded-lg px-3 text-left text-sm font-medium transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50',
+                  'h-auto min-h-10 justify-start rounded-lg border-0 px-3 py-0 text-left text-sm font-medium whitespace-normal transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-0 dark:hover:bg-muted',
                   !selectedSubcategory && 'bg-primary/10 text-primary',
                 )}
                 onClick={() => {
@@ -144,14 +146,15 @@ export function CategoryTransactionsPanel({
                 type="button"
               >
                 すべて
-              </button>
+              </Button>
               {category.subcategories.map((subcategory) => {
                 const selected = subcategory.id === selectedSubcategory?.id
                 return (
-                  <button
+                  <Button
+                    variant="ghost"
                     aria-pressed={selected}
                     className={cn(
-                      'min-h-10 rounded-lg px-3 text-left text-sm font-medium transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50',
+                      'h-auto min-h-10 justify-start rounded-lg border-0 px-3 py-0 text-left text-sm font-medium whitespace-normal transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-0 dark:hover:bg-muted',
                       selected && 'bg-primary/10 text-primary',
                     )}
                     key={subcategory.id}
@@ -162,7 +165,7 @@ export function CategoryTransactionsPanel({
                     type="button"
                   >
                     {subcategory.name}
-                  </button>
+                  </Button>
                 )
               })}
             </div>
@@ -201,9 +204,10 @@ export function CategoryTransactionsPanel({
       )}
       {transactions.length > 3 ? (
         <div className="border-t p-3 sm:p-4">
-          <button
+          <Button
+            variant="ghost"
             aria-expanded={expanded}
-            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border text-sm font-medium transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="flex h-auto min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-border p-0 text-sm font-medium whitespace-normal transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-0 aria-expanded:bg-transparent dark:hover:bg-muted"
             onClick={() =>
               setExpandedFor(
                 expanded
@@ -226,7 +230,7 @@ export function CategoryTransactionsPanel({
                 expanded && 'rotate-180',
               )}
             />
-          </button>
+          </Button>
         </div>
       ) : null}
     </CategoryAnalysisPanel>

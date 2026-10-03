@@ -7,6 +7,7 @@ import {
   buildTransactionsViewModel,
   buildTransactionsViewModelFromItems,
   createTransactionMonth,
+  getCategoryTotals,
   getDefaultSelectedDate,
   normalizeMonthParam,
   normalizeSelectedDate,
@@ -33,6 +34,20 @@ function transaction(
 }
 
 describe('transaction view model', () => {
+  it('excludes omitted family records from category totals without hiding the records', () => {
+    const items = buildTransactionsViewModel([transaction()]).items
+    const excluded = {
+      ...items[0],
+      id: '2',
+      amount: 9000,
+      excludedFromTotals: true,
+    }
+    expect(getCategoryTotals([...items, excluded])).toEqual([
+      { name: '食費', amount: 1200 },
+    ])
+    expect(getCategoryTotals([excluded])).toEqual([])
+  })
+
   it('groups repeated dates in input order without mutating the input', () => {
     const items = buildTransactionsViewModel([
       transaction({ transaction_id: '1' }),

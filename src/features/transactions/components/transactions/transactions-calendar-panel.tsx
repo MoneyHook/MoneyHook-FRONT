@@ -94,16 +94,17 @@ function CalendarGrid({
             ).values(),
           ].slice(0, 3)
           return (
-            <button
+            <Button
+              variant="ghost"
               aria-label={`${formatJapaneseDate(day.date)}${dayItems.length ? `、取引${dayItems.length}件` : '、取引なし'}`}
               aria-pressed={isSelected}
               className={cn(
-                'mx-auto flex min-h-14 w-full flex-col items-center justify-center rounded-xl text-sm transition-[background-color,color,transform] outline-none focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-16 sm:text-base',
+                'mx-auto flex h-auto min-h-14 w-full flex-col items-center justify-center gap-0 rounded-xl border-0 p-0 text-sm font-normal transition-[background-color,color,transform] outline-none focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-0 sm:min-h-16 sm:text-base',
                 day.isCurrentMonth
-                  ? 'text-foreground hover:bg-accent'
+                  ? 'text-foreground hover:bg-accent dark:hover:bg-accent'
                   : 'cursor-default text-muted-foreground/45',
                 isSelected &&
-                  'bg-primary font-semibold text-primary-foreground hover:bg-primary',
+                  'bg-primary font-semibold text-primary-foreground hover:bg-primary dark:hover:bg-primary',
               )}
               disabled={!day.isCurrentMonth}
               key={day.date}
@@ -125,7 +126,7 @@ function CalendarGrid({
                   />
                 ))}
               </span>
-            </button>
+            </Button>
           )
         })}
       </div>
@@ -229,12 +230,7 @@ export function TransactionsCalendarPanel({
   onDateChange: (date: string) => void
 }) {
   return (
-    <div
-      aria-labelledby="transactions-calendar-tab"
-      className="motion-route-enter space-y-4 pt-4 sm:space-y-5 sm:pt-6"
-      id="transactions-calendar-panel"
-      role="tabpanel"
-    >
+    <div className="motion-route-enter space-y-4 pt-4 sm:space-y-5 sm:pt-6">
       <Card
         aria-label={`${month.monthLabel}のカレンダー`}
         className="p-3 sm:p-5"

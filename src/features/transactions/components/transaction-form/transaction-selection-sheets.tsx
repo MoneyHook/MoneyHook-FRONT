@@ -26,10 +26,11 @@ function SheetOption({
   onClick: () => void
 }) {
   return (
-    <button
+    <Button
+      variant="ghost"
       aria-pressed={isSelected}
       className={cn(
-        'flex min-h-14 w-full items-center gap-3 rounded-xl px-4 text-left transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50',
+        'flex h-auto min-h-14 w-full items-center justify-start gap-3 rounded-xl border-0 px-4 py-0 text-left font-normal whitespace-normal transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-0 dark:hover:bg-muted',
         isSelected && 'bg-accent text-accent-foreground',
       )}
       onClick={onClick}
@@ -39,7 +40,7 @@ function SheetOption({
       {isSelected ? (
         <Check aria-hidden="true" className="ml-auto size-5 text-primary" />
       ) : null}
-    </button>
+    </Button>
   )
 }
 
