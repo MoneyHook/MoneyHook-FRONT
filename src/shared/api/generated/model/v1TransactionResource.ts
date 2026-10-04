@@ -22,6 +22,8 @@ import type { V1NullableTime } from './v1NullableTime'
 import type { V1TransactionResourceSign } from './v1TransactionResourceSign'
 
 export interface V1TransactionResource {
+  version?: number
+  shared?: boolean
   transaction_id: Identifier
   transaction_date: DateString
   transaction_time: V1NullableTime | null

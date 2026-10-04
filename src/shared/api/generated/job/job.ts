@@ -24,11 +24,11 @@ import type {
 } from '@tanstack/react-query'
 
 import type {
-  AuthIdentityConflictResponse,
   ErrorResponse,
   ProcessDailyJob200,
+  SchedulerUnauthorizedResponse,
+  V1ErrorResponse,
   V1InternalErrorResponse,
-  V1UnauthorizedResponse,
 } from '../model'
 
 import { apiFetch } from '../../http-client'
@@ -39,18 +39,13 @@ export type processDailyJobResponse200 = {
 }
 
 export type processDailyJobResponse401 = {
-  data: V1UnauthorizedResponse
+  data: SchedulerUnauthorizedResponse
   status: 401
 }
 
 export type processDailyJobResponse403 = {
-  data: ErrorResponse
+  data: V1ErrorResponse | ErrorResponse
   status: 403
-}
-
-export type processDailyJobResponse409 = {
-  data: AuthIdentityConflictResponse
-  status: 409
 }
 
 export type processDailyJobResponse422 = {
@@ -69,7 +64,6 @@ export type processDailyJobResponseSuccess = processDailyJobResponse200 & {
 export type processDailyJobResponseError = (
   | processDailyJobResponse401
   | processDailyJobResponse403
-  | processDailyJobResponse409
   | processDailyJobResponse422
   | processDailyJobResponse500
 ) & {
@@ -113,9 +107,9 @@ export const processDailyJob = async (
 
 export const getProcessDailyJobMutationOptions = <
   TError =
-    | V1UnauthorizedResponse
+    | SchedulerUnauthorizedResponse
+    | V1ErrorResponse
     | ErrorResponse
-    | AuthIdentityConflictResponse
     | V1InternalErrorResponse,
   TContext = unknown,
 >(options?: {
@@ -157,9 +151,9 @@ export type ProcessDailyJobMutationResult = NonNullable<
 >
 export type ProcessDailyJobMutationBody = Blob | undefined
 export type ProcessDailyJobMutationError =
-  | V1UnauthorizedResponse
+  | SchedulerUnauthorizedResponse
+  | V1ErrorResponse
   | ErrorResponse
-  | AuthIdentityConflictResponse
   | V1InternalErrorResponse
 export type ProcessDailyJobMutationVariables = { data?: Blob }
 
@@ -168,9 +162,9 @@ export type ProcessDailyJobMutationVariables = { data?: Blob }
  */
 export const useProcessDailyJob = <
   TError =
-    | V1UnauthorizedResponse
+    | SchedulerUnauthorizedResponse
+    | V1ErrorResponse
     | ErrorResponse
-    | AuthIdentityConflictResponse
     | V1InternalErrorResponse,
   TContext = unknown,
 >(

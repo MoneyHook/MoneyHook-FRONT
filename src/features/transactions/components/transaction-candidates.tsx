@@ -43,9 +43,10 @@ export function TransactionCandidateChip({
   ) => void
 }) {
   return (
-    <button
+    <Button
+      variant="ghost"
       aria-label={`${transaction.transaction_name}を候補から適用`}
-      className="group rounded-full border-0 bg-transparent p-0 text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+      className="group h-auto gap-0 rounded-full border-0 bg-transparent p-0 text-left font-normal whitespace-normal outline-none hover:bg-transparent focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-0 dark:hover:bg-transparent"
       onClick={() => onSelect(transaction)}
       type="button"
     >
@@ -56,7 +57,7 @@ export function TransactionCandidateChip({
         <CategoryBadge name={transaction.category_name} />
         <span>{transaction.transaction_name}</span>
       </Badge>
-    </button>
+    </Button>
   )
 }
 

@@ -1,6 +1,8 @@
 import { CalendarDays, ChevronRight, Info } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { ja } from 'react-day-picker/locale'
 
+import { Button } from '@/shared/components/ui/button'
 import { Calendar } from '@/shared/components/ui/calendar'
 import { Card } from '@/shared/components/ui/card'
 import { Input } from '@/shared/components/ui/input'
@@ -9,6 +11,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/shared/components/ui/popover'
+import { Switch } from '@/shared/components/ui/switch'
 import { cn } from '@/shared/lib/utils'
 
 import type { TransactionFormController } from '../../hooks/use-transaction-form-controller'
@@ -48,7 +51,7 @@ function FormRow({
   )
 }
 
-type Props = Pick<
+type Props = { children?: ReactNode } & Pick<
   TransactionFormController,
   | 'handleSubmit'
   | 'setDatePickerOpen'
@@ -77,6 +80,7 @@ type Props = Pick<
 >
 
 export function TransactionFormFields({
+  children,
   handleSubmit,
   setDatePickerOpen,
   datePickerOpen,
@@ -113,7 +117,8 @@ export function TransactionFormFields({
         <FormSection>
           <Popover onOpenChange={setDatePickerOpen} open={datePickerOpen}>
             <PopoverTrigger asChild>
-              <button
+              <Button
+                variant="ghost"
                 aria-describedby={
                   errors.transactionDate
                     ? 'new-transaction-transactionDate-error'
@@ -121,7 +126,7 @@ export function TransactionFormFields({
                 }
                 aria-invalid={errors.transactionDate ? true : undefined}
                 aria-label="日付"
-                className="flex min-h-12 w-full items-center gap-3 border-b px-4 text-left transition-colors outline-none hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-16 sm:px-5"
+                className="flex h-auto min-h-12 w-full items-center justify-start gap-3 rounded-none border-0 border-b border-border px-4 py-0 text-left font-normal whitespace-normal transition-colors outline-none hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-0 aria-expanded:bg-transparent sm:min-h-16 sm:px-5 dark:hover:bg-muted/60"
                 type="button"
               >
                 <CalendarDays
@@ -139,7 +144,7 @@ export function TransactionFormFields({
                     ? `${selectedDate.getFullYear()}年${selectedDate.getMonth() + 1}月${selectedDate.getDate()}日`
                     : '選択してください'}
                 </span>
-              </button>
+              </Button>
             </PopoverTrigger>
             <PopoverContent
               align="end"
@@ -235,7 +240,8 @@ export function TransactionFormFields({
         </FormSection>
 
         <FormSection>
-          <button
+          <Button
+            variant="ghost"
             aria-describedby={
               errors.categoryId ||
               errors.subcategoryId ||
@@ -250,7 +256,7 @@ export function TransactionFormFields({
                 ? true
                 : undefined
             }
-            className="flex min-h-20 w-full items-center gap-3 px-4 text-left transition-colors outline-none hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-28 sm:px-5"
+            className="flex h-auto min-h-20 w-full items-center justify-start gap-3 rounded-none border-0 px-4 py-0 text-left font-normal whitespace-normal transition-colors outline-none hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-0 sm:min-h-28 sm:px-5 dark:hover:bg-muted/60"
             onClick={openCategorySelection}
             type="button"
           >
@@ -285,7 +291,7 @@ export function TransactionFormFields({
               aria-hidden="true"
               className="size-5 shrink-0 text-muted-foreground"
             />
-          </button>
+          </Button>
           {errors.categoryId ||
           errors.subcategoryId ||
           errors.subcategoryName ? (
@@ -308,28 +314,20 @@ export function TransactionFormFields({
                 className="size-4 text-muted-foreground"
               />
             </span>
-            <button
-              aria-checked={form.fixed}
+            <Switch
               aria-label="固定費フラグ"
-              className={cn(
-                'ml-auto flex h-7 w-12 items-center rounded-full p-1 transition-colors focus-visible:ring-3 focus-visible:ring-ring/50',
-                form.fixed
-                  ? 'justify-end bg-primary'
-                  : 'justify-start bg-muted-foreground/25',
-              )}
-              onClick={() => setValue('fixed', !form.fixed)}
-              role="switch"
-              type="button"
-            >
-              <span className="size-5 rounded-full bg-card shadow-sm" />
-            </button>
+              checked={form.fixed}
+              className="ml-auto h-7 w-12 border-0 data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted-foreground/25 [&_[data-slot=switch-thumb]]:size-5 [&_[data-slot=switch-thumb]]:translate-x-1 [&_[data-slot=switch-thumb]]:bg-card [&_[data-slot=switch-thumb][data-state=checked]]:translate-x-6"
+              onCheckedChange={(checked) => setValue('fixed', checked)}
+            />
           </FormRow>
         </FormSection>
 
         {payments.length ? (
           <FormSection>
-            <button
-              className="flex min-h-20 w-full items-center gap-3 px-4 text-left transition-colors outline-none hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-28 sm:px-5"
+            <Button
+              variant="ghost"
+              className="flex h-auto min-h-20 w-full items-center justify-start gap-3 rounded-none border-0 px-4 py-0 text-left font-normal whitespace-normal transition-colors outline-none hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-0 sm:min-h-28 sm:px-5 dark:hover:bg-muted/60"
               onClick={() => setSelectionSheet('payment')}
               type="button"
             >
@@ -361,7 +359,7 @@ export function TransactionFormFields({
                 aria-hidden="true"
                 className="size-5 shrink-0 text-muted-foreground"
               />
-            </button>
+            </Button>
           </FormSection>
         ) : null}
 
@@ -372,6 +370,7 @@ export function TransactionFormFields({
             transactions={frequentTransactions}
           />
         ) : null}
+        {children}
       </div>
     </form>
   )

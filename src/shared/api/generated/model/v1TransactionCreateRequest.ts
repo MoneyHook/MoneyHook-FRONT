@@ -15,8 +15,8 @@
  *
  * OpenAPI spec version: 0.2.0-v1
  */
-import type { V1TransactionCreateInput } from './v1TransactionCreateInput';
+import type { V1TransactionCreateInput } from './v1TransactionCreateInput'
 
 export interface V1TransactionCreateRequest {
-  transaction: V1TransactionCreateInput;
+  transaction: V1TransactionCreateInput
 }

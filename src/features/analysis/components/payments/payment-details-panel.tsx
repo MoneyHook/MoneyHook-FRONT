@@ -1,6 +1,7 @@
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 
+import { Button } from '@/shared/components/ui/button'
 import { cn } from '@/shared/lib/utils'
 
 import { formatCurrency } from '../../model/analysis-overview'
@@ -29,9 +30,10 @@ function PaymentTransactionRow({
 }) {
   return (
     <li>
-      <button
+      <Button
+        variant="ghost"
         aria-label={`${item.name}を編集`}
-        className="grid w-full grid-cols-[minmax(5.8rem,auto)_minmax(0,1fr)_auto] items-center gap-2 px-1 py-3 text-left transition-colors outline-none hover:bg-muted/45 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset sm:grid-cols-[8rem_minmax(0,1fr)_auto] sm:gap-4 sm:px-2"
+        className="grid h-auto w-full grid-cols-[minmax(5.8rem,auto)_minmax(0,1fr)_auto] items-center gap-2 rounded-none border-0 px-1 py-3 text-left font-normal whitespace-normal transition-colors outline-none hover:bg-muted/45 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset active:translate-y-0 sm:grid-cols-[8rem_minmax(0,1fr)_auto] sm:gap-4 sm:px-2 dark:hover:bg-muted/45"
         onClick={() => onOpen(item.id)}
         type="button"
       >
@@ -56,7 +58,7 @@ function PaymentTransactionRow({
             </span>
           ) : null}
         </span>
-      </button>
+      </Button>
     </li>
   )
 }
@@ -97,9 +99,10 @@ function PaymentTransactions({
         </div>
       )}
       {payment.transactions.length > 5 ? (
-        <button
+        <Button
+          variant="ghost"
           aria-expanded={expanded}
-          className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border bg-card text-sm font-medium transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="mt-3 flex h-auto min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-border bg-card p-0 text-sm font-medium whitespace-normal transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-0 aria-expanded:bg-card dark:hover:bg-muted"
           onClick={() => setExpanded((current) => !current)}
           type="button"
         >
@@ -113,7 +116,7 @@ function PaymentTransactions({
               expanded && 'rotate-180',
             )}
           />
-        </button>
+        </Button>
       ) : null}
     </div>
   )
@@ -146,9 +149,10 @@ export function PaymentDetailsPanel({
           const isSelected = selectedPayment?.id === payment.id
           return (
             <li key={payment.id}>
-              <button
+              <Button
+                variant="ghost"
                 aria-expanded={isSelected}
-                className="grid min-h-20 w-full grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-3 px-4 py-3 text-left transition-colors outline-none hover:bg-muted/45 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset sm:min-h-24 sm:px-6"
+                className="grid h-auto min-h-20 w-full grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-3 rounded-none border-0 px-4 py-3 text-left font-normal whitespace-normal transition-colors outline-none hover:bg-muted/45 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset active:translate-y-0 aria-expanded:bg-transparent sm:min-h-24 sm:px-6 dark:hover:bg-muted/45"
                 onClick={() => onPaymentChange(isSelected ? null : payment.id)}
                 type="button"
               >
@@ -184,7 +188,7 @@ export function PaymentDetailsPanel({
                     isSelected && 'rotate-90',
                   )}
                 />
-              </button>
+              </Button>
               {isSelected ? (
                 <PaymentTransactions onOpen={onOpen} payment={payment} />
               ) : null}

@@ -17,12 +17,14 @@
  */
 import type { V1SettingsPatchRequestAccentColor } from './v1SettingsPatchRequestAccentColor'
 import type { V1SettingsPatchRequestChartPalette } from './v1SettingsPatchRequestChartPalette'
+import type { V1SettingsPatchRequestDefaultTransactionScope } from './v1SettingsPatchRequestDefaultTransactionScope'
 import type { V1SettingsPatchRequestThemeMode } from './v1SettingsPatchRequestThemeMode'
 
 /**
  * At least one property must be supplied.
  */
 export interface V1SettingsPatchRequest {
+  default_transaction_scope?: V1SettingsPatchRequestDefaultTransactionScope
   accent_color?: V1SettingsPatchRequestAccentColor
   theme_mode?: V1SettingsPatchRequestThemeMode
   chart_palette?: V1SettingsPatchRequestChartPalette

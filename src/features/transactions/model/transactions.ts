@@ -4,6 +4,10 @@ export type TransactionView = 'list' | 'calendar'
 
 export type TransactionItem = {
   id: string
+  shared?: boolean
+  detailLabel?: string
+  excludedFromTotals?: boolean
+  openLabel?: string
   name: string
   amount: number
   sign: -1 | 1
@@ -114,11 +118,12 @@ export function normalizeTransactionView(
 }
 
 export function buildTransactionsViewModel(
-  transactions: TimelineTransaction[],
+  transactions: (TimelineTransaction & { shared?: boolean })[],
 ): TransactionsViewModel {
   const items = transactions
     .map<TransactionItem>((transaction) => ({
       id: transaction.transaction_id,
+      ...(transaction.shared ? { shared: true } : {}),
       name: transaction.transaction_name,
       amount: transaction.transaction_amount,
       sign: transaction.transaction_sign,
@@ -154,6 +159,7 @@ export function buildTransactionsViewModelFromItems(
       byDate.set(item.date, group)
     }
     group.items.push(item)
+    if (item.excludedFromTotals) continue
     if (item.sign === -1) {
       group.expenseAmount += item.amount
       expenseAmount += item.amount
@@ -228,7 +234,7 @@ export function getCategoryTotals(items: TransactionItem[]) {
   const totals = new Map<string, number>()
 
   items.forEach((item) => {
-    if (item.sign === -1) {
+    if (item.sign === -1 && !item.excludedFromTotals) {
       totals.set(
         item.categoryName,
         (totals.get(item.categoryName) ?? 0) + item.amount,

@@ -1,6 +1,7 @@
 import { ChevronDown } from 'lucide-react'
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 
+import { Button } from '@/shared/components/ui/button'
 import { getCategoryPresentation } from '@/shared/lib/category-presentation'
 import { cn } from '@/shared/lib/utils'
 
@@ -106,17 +107,18 @@ function SummaryRow({
 
   return (
     <li>
-      <button
+      <Button
+        variant="ghost"
         aria-current={selected ? 'true' : undefined}
         className={cn(
-          'flex min-h-10 w-full items-center gap-2 rounded-lg px-1.5 transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50',
+          'flex h-auto min-h-10 w-full items-center justify-start gap-2 rounded-lg border-0 px-1.5 py-0 font-normal whitespace-normal transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-0 dark:hover:bg-muted',
           selected && presentation.selectionClassName,
         )}
         onClick={() => onSelect(item.id)}
         type="button"
       >
         {content}
-      </button>
+      </Button>
     </li>
   )
 }
@@ -163,9 +165,10 @@ export function CategorySummaryPanel({
         </ul>
       </div>
       {data.categories.length > 5 ? (
-        <button
+        <Button
+          variant="ghost"
           aria-expanded={listMode === 'all'}
-          className="mt-4 flex min-h-11 w-full items-center justify-between rounded-xl border px-4 text-left text-sm font-medium transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="mt-4 flex h-auto min-h-11 w-full items-center justify-between gap-0 rounded-xl border border-border px-4 py-0 text-left text-sm font-medium whitespace-normal transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-0 aria-expanded:bg-transparent dark:hover:bg-muted"
           onClick={() => onListModeChange(listMode === 'all' ? 'top' : 'all')}
           type="button"
         >
@@ -179,7 +182,7 @@ export function CategorySummaryPanel({
               listMode === 'all' && 'rotate-180',
             )}
           />
-        </button>
+        </Button>
       ) : null}
     </CategoryAnalysisPanel>
   )

@@ -46,11 +46,13 @@ src/
 | URLで再現する条件                | React Router Search Params                 |
 | そのコンポーネントだけの表示状態 | React local state                          |
 | デフォルトの支払い方法           | ユーザーに紐づく端末内設定（localStorage） |
+| 入力先デフォルト（個人/家族）    | ユーザー設定API                            |
 | 環境変数の検証済み設定           | `shared/config/environment`                |
 
 APIデータの取得・更新・再取得はTanStack Queryで管理します。初期表示とAPI障害時のフォールバックに限り、成功レスポンスをlocalStorageへ保存します。永続キャッシュを独立した更新先やAPIの代替にはしません。
 
-- ホーム・分析・取引一覧・取引詳細は`usePersistedQueryData`で初期値を復元し、画面のmount時に再取得します。query用キャッシュは最大24件で、古いアクセスのものから破棄します。
+- 個人の取引一覧は共有状態の絞り込みに対応するv1 APIから取得し、localStorageへ保存しない。家族データも永続化せず、household IDを含むquery keyとAbortSignalで管理する。退出後はアクセスできない家族queryを除去する。
+- ホーム・分析・取引詳細は`usePersistedQueryData`で初期値を復元し、画面のmount時に再取得します。query用キャッシュは最大24件で、古いアクセスのものから破棄します。
 - 取引フォームのカテゴリ・支払い方法・支払い種別・取引候補は専用の参照キャッシュに保存し、フォームのmount時に再取得します。この参照キャッシュはquery用の24件制限とは別です。
 - ユーザーデータのキャッシュとデフォルト支払い方法は保存バージョン・値の形式を確認し、所有ユーザーの変更時やログアウト時に破棄します。デフォルト支払い方法はAPIへ同期せず、取得した支払い方法一覧に存在しなくなった場合も解除します。
 - 外観設定はAPIを正本とし、初期表示・API障害時のフォールバック用にlocalStorageへ保存します。認証との接続とユーザー単位のprovider再生成は`app/providers/appearance-provider`が担当します。
