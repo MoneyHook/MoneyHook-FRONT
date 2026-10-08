@@ -7,6 +7,7 @@ import { usePersistedQueryData } from '@/shared/hooks/use-persisted-query-data'
 import {
   buildAnalysisCategoriesViewModel,
   type CategoryGroup,
+  groupDailyCategorySeries,
 } from '../model/analysis-categories'
 import type { AnalysisRange } from '../model/analysis-overview'
 
@@ -25,7 +26,7 @@ export function useAnalysisCategories(
   const parameters = {
     start_date: range.startDate,
     end_date: range.endDate,
-    group_by: group,
+    group_by: 'day' as const,
   }
   const cache = usePersistedQueryData({
     isValue: isCategoriesResponse,
@@ -42,7 +43,17 @@ export function useAnalysisCategories(
 
   return {
     data: response
-      ? buildAnalysisCategoriesViewModel(response, range, group)
+      ? buildAnalysisCategoriesViewModel(
+          {
+            ...response,
+            category_list: response.category_list.map((category) => ({
+              ...category,
+              series: groupDailyCategorySeries(category.series, group),
+            })),
+          },
+          range,
+          group,
+        )
       : null,
     error: query.error,
     isError: query.isError && !response,
