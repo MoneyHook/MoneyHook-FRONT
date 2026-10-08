@@ -12,7 +12,6 @@ import { toast } from 'sonner'
 import { useAuth } from '@/features/auth'
 import {
   getGetV1SettingsQueryKey,
-  useGetV1Settings,
   usePatchV1Settings,
 } from '@/shared/api/generated/settings/settings'
 import {
@@ -29,6 +28,7 @@ import {
   THEME_STORAGE_KEY,
   type ThemeMode,
 } from '@/shared/hooks/appearance-context'
+import { useUserSettings } from '@/shared/hooks/use-user-settings'
 
 function resolveTheme(
   theme: ThemeMode,
@@ -104,8 +104,8 @@ function AppearanceSettingsProvider({
     readStoredAppearanceSettings,
   )
   const [systemPrefersDark, setSystemPrefersDark] = useState(false)
-  const settingsQuery = useGetV1Settings({
-    query: { enabled: status === 'authenticated' },
+  const settingsQuery = useUserSettings({
+    enabled: status === 'authenticated',
   })
   const saveMutation = usePatchV1Settings()
   const resolvedTheme = resolveTheme(settings.theme, systemPrefersDark)

@@ -27,9 +27,9 @@ import {
   householdProxy,
 } from '@/shared/api/generated/household/household'
 import type { HouseholdEntryInput } from '@/shared/api/generated/model'
-import { useGetV1Settings } from '@/shared/api/generated/settings/settings'
 import { HouseholdScopeSwitch } from '@/shared/components/household-scope-switch'
 import { Button } from '@/shared/components/ui/button'
+import { useUserSettings } from '@/shared/hooks/use-user-settings'
 
 export function useRecordingScope(): TransactionFormExtension & {
   isInitializing: boolean
@@ -38,10 +38,8 @@ export function useRecordingScope(): TransactionFormExtension & {
   const location = useLocation()
   const families = useHouseholds()
   const hasActiveFamily =
-    families.isSuccess && families.data.some((item) => item.state === 'active')
-  const settings = useGetV1Settings({
-    query: { staleTime: 0, refetchOnWindowFocus: 'always' },
-  })
+    families.data?.some((item) => item.state === 'active') ?? false
+  const settings = useUserSettings()
   const requestedFamily = search.get('household')
   const family = families.data?.find(
     (f) =>
@@ -61,7 +59,7 @@ export function useRecordingScope(): TransactionFormExtension & {
   )
   const defaultScope =
     settings.data?.status === 200
-      ? settings.data.data.default_transaction_scope
+      ? (settings.data.data.default_transaction_scope ?? 'personal')
       : 'personal'
   const isInitializing =
     scopeOverride === null &&
