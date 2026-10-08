@@ -42,7 +42,17 @@ function FixedDonut({
               />
             ))}
           </Pie>
-          <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: 'var(--popover)',
+              borderColor: 'var(--border)',
+              borderRadius: 12,
+              color: 'var(--popover-foreground)',
+            }}
+            formatter={(value) => formatCurrency(Number(value))}
+            itemStyle={{ color: 'var(--popover-foreground)' }}
+            wrapperStyle={{ zIndex: 50 }}
+          />
         </PieChart>
       </ResponsiveContainer>
       <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">

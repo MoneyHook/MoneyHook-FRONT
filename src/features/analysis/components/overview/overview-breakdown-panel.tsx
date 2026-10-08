@@ -47,7 +47,17 @@ function BreakdownChart({
                 <Cell fill={colors[index % colors.length]} key={item.name} />
               ))}
             </Pie>
-            <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: 'var(--popover)',
+                borderColor: 'var(--border)',
+                borderRadius: 12,
+                color: 'var(--popover-foreground)',
+              }}
+              formatter={(value) => formatCurrency(Number(value))}
+              itemStyle={{ color: 'var(--popover-foreground)' }}
+              wrapperStyle={{ zIndex: 50 }}
+            />
           </PieChart>
         </ResponsiveContainer>
       </div>
