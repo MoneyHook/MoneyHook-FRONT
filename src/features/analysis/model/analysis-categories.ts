@@ -1,5 +1,6 @@
 import type {
   V1CategoriesResponse,
+  V1ExpenseSeriesItem,
   V1TransactionResource,
 } from '@/shared/api/generated/model'
 
@@ -61,6 +62,26 @@ export type AnalysisCategoriesViewModel = {
 export type CategoryUrlState = {
   group: CategoryGroup
   listMode: CategoryListMode
+}
+
+export function groupDailyCategorySeries(
+  series: V1ExpenseSeriesItem[],
+  group: CategoryGroup,
+): V1ExpenseSeriesItem[] {
+  if (group === 'day') return series
+  const totals = new Map<string, number>()
+  for (const item of series) {
+    let bucket = `${item.bucket.slice(0, 7)}-01`
+    if (group === 'week') {
+      const date = new Date(`${item.bucket}T00:00:00Z`)
+      date.setUTCDate(date.getUTCDate() - ((date.getUTCDay() + 6) % 7))
+      bucket = date.toISOString().slice(0, 10)
+    }
+    totals.set(bucket, (totals.get(bucket) ?? 0) + item.expense_amount)
+  }
+  return [...totals]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([bucket, expense_amount]) => ({ bucket, expense_amount }))
 }
 
 function ratio(amount: number, total: number) {

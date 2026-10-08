@@ -9,12 +9,11 @@ import {
 } from 'recharts'
 
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/shared/components/ui/select'
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/shared/components/ui/tabs'
 
 import type {
   CategoryAnalysisItem,
@@ -69,84 +68,85 @@ export function CategoryTrendPanel({
 }) {
   return (
     <CategoryAnalysisPanel>
-      <div className="flex items-center justify-between gap-4">
-        <h2 className="text-base font-semibold sm:text-lg">
-          {category.name}の推移
-        </h2>
-        <Select
-          onValueChange={(value) => onGroupChange(value as CategoryGroup)}
-          value={group}
-        >
-          <SelectTrigger
-            aria-label="推移の集計単位"
-            className="h-9 w-auto min-w-22 border-transparent bg-muted px-3 text-xs font-medium sm:text-sm"
-          >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent align="end">
-            {groupOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div
-        aria-label={`${category.name}の支出推移グラフ`}
-        className="mt-4 h-52 w-full sm:h-72"
+      <Tabs
+        className="gap-0"
+        onValueChange={(value) => onGroupChange(value as CategoryGroup)}
+        value={group}
       >
-        <ResponsiveContainer height="100%" width="100%">
-          <LineChart
-            data={category.series}
-            margin={{
-              bottom: 0,
-              left: 0,
-              right: group === 'month' ? 28 : 10,
-              top: group === 'month' ? 24 : 10,
-            }}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-base font-semibold sm:text-lg">
+            {category.name}の推移
+          </h2>
+          <TabsList aria-label="推移の集計単位">
+            {groupOptions.map((option) => (
+              <TabsTrigger key={option.value} value={option.value}>
+                {option.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
+        <TabsContent value={group}>
+          <div
+            aria-label={`${category.name}の支出推移グラフ`}
+            className="mt-4 h-52 w-full sm:h-72"
           >
-            <CartesianGrid
-              stroke="var(--border)"
-              strokeDasharray="4 5"
-              vertical={false}
-            />
-            <XAxis
-              axisLine={false}
-              dataKey="label"
-              interval={group === 'day' ? 'preserveStartEnd' : 0}
-              minTickGap={20}
-              tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
-              tickLine={false}
-            />
-            <YAxis
-              axisLine={false}
-              tick={{ fill: 'var(--muted-foreground)', fontSize: 10 }}
-              tickFormatter={(value) => formatAxisAmount(Number(value))}
-              tickLine={false}
-              width={68}
-            />
-            <Tooltip
-              content={<TrendTooltip />}
-              cursor={{ stroke: 'var(--border)' }}
-            />
-            <Line
-              activeDot={{ fill: analysisChartColors[0], r: 6, strokeWidth: 0 }}
-              dataKey="expenseAmount"
-              dot={{ fill: analysisChartColors[0], r: 4, strokeWidth: 0 }}
-              isAnimationActive
-              stroke={analysisChartColors[0]}
-              strokeWidth={2.5}
-              type="monotone"
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-      {category.series.every((item) => item.expenseAmount === 0) ? (
-        <p className="mt-2 text-center text-xs text-muted-foreground">
-          この期間の支出はありません
-        </p>
-      ) : null}
+            <ResponsiveContainer height="100%" width="100%">
+              <LineChart
+                data={category.series}
+                margin={{
+                  bottom: 0,
+                  left: 0,
+                  right: group === 'month' ? 28 : 10,
+                  top: group === 'month' ? 24 : 10,
+                }}
+              >
+                <CartesianGrid
+                  stroke="var(--border)"
+                  strokeDasharray="4 5"
+                  vertical={false}
+                />
+                <XAxis
+                  axisLine={false}
+                  dataKey="label"
+                  interval={group === 'day' ? 'preserveStartEnd' : 0}
+                  minTickGap={20}
+                  tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
+                  tickLine={false}
+                />
+                <YAxis
+                  axisLine={false}
+                  tick={{ fill: 'var(--muted-foreground)', fontSize: 10 }}
+                  tickFormatter={(value) => formatAxisAmount(Number(value))}
+                  tickLine={false}
+                  width={68}
+                />
+                <Tooltip
+                  content={<TrendTooltip />}
+                  cursor={{ stroke: 'var(--border)' }}
+                />
+                <Line
+                  activeDot={{
+                    fill: analysisChartColors[0],
+                    r: 6,
+                    strokeWidth: 0,
+                  }}
+                  dataKey="expenseAmount"
+                  dot={{ fill: analysisChartColors[0], r: 4, strokeWidth: 0 }}
+                  isAnimationActive
+                  stroke={analysisChartColors[0]}
+                  strokeWidth={2.5}
+                  type="monotone"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          {category.series.every((item) => item.expenseAmount === 0) ? (
+            <p className="mt-2 text-center text-xs text-muted-foreground">
+              この期間の支出はありません
+            </p>
+          ) : null}
+        </TabsContent>
+      </Tabs>
     </CategoryAnalysisPanel>
   )
 }
