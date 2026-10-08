@@ -4,25 +4,68 @@ import { toast } from 'sonner'
 
 import * as api from '@/shared/api/generated/household/household'
 import type { Household } from '@/shared/api/generated/model'
-import { clearPersistedQueryData } from '@/shared/lib/persisted-user-data'
+import { usePersistedQueryData } from '@/shared/hooks/use-persisted-query-data'
+import {
+  clearPersistedQueryData,
+  createPersistedQueryKey,
+  removePersistedUserData,
+} from '@/shared/lib/persisted-user-data'
+
+import {
+  isFamilyData,
+  isHouseholdList,
+} from '../model/household-reference-cache'
 
 export { api }
 export const householdKey = ['households'] as const
 export function useHouseholds() {
+  const cache = usePersistedQueryData({
+    resource: 'household-list',
+    parameters: {},
+    isValue: isHouseholdList,
+  })
   return useQuery({
     queryKey: householdKey,
+    initialData: cache.cachedData ?? undefined,
+    initialDataUpdatedAt: 0,
     queryFn: async ({ signal }) => {
       const r = await api.householdList({ signal })
       if (r.status !== 200) throw new Error('家族を取得できません')
+      if (signal.aborted) return r.data
+      for (const previous of cache.cachedData ?? []) {
+        if (
+          !r.data.some(
+            (family) => family.household_id === previous.household_id,
+          )
+        ) {
+          removePersistedUserData(
+            createPersistedQueryKey('household-settings', {
+              id: previous.household_id,
+            }),
+          )
+        }
+      }
+      cache.persist(r)
       return r.data
     },
     staleTime: 0,
+    refetchOnMount: 'always',
     refetchOnWindowFocus: 'always',
   })
 }
 export function useFamilyData(id: string) {
+  const cache = usePersistedQueryData({
+    resource: 'household-settings',
+    parameters: { id },
+    isValue: isFamilyData,
+  })
   return useQuery({
     queryKey: [...householdKey, id, 'settings'],
+    initialData:
+      cache.cachedData?.family.household_id === id
+        ? cache.cachedData
+        : undefined,
+    initialDataUpdatedAt: 0,
     enabled: Boolean(id),
     queryFn: async ({ signal }) => {
       const [family, members, payments, subcategories] = await Promise.all([
@@ -38,14 +81,17 @@ export function useFamilyData(id: string) {
         subcategories.status !== 200
       )
         throw new Error('家族の情報を取得できません')
-      return {
+      const data = {
         family: family.data,
         members: members.data,
         payments: payments.data,
         subcategories: subcategories.data,
       }
+      if (!signal.aborted) cache.persist({ status: 200, data })
+      return data
     },
     staleTime: 0,
+    refetchOnMount: 'always',
     refetchOnWindowFocus: 'always',
   })
 }

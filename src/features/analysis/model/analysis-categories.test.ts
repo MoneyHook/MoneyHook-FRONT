@@ -9,6 +9,7 @@ import {
   buildAnalysisCategoriesViewModel,
   getSelectedCategory,
   getSelectedSubcategory,
+  groupDailyCategorySeries,
   normalizeCategoryUrlState,
 } from './analysis-categories'
 
@@ -99,6 +100,44 @@ function response(): V1CategoriesResponse {
 }
 
 describe('analysis categories model', () => {
+  it('groups daily expenses by month and Monday-based weeks across month and year boundaries', () => {
+    const daily = [
+      { bucket: '2025-12-28', expense_amount: 100 },
+      { bucket: '2025-12-29', expense_amount: 200 },
+      { bucket: '2025-12-31', expense_amount: 300 },
+      { bucket: '2026-01-01', expense_amount: 400 },
+      { bucket: '2026-01-04', expense_amount: 500 },
+      { bucket: '2026-01-05', expense_amount: 0 },
+    ]
+    expect(groupDailyCategorySeries(daily, 'month')).toEqual([
+      { bucket: '2025-12-01', expense_amount: 600 },
+      { bucket: '2026-01-01', expense_amount: 900 },
+    ])
+    expect(groupDailyCategorySeries(daily, 'week')).toEqual([
+      { bucket: '2025-12-22', expense_amount: 100 },
+      { bucket: '2025-12-29', expense_amount: 1400 },
+      { bucket: '2026-01-05', expense_amount: 0 },
+    ])
+    expect(groupDailyCategorySeries(daily, 'day')).toEqual(daily)
+    expect(daily[1].bucket).toBe('2025-12-29')
+  })
+
+  it('keeps zero-spending buckets and leap days when regrouping', () => {
+    const daily = [
+      { bucket: '2024-02-28', expense_amount: 0 },
+      { bucket: '2024-02-29', expense_amount: 250 },
+      { bucket: '2024-03-01', expense_amount: 0 },
+    ]
+    expect(groupDailyCategorySeries(daily, 'month')).toEqual([
+      { bucket: '2024-02-01', expense_amount: 250 },
+      { bucket: '2024-03-01', expense_amount: 0 },
+    ])
+    expect(groupDailyCategorySeries(daily, 'week')).toEqual([
+      { bucket: '2024-02-26', expense_amount: 250 },
+    ])
+    expect(groupDailyCategorySeries([], 'month')).toEqual([])
+  })
+
   it('sorts the hierarchy, builds top-five plus other, and orders transactions', () => {
     const model = buildAnalysisCategoriesViewModel(response(), range, 'month')
 

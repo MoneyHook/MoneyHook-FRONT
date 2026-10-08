@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { useAnalysisCategories } from '../api/use-analysis-categories'
@@ -19,10 +19,12 @@ export function useAnalysisCategoriesController(range: AnalysisRange) {
   const rawListMode = searchParams.get('list')
   const rawCategoryId = searchParams.get('category')
   const rawSubcategoryId = searchParams.get('subcategory')
-  const { group, listMode } = normalizeCategoryUrlState({
+  const normalized = normalizeCategoryUrlState({
     group: rawGroup,
     listMode: rawListMode,
   })
+  const [group, changeGroup] = useState<CategoryGroup>(normalized.group)
+  const { listMode } = normalized
   const categories = useAnalysisCategories(range, group)
   const selectedCategory = categories.data
     ? getSelectedCategory(categories.data, rawCategoryId)
@@ -39,7 +41,7 @@ export function useAnalysisCategoriesController(range: AnalysisRange) {
       next.delete('metric')
       changed = true
     }
-    if (rawGroup && rawGroup !== group) {
+    if (rawGroup && rawGroup !== normalized.group) {
       next.delete('group')
       changed = true
     }
@@ -67,7 +69,7 @@ export function useAnalysisCategoriesController(range: AnalysisRange) {
     }
   }, [
     categories.data,
-    group,
+    normalized.group,
     listMode,
     rawCategoryId,
     rawGroup,
@@ -118,7 +120,7 @@ export function useAnalysisCategoriesController(range: AnalysisRange) {
     listMode,
     changeCategory,
     changeListMode: (mode: CategoryListMode) => setParam('list', mode),
-    changeGroup: (nextGroup: CategoryGroup) => setParam('group', nextGroup),
+    changeGroup,
     changeSubcategory,
     openTransaction,
   }

@@ -2,13 +2,11 @@ import { Check, HousePlus, Users } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 
-import {
-  patchV1Settings,
-  useGetV1Settings,
-} from '@/shared/api/generated/settings/settings'
+import { patchV1Settings } from '@/shared/api/generated/settings/settings'
 import { Badge } from '@/shared/components/ui/badge'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
+import { useUserSettings } from '@/shared/hooks/use-user-settings'
 
 import {
   api,
@@ -25,9 +23,7 @@ import { JoinFamily } from './join-family'
 
 export function FamilySettings() {
   const families = useHouseholds()
-  const settings = useGetV1Settings({
-    query: { staleTime: 0, refetchOnWindowFocus: 'always' },
-  })
+  const settings = useUserSettings()
   const [search, setSearch] = useSearchParams()
   const selected = search.get('household') ?? ''
   const current = selected
