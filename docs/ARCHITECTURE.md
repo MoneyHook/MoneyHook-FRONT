@@ -1,106 +1,67 @@
-# MoneyHooks React アーキテクチャ
+# アーキテクチャ
 
-## 採用済みの基盤
+## 基盤
 
-| 分類                 | 技術                                           |
-| -------------------- | ---------------------------------------------- |
-| UI                   | React、TypeScript strict、Vite                 |
-| Package manager      | pnpm                                           |
-| Routing              | React Router                                   |
-| Server state         | TanStack Query                                 |
-| Validation           | Zod                                            |
-| Authentication       | Firebase Authentication                        |
-| Components / CSS     | shadcn/ui、Radix UI、Tailwind CSS              |
-| Chart                | Recharts                                       |
-| Theme / notification | next-themes、Sonner                            |
-| API generation       | OpenAPI、Orval                                 |
-| Test                 | Vitest、React Testing Library、MSW、Playwright |
-
-新しいライブラリは、実装する機能で必要になった時に選定して追加します。将来の候補を採用済みとして扱いません。
+React・TypeScript strict・Vite・pnpm、React Router、TanStack Query、Zod、Firebase Auth、shadcn/ui・Radix UI・Tailwind、Recharts、Sonner、OpenAPI/Orval、Vitest・MSW・Playwright。正確な依存とバージョンは[`package.json`](../package.json)。ライブラリは実利用が必要になった時に追加する。
 
 ## コード構造
 
-```text
-src/
-├── app/       provider、router、layout、global style
-├── pages/     route単位の画面とfeatureの合成
-├── features/  業務機能ごとのUI、状態、API利用、model
-├── shared/    API基盤、汎用UI、設定、hook、utility
-└── test/      複数箇所で共有するテスト基盤
-```
+依存は`app → pages → features → shared`。
 
-依存方向は`app → pages → features → shared`です。
+- `app`: provider・router・layout・global style。`pages`: route画面とfeatureの合成。
+- `features`: 業務UI・状態・API利用・model。feature間で直接importせず、pageで値を受け渡す。外部公開は`index.ts`。
+- `shared`: 特定featureの業務知識を持たないAPI基盤・汎用UI・設定・hook・utility。共通化は複数の実利用を確認してから。
+- `test`: 複数テストで共有するsetup・MSW serverのみ。
 
-- pageは複数featureを合成する。
-- feature同士を直接importしない。連携に必要な値はpageで受け渡す。
-- feature外から利用するものはfeatureの`index.ts`で公開する。
-- `shared`は特定featureの業務知識を持たない。
-- 新しい共通化は複数の実利用が確認できてから行う。
+ファイル責務とサイズは[コード規約](CODING_CONVENTIONS.md)。
 
 ## 状態の所有者
 
-| 状態                             | 所有者                                     |
-| -------------------------------- | ------------------------------------------ |
-| APIから取得したデータ            | TanStack Query                             |
-| ログインユーザーと認証確定状態   | Firebase Authentication / AuthProvider     |
-| URLで再現する条件                | React Router Search Params                 |
-| そのコンポーネントだけの表示状態 | React local state                          |
-| デフォルトの支払い方法           | ユーザーに紐づく端末内設定（localStorage） |
-| 入力先デフォルト（個人/家族）    | ユーザー設定API                            |
-| 環境変数の検証済み設定           | `shared/config/environment`                |
+| 状態                   | 所有者                                    |
+| ---------------------- | ----------------------------------------- |
+| APIデータ              | TanStack Query                            |
+| ユーザー・認証確定     | Firebase/AuthProvider                     |
+| URLで再現する条件      | React Router Search Params                |
+| コンポーネント内の表示 | React local state                         |
+| デフォルト支払方法     | ユーザー単位のlocalStorage（API同期なし） |
+| 入力先デフォルト       | ユーザー設定API                           |
+| 検証済み環境設定       | `shared/config/environment`               |
 
-APIデータの取得・更新・再取得はTanStack Queryで管理します。初期表示とAPI障害時のフォールバックに限り、成功レスポンスをlocalStorageへ保存します。永続キャッシュを独立した更新先やAPIの代替にはしません。
+APIを正本とし、永続キャッシュは成功レスポンスの初期表示・障害時フォールバックだけに使う。mount時に再取得する。
 
-- 個人の取引一覧は共有状態の絞り込みに対応するv1 APIから取得し、localStorageへ保存しない。家族の取引・分析データも永続化せず、household IDを含むquery keyとAbortSignalで管理する。退出後はアクセスできない家族queryを除去する。
-- 取引の登録先を即時表示するため、ユーザー設定・家族一覧・家族の設定参照情報（メンバー、支払い方法、サブカテゴリ）をquery用永続キャッシュから復元し、mount時に再取得する。家族操作の成功時は永続キャッシュを破棄し、一覧から除かれた家族の設定参照キャッシュも削除する。再取得で入力中の取引の登録先は自動変更しない。
-- ホーム・分析・取引詳細は`usePersistedQueryData`で初期値を復元し、画面のmount時に再取得します。query用キャッシュは最大24件で、古いアクセスのものから破棄します。
-- 取引フォームのカテゴリ・支払い方法・支払い種別・取引候補は専用の参照キャッシュに保存し、フォームのmount時に再取得します。この参照キャッシュはquery用の24件制限とは別です。
-- ユーザーデータのキャッシュとデフォルト支払い方法は保存バージョン・値の形式を確認し、所有ユーザーの変更時やログアウト時に破棄します。デフォルト支払い方法はAPIへ同期せず、取得した支払い方法一覧に存在しなくなった場合も解除します。
-- 外観設定はAPIを正本とし、初期表示・API障害時のフォールバック用にlocalStorageへ保存します。認証との接続とユーザー単位のprovider再生成は`app/providers/appearance-provider`が担当します。
+- 個人取引一覧はv1 APIから取得し、永続化しない。家族取引・分析も永続化せず、household ID付きquery keyとAbortSignalを使い、退出後のqueryを除去する。
+- ユーザー設定・家族一覧・家族設定参照（メンバー/支払方法/サブカテゴリ）は入力先の即時表示用に復元する。家族操作成功時に永続キャッシュを破棄し、一覧から消えた家族の参照も削除する。再取得で入力中の登録先を変えない。
+- ホーム・分析・取引詳細は`usePersistedQueryData`で復元。query用永続キャッシュは最大24件でアクセスの古い順に破棄する。
+- フォームのカテゴリ・支払方法・支払種別・取引候補は専用参照キャッシュ（24件制限とは別）。
+- ユーザーデータ・デフォルト支払方法は保存版/形式を検証し、ユーザー変更・ログアウト時に破棄する。支払方法が取得一覧から消えた場合も既定値を解除する。
+- 外観はAPIが正本、localStorageはフォールバック。認証接続とユーザー単位のprovider再生成は`app/providers/appearance-provider`。
+- カテゴリ分析の月/週/日タブはlocal state。日別レスポンスから月・月曜始まりの週を再集計し、タブ変更ではAPI追加取得・URL変更をしない。旧URLの`group`は初期選択だけに使う。
 
-フォームなど新しい状態管理手段が必要な場合は、その機能を実装する時に責務を決めます。
-
-カテゴリ分析の月・週・日タブはReact local stateで管理する。日別の分析レスポンスを共通で取得し、月別と月曜始まりの週別は画面内で再集計するため、タブ操作でURL変更や追加のAPI取得は発生しない。既存URLの`group`は初期選択として読み取る。
+新しい状態管理手段は機能実装時に責務を決める。
 
 ## 認証
 
-- `onIdTokenChanged`をクライアントの認証状態の正本とする。
-- Google popupでログインする。`VITE_FIREBASE_AUTH_EMULATOR_URL`を設定した開発環境では、Auth Emulatorがローカルのモック認証ポップアップを提供する。保護routeは認証状態の確定を待ってから判定する。
-- ID tokenを手動で永続化せず、API呼び出し時にFirebase SDKから取得する。
-- ログアウト時はTanStack Queryのキャッシュを破棄する。
-- 未認証ユーザーの戻り先は安全なアプリ内pathだけを許可する。
+`onIdTokenChanged`を正本とし、保護routeは認証確定を待つ。Google popupを使い、Emulator時はモックpopupになる。tokenは手動永続化せず、API呼び出し時にSDKから取得する。ログアウト時はQuery cacheを破棄。未認証の戻り先は安全なアプリ内pathだけ許可する。
 
 ## API境界
 
-- [`contracts/openapi.yaml`](../contracts/openapi.yaml)をOrvalの入力とする。
-- 生成物は`src/shared/api/generated/`に置き、直接編集しない。
-- `shared/api/http-client`がベースURL、Firebase Bearer token、response bodyの解析を担当する。
-- HTTP失敗は共通の`ApiError`へ正規化し、UIへ生のresponse形式を漏らさない。
-- API固有の呼び出しやDTO変換をpageや汎用UIへ直接記述しない。
-- ID、金額、日付などAPI DTOと画面入力の意味が異なる境界だけを明示的に変換する。
-- Mutationを追加する時は影響するquery keyを機能側で管理し、月をまたぐ変更では旧月と新月を更新する。
-- 取引の登録・編集・削除・CSV登録後は`features/transactions/api/invalidate-transaction-queries`で一覧・ホーム・分析の全期間と取引候補を無効化し、query用永続キャッシュを破棄する。編集した詳細は再取得し、削除した詳細はキャッシュから除く。CSV登録との連携はpageからコールバックを渡し、無関係な設定queryは無効化しない。
+- [`contracts/openapi.yaml`](../contracts/openapi.yaml)からOrvalで`shared/api/generated/`へ生成し、直接編集しない。
+- `shared/api/http-client`がURL・Bearer token・body解析を担当し、HTTP失敗は`ApiError`へ正規化する。
+- API呼び出し・DTO変換はpage/汎用UIへ書かず、ID・金額・日付など意味が変わる境界だけ明示的に変換する。
+- Mutationの影響query keyは機能側で管理する。取引登録/編集/削除/CSV後は`features/transactions/api/invalidate-transaction-queries`で一覧・ホーム・分析の全期間と候補を無効化し、query用永続キャッシュを破棄する。編集詳細は再取得、削除詳細は除去。CSVはpageのcallbackで接続し、無関係な設定queryは無効化しない。
 
-APIのサーバー実装、DB、認可、データ移行、運用はGo APIリポジトリの責務です。
+サーバー・DB・認可・移行・運用はGo APIの責務。
 
 ## UIとカラー
 
-- アプリの色は用途名を持つsemantic color tokenを使う。
-- 生の色値は`src/app/styles/tokens.css`だけに置く。
-- page、feature、shared component、SVG、inline styleへHEX、RGB、HSL、色名を直接記述しない。
-- 必要な色がなければ、light/dark両themeに意味が一致するtokenを追加する。
-- shadcn/uiのprimitiveは`src/shared/components/ui/`、アプリ共通の組み合わせは`src/shared/components/`に置く。
+semantic color tokenを使い、生のHEX/RGB/HSL/色名は`app/styles/tokens.css`だけに置く。page・feature・shared・SVG・inline styleへの直書きを避け、不足tokenはlight/dark両方に定義する。検出は`scripts/check-semantic-colors.mjs`。
 
-直接カラー指定は`pnpm lint`に含まれるsemantic color checkで検出します。
+shadcn primitiveは`shared/components/ui/`、共通の組み合わせは`shared/components/`。[UI方針](PRODUCT.md#ui方針)も参照する。
 
 ## テスト
 
-テストの追加・変更を計画する際とレビュー時には、この節を確認してください。
-
-- テストは対象コードの近くへ置く。
-- UIの表示、レイアウト、スタイル、ユーザー操作を検証するテストは作成しない。これにはReact Testing Libraryによるコンポーネントテストと、画面遷移・操作を目的とするPlaywrightテストを含む。
-- テストはドメインロジック、データ変換、入力検証、APIクライアント、永続化、認証/API結合など、UIを介さずに検証できる契約に限定する。
-- Playwrightを使う場合も、画面の表示や操作ではなく、ブラウザ環境が必要な認証/API結合の検証だけにする。
-- 既存のUIテストやテストライブラリの導入済み状態を、新しいUIテストを追加する根拠にしない。
-- レビューではテストの成功だけでなく、検証対象がこの方針に沿っているかを確認する。日付計算などは固定した入力と期待値で検証し、表示やボタン操作の確認は手動で行う。
-- 複数テストで共有するsetupやMSW serverだけを`src/test/`へ置く。
+- 追加・変更・レビュー前に本節を確認する。対象はドメインロジック・変換・入力検証・API・永続化・認証結合など、UIを介さない契約。
+- UI表示・レイアウト・style・ユーザー操作のテストは追加しない。React Testing Libraryのコンポーネントテストや画面遷移目的のPlaywrightも含む。既存UIテスト・導入済みライブラリを追加の根拠にしない。
+- Playwrightはブラウザ固有の認証/API結合だけに使う。表示・操作は必要箇所を手動確認する。
+- テストは対象の近くに置き、日付計算などは固定入力と期待値で契約を確認する。レビューでは成功だけでなく検証対象も確認する。
+- 実行は追加・変更したテストと影響する既存テストだけ。詳しいコマンド・拡大条件は[検証方針](DEVELOPMENT.md#検証)。

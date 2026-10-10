@@ -1,280 +1,121 @@
-# 家族の家計記録 v1 — 実装計画書
-
-更新日: 2026-09-29。業務仕様の正本は [機能仕様書](FAMILY_HOUSEHOLD_DESIGN.md)。本書は実装したテーブル・API・移行と検証方針を示す。正確なHTTP schemaは `contracts/openapi.yaml`、DDLはGo APIの `app/db/migration/household.go` を参照。デプロイは未実施。
+# 家族の家計記録 v1 — 実装資料
 
-## 1. 実装の前提
+実装・検証記録の基準: 2026-09-29。本番migration/デプロイはこの記録では未実施。業務仕様は[機能仕様](FAMILY_HOUSEHOLD_DESIGN.md)、HTTP path/schemaは[OpenAPI](../contracts/openapi.yaml)、DDLはGo APIの`app/db/migration/household.go`を正本とする。Go側のパスは参照先であり、この資料だけで別リポジトリの変更を指示しない。
 
-- 既存の `transaction.user_no` を個人原本の所有者として維持する。全データを汎用ledgerへ移す変更は行わない。
-- 家族側は共有参照・代理記録・退出時の控えの3種類を扱う。共有参照の金額等は原本から読み、代理記録と控えは独立した値を持つ。
-- 他の家族は個人原本・共有参照を編集・削除・共有解除できない。管理者も例外にしない。
-- 代理記録は家族全員が共同編集可能だが、支払者の個人原本を作成・更新しない。
-- 一人につき有効な家族は1つ、1家族は管理者を含め3人。招待は英数字10文字・24時間・1回限り。リンクとコードは同じ招待に紐づく。
-- v1には代理記録の個人インポート、家族予算・定期収支・CSV、精算を含めない。将来用の空APIを追加しない。
-- Go APIとReactの両方を実装対象とする。計画書はReactリポジトリに保存する。
+## 構成と正本
 
-### 現行実装との対応
+既存`transaction.user_no`が個人原本の所有者。汎用ledgerへ移さず、個人payment/subcategory/budget/monthly_transactionを維持する。家族はshared/proxy/snapshotを扱い、所有権・集計は機能仕様に従う。
 
-| 現行                                                                           | 変更方針                                                             |
-| ------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
-| `app/db/migration/schema.go` の `users`・`transaction`                         | 設定、更新版、論理削除の列を追加                                     |
-| ユーザー別 `payment_resource`・`sub_category`・`budget`・`monthly_transaction` | 個人用として維持。家族用の支払方法・独自分類は別テーブル             |
-| `app/handler/routes.go`                                                        | 家族APIをv1へ登録。route契約テストも更新                             |
-| `app/handler/transaction` と `app/store_postgres/transaction*.go`              | 本人による原本更新と共有参照の同期、削除と共有終了を一括処理         |
-| 旧取引APIとv1 APIの併存                                                        | 外部の既存path・JSON・statusを維持。内部の共有整合性処理は両方に適用 |
-| `contracts/openapi.yaml` → Orval                                               | 新API・追加フィールドを契約化し生成。生成物を手編集しない            |
-| 個人一覧は旧 `getTimelineData` を使用                                          | 共有状態の絞り込みが必要な新一覧をv1に追加し、React一覧を段階移行    |
-| `cmd/migrate` とGORM migration                                                 | 既存の独立migrationコマンドへ追加。API起動時にDDLを実行しない        |
-
-## 2. テーブル一覧
+| 参照先                                                         | 責務                                                                    |
+| -------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Go `app/db/migration/schema.go`・`household.go`、`cmd/migrate` | 設定/version/論理削除列、家族テーブルと制約。API起動時にDDLを実行しない |
+| Go `app/household`                                             | Store interface・domain error                                           |
+| Go `app/handler/household`・`handler/routes.go`                | DTO・入力検証・v1 route・依存注入                                       |
+| Go `app/store_postgres`・旧/v1 transaction handler             | DB処理と全書き込み経路の共有整合性                                      |
+| React `features/households`・関連page                          | 家族設定/参加/記録。pageで既存featureを合成                             |
+| OpenAPI → Orval                                                | 契約・生成型。個人一覧はv1へ移行済み                                    |
 
-既存のIDはbigint、新規の業務IDもbigintを基本とし、HTTP上はすべてstringで扱う。作成・更新・参加・退出等の時刻は `timestamptz`、取引日は `date`。金額のDB保存は既存どおり符号付き整数とし、HTTPでは絶対額とsignへ変換する。
-
-| 区分 | テーブル                 | 主な列                                                                                                                                                            | 目的                                                           |
-| ---- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| 変更 | `users`                  | `default_transaction_scope`（personal / household、default personal）                                                                                             | ユーザーごとの入力先設定                                       |
-| 変更 | `transaction`            | `version` default 1、`updated_at`、`deleted_at` nullable                                                                                                          | 本人原本。更新競合と論理削除を扱う                             |
-| 新規 | `household`              | `household_id` PK、`name`、`state`（active / archived）、`version`、作成・終了日時                                                                                | 家族本体                                                       |
-| 新規 | `household_member`       | `member_id` PK、`household_id` FK、`user_no` FK、`role`、`state`（active / left / archived）、`slot_no`、`display_name`、参加・退出日時                           | 所属と家族内の支払者参照                                       |
-| 新規 | `household_invitation`   | `invitation_id` PK、家族・発行者FK、`code_digest`、`token_digest`、`expires_at`、`consumed_by`、`consumed_at`、`revoked_at`、作成日時                             | 1回限りの招待。平文は保存しない                                |
-| 新規 | `household_payment`      | `payment_id` PK、家族FK、`payment_type_id` FK、名前、締め日・支払日、`active`、`version`                                                                          | 家族専用の支払方法                                             |
-| 新規 | `household_sub_category` | `sub_category_id` PK、家族FK、共通カテゴリFK、名前、`active`、`version`                                                                                           | 家族専用のサブカテゴリ                                         |
-| 新規 | `household_entry`        | `entry_id` PK、家族FK、`kind`、`source_transaction_id` nullable FK、`payer_member_id` nullable FK、家族支払方法・分類FK、`state`、`version`、登録者・更新者・日時 | 家族一覧の安定した記録IDと出所                                 |
-| 新規 | `household_entry_data`   | `entry_id` PK/FK、公開DTOの `payload jsonb`、最新訂正の `corrected_payload jsonb`、`captured_at`（金額・日付・分類・表示名をpayloadに保存）                       | 代理記録の実値、または退出時の不変な控え。共有中は行を作らない |
-| 新規 | `api_idempotency`        | ユーザーFK、操作名、キー、request digest、結果resource ID、作成日時（結果は同一DB transaction内で保存、期限なし）                                                 | 家族・記録作成、招待承諾等の再送による重複防止                 |
+DBはbigint ID、HTTPはstring。業務時刻は`timestamptz`、取引日は`date`、DB金額は符号付き整数、HTTP入力は絶対額/sign。
 
-招待試行の保存先として `household_invitation_attempt(bucket PK, attempts, expires_at)` も追加する。アカウントと接続元IPのHMAC bucketをDBで更新し、それぞれ15分間に20回までとする。期限切れbucketは次の試行でリセットする。
+## テーブルと制約
 
-家族の操作履歴は保存しない。旧 `household_event` がある場合はmigrationで削除する。現在の所属・役割・招待状態は各業務テーブルで管理する。
+列の詳細はDDLを参照。`users`は入力先設定、`transaction`はversion/updated_at/deleted_at、家族側は次のテーブルを使う。
 
-控え作成時の原本の版は保存しない。旧 `household_entry_data.source_version` 列がある場合はmigrationで削除する。
+- `household`: active/archived、version。`household_member`: role/state、slot、表示名・所属日時。
+- `household_invitation`: code/token照合値・発行者・期限・消費/取消。`household_payment`・`household_sub_category`: 家族専用参照・active/version。
+- `household_entry`: 安定したentry ID、kind=`shared/proxy/snapshot`、state=`active/withdrawn/deleted`、source/payer/家族参照・version・登録/更新者。
+- `household_entry_data`: 公開DTOの`payload jsonb`、最新訂正の`corrected_payload`、`captured_at`。sharedには作らずproxy/snapshotに1行。
+- `api_idempotency`: user/operation/key、request digest、結果resource ID。同じDB transactionに保存、期限なし。
+- `household_invitation_attempt`: account/IPのHMAC bucket、attempts/expiry。各15分20回、期限切れは次の試行でリセット。
 
-`household_entry.kind` は `shared / proxy / snapshot`、`state` は `active / withdrawn / deleted`。snapshotの集計除外は最新の訂正内容で管理し、不変な控え自体を消さない。family共通の支払者は `payer_member_id = null` とし、レスポンスでは `payer_kind: common` を明示する。
+操作履歴は保存せず旧`household_event`をmigrationで削除。控えの原本versionも保存せず旧`source_version`列を削除する。
 
-### 制約と索引
-
-- `household_member(household_id, user_no)` は一意。再参加時は同じmember IDを再利用し、現在の所属状態と参加・退出日時を更新する。退出済み人物への過去参照を切らない。
-- `user_no WHERE state = 'active'` に一意索引を置き、有効所属を1つにする。
-- `slot_no` はactiveなら1〜3、非activeならnull。`(household_id, slot_no) WHERE state = 'active'` を一意にしてDBでも4人目を防ぐ。
-- `household_id WHERE state = 'active' AND role = 'admin'` を一意にする。active家族に管理者が必ず1人いる条件は、家族行のロックを取る作成・交代・退出処理で保証する。
-- payer、家族支払方法、家族分類は `(household_id, id)` の複合外部キーで同一家族を保証する。所属・支払方法・分類は参照があれば物理削除しない。
-- sharedはsource必須・payer必須、proxyはsourceなし、snapshotはsource必須。sourceの所有者とsharedのpayerのuserが一致することはStoreで検証する。
-- `(household_id, source_transaction_id)` はsourceがある行で一意にする。共有解除後は同じ行を再有効化し、snapshotへ変わった行はv1ではsharedへ戻せない。source IDは重複判定用でありsnapshot読み取りで原本をJOINしない。
-- sharedにentry_dataはなく、proxy・snapshotに1行だけある条件を同一DBトランザクションで保証する。CHECKだけで表をまたぐ整合性を保証したとは扱わない。
-- snapshotのpayloadは更新不可。訂正は完全な公開DTOをcorrected_payloadへ上書きし、最新の訂正を集計に適用する。個人側の参照IDはJSONへ格納しない。
-- 同時訂正は家族行のロックとentryのversion検証で防ぐ。
-- 招待のcode/token digestはそれぞれ一意。期限は照合・承諾・発行時にDB時刻で判定し、期限掃除ジョブを成立条件にしない。
-- 取得索引はmemberのuser/state、invitationの家族/有効期限、entryの家族/state、source、payer、entry_dataの日付に置く。sharedの日付絞り込みは原本のuser/date索引も確認する。
-- `api_idempotency` は `(user_no, operation, key)` を一意にし、同キー・異なるrequestは409。結果を再返却する際も現在の閲覧権限を再検証する。
-
-## 3. 集計と変更の単位
-
-### 一覧・集計の共通読み取り
-
-家族の有効記録を以下の3分岐で投影し、同じ結果を一覧・月次・カテゴリ別・人物別集計の正本にする。
-
-1. shared: 未削除の個人原本から公開項目を取得し、家族側の支払方法・独自分類を付加する。
-2. proxy: entry_dataの現在値を取得する。
-3. snapshot: 不変なentry_dataに最新訂正を適用する。除外指定があれば集計しない。
-
-`entry_id` 単位で1回だけ数える。本人の個人集計は未削除のtransactionだけを数え、家族entryを足さない。退出直後にも両方の集計値を維持する。
-
-大カテゴリは原本の項目として共有する。本人の新規登録・共有開始では、個人のサブカテゴリ・支払方法から家族項目を自動解決する。共有中の原本のカテゴリ・サブカテゴリまたは支払方法の参照を変更した場合は、変更された項目だけ再解決する。サブカテゴリは親カテゴリと名前、支払方法は名前・種別・締め日・支払日で有効な項目を検索し、なければ作成する。検索・作成・保存は家族行のロック下の同一トランザクションで実行する。無効項目の復活、個人設定変更の過去記録への伝播、既存記録の一括補完は行わない。family subcategoryは代理記録・既存記録のためnullableを維持し、個人側の参照IDを返さない。
-
-### DBトランザクションの境界
+- memberの`(household_id, user_no)`は一意。再参加は同member IDを再利用し、過去参照を保つ。
+- active userの一意索引で1所属。active slotは1〜3、非activeはnull。activeな`(household_id, slot_no)`を一意にして4人目を防ぐ。
+- active adminは家族ごとに一意。管理者が必ず1人いる条件は家族ロック下の作成/交代/退出で保証する。
+- payer/payment/subcategoryは`(household_id, id)`の複合FKで同一家族に限定。参照済み項目/人物は物理削除しない。
+- sharedはsource/payer必須、proxyはsourceなし、snapshotはsource必須。原本所有者とshared payerの一致をStoreで検証する。共通財布payerはnull、DTOは`payer_kind: common`。
+- source付き`(household_id, source_transaction_id)`は一意。解除後は同entryを再有効化し、snapshot→sharedはv1で拒否。snapshotはsourceを重複判定だけに使い原本をJOINしない。
+- kind/dataの表間整合は単一transactionで保証する（CHECKだけで保証したと扱わない）。snapshot payloadは不変。訂正は完全な公開DTOで上書きし、最新だけ集計へ適用。集計除外も訂正で表し、個人参照IDをJSONに保存しない。
+- 訂正は家族ロックとentry versionで競合防止。招待digestは各一意、期限は照合/承諾/発行時にDB時刻で判定し、掃除ジョブへ依存しない。
+- 索引はmember user/state、invitation家族/期限、entry家族/state・source・payer、data日付。sharedの絞り込みは原本user/dateも確認する。
+- 冪等キーは`(user_no, operation, key)`で一意。同キー/異requestは409、結果再返却でも現在権限を確認する。
 
-| 操作                       | 一括で行う内容                                                                  |
-| -------------------------- | ------------------------------------------------------------------------------- |
-| 家族作成                   | household + 作成者member(slot 1/admin) + 冪等処理結果                           |
-| 本人支出を家族用で新規登録 | 個人原本 + shared entry + 冪等処理結果                                          |
-| 既存原本の共有開始         | 所有権・所属検証 + shared entryの作成/再有効化                                  |
-| 本人の原本編集             | 所有者とversion検証 + 原本更新 + 関連shared entry version更新                   |
-| 本人の原本削除             | 原本論理削除 + 有効shared entryをwithdrawnへ。snapshotは触らない                |
-| 代理入力・編集・削除       | 家族所属・kind・version検証 + entry/data変更。個人transactionには書かない       |
-| 退出・参加解除             | 本人の有効sharedをsnapshotへ切替・公開値保存 + member終了。IDと合計を維持       |
-| 家族アーカイブ             | 全sharedをsnapshot化 + 全active memberをarchivedへ + 全招待失効 + household終了 |
-| 招待承諾                   | 招待再検証 + 所属/slot追加 + 招待消費 + 冪等処理結果                            |
-| 管理者交代                 | 現管理者をmemberへ、新管理者をadminへ + 未使用招待失効 + household version更新  |
-
-所有者に関する共有・原本更新・退出はuser行を先にロックし、次にhousehold、原本、entryの順にロックする。管理者交代は家族行をロックして役割を切り替える。archiveは最後の1人に限定し、対象userを先にロックする。家族側だけの代理更新・招待発行はhouseholdから取得し、その後にuserロックを要求しない。事前読み取りした所属・所有者はロック後に再検証する。デッドロックや直列化失敗の再試行は冪等性と組み合わせる。
-
-更新のversion条件は原本とentryの双方に必要な操作では両方を要求する。原本と家族側参照の更新を同じトランザクションに含める。
-
-メンバー追加・退出・解除・管理者交代・archiveではhouseholdのversionも進める。すべての変更操作はロック取得後にactive状態と権限を再検証する。archiveはロック後にもactiveメンバーが1人だけであることを再検証する。archive閲覧権限は終了時にarchivedになったメンバーに限定し、それ以前のleftメンバーには与えない。
-
-## 4. API一覧
-
-以下は実装済みの契約。すべてFirebase Bearer認証が必要。`H` は説明上の `/api/v1/households/{householdId}` の略であり、OpenAPIには完全なpathを書く。IDはstring、変更操作の所有者は認証から決める。
-
-### 家族・メンバー・設定
+## 読み取りと変更境界
 
-| Method    | Path                       | 目的・権限                      | 主な入力 → 出力                                        |
-| --------- | -------------------------- | ------------------------------- | ------------------------------------------------------ |
-| GET       | `/api/v1/households`       | 本人の有効家族・閲覧可能archive | → 家族一覧、役割、state                                |
-| POST      | `/api/v1/households`       | 未所属者が作成                  | name → household + 自分のmember（201）                 |
-| GET       | `H`                        | 所属者、またはarchive閲覧者     | → 名前、state、version、本人のrole/member_id           |
-| PATCH     | `H`                        | 管理者が名前変更                | name, expected_version → household                     |
-| GET       | `H/members`                | 所属者、archive閲覧者           | → active/left/archivedの人物表示。メール等は返さない   |
-| PATCH     | `H/members/me`             | 本人の家族内表示名変更          | display_name → 204                                     |
-| POST      | `H/admin-transfer`         | 現管理者                        | target_member_id, expected_version → 204               |
-| POST      | `H/leave`                  | 管理者以外の本人                | expected_version → 204                                 |
-| DELETE    | `H/members/{memberId}`     | 管理者が他メンバーを解除        | expected_version（query）→ 204                         |
-| POST      | `H/archive`                | 最後の1人である管理者           | expected_version → 204                                 |
-| GET/PATCH | `/api/v1/settings`（拡張） | 本人の設定                      | default_transaction_scope → 設定。既存の外観項目を維持 |
+一覧/全集計は同じ投影を使用し、entryごとに1回計上する。sharedは未削除原本＋家族参照、proxyはdata現在値、snapshotはpayload＋最新訂正（除外なら計上なし）。個人集計は未削除原本のみ。家族subcategoryは代理/既存互換のためnullable、個人参照IDは返さない。参照の自動対応ルールは[機能仕様](FAMILY_HOUSEHOLD_DESIGN.md#共有参照情報重複)に集約する。
 
-家族用をデフォルトに設定できるのは有効な家族への所属中だけ。退出・解除・archive時にpersonalへ戻す。状態確認中や設定取得失敗時に勝手に家族用へ切り替えない。
+以下は各操作の単一DB transaction。handlerから複数の独立Store呼び出しに分けない。
 
-### 招待
+| 操作           | 一括処理                                                                           |
+| -------------- | ---------------------------------------------------------------------------------- |
+| 家族作成       | household＋作成者admin/slot 1＋冪等結果                                            |
+| 本人共有の新規 | 原本＋shared＋冪等結果。個人POST後に共有を別送しない                               |
+| 共有開始/解除  | 所有/所属/version確認＋同entry作成/再有効化、またはwithdrawn。原本を保持           |
+| 原本編集/削除  | 本人/version確認＋原本/sharedの版更新、または論理削除/共有終了。snapshotは触らない |
+| proxy変更      | 所属/kind/version確認＋entry/data変更。個人原本へ書かない                          |
+| 退出/解除      | 有効sharedを同IDのsnapshotにし公開値保存＋member終了。個人/家族の合計維持          |
+| archive        | 全sharedをsnapshot化＋active memberをarchived＋全招待失効＋家族終了                |
+| 承諾           | 招待/所属/slot再検証＋member追加＋招待消費＋冪等結果                               |
+| 管理者交代     | 役割切替＋未使用招待失効＋household version更新                                    |
 
-| Method | Path                                    | 目的                     | 主な入力 → 出力                                                                       |
-| ------ | --------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------- |
-| GET    | `H/invitations`                         | 管理者の状態一覧         | → ID、有効期限、state。秘密は返さない                                                 |
-| POST   | `H/invitations`                         | 管理者が発行             | → invitation_id、code、token、expires_at（201）                                       |
-| DELETE | `H/invitations/{invitationId}`          | 管理者が取消             | → 204                                                                                 |
-| POST   | `H/invitations/{invitationId}/reissue`  | 取消と置換発行を一括処理 | → 新ID・code・token・期限（201）                                                      |
-| POST   | `/api/v1/household-invitations/preview` | ログイン済み受取人の確認 | codeまたはtokenの片方 → 家族名、招待者表示名、期限（共有条件はReactで固定文言を表示） |
-| POST   | `/api/v1/household-invitations/accept`  | 受取人が参加確定         | codeまたはtoken、Idempotency-Key → household/member（201）                            |
+所有者に関する共有/原本更新/退出はuser→household→原本→entry、承諾はuser→household→invitationの順でロック。proxy更新/招待発行はhouseholdから始め、後でuserロックを要求しない。交代は家族ロック、archiveは最後の1人のuserを先に取得する。
 
-preview結果のIDだけでは承諾できず、accept時にも招待の秘密を照合する。コードは例として `ABCDE-FGHJK` の形式、32種の紛らわしくない文字から暗号学的乱数で10文字生成する。リンク用tokenは別途256bitの乱数とする。短いコードのDB流出時の探索を抑えるため、サーバー秘密鍵によるHMAC等の照合値を保存し、鍵の管理・更新方針を実装時に定める。
+ロック後にactive/所属/所有/権限を再確認し、必要な操作では原本とentryの両versionを要求する。所属追加/退出/解除/交代/archiveでhousehold versionも進める。archiveはロック後も1人条件を再確認し、閲覧者は終了時archivedの人だけ。deadlock/直列化再試行は冪等性と組み合わせる。
 
-発行レスポンスの秘密は一度だけ表示し、一覧から再表示しない。レスポンスを受信できなかった場合は一覧で発行状態を確認し、再発行する。冪等処理の保存結果にも平文のcode/URLを入れない。同じ発行キーの再試行は409 `INVITATION_ALREADY_ISSUED` を返し、別招待を増やさない。承諾の同キー再試行は、同じ本人に成功結果を返す。
+## API固有の注意
 
-家族行をロックし、有効メンバーと未期限切れ招待を確認して空き枠分だけ発行する。acceptはuser→household→invitationの順でロックして再検証する。rate limitはアカウントと送信元で行い、複数APIインスタンスでも成立する保存先・信頼するproxyヘッダーを実装時に確認する。
+全APIはFirebase Bearer認証。詳細path/入出力はOpenAPIを必要箇所だけ読む。家族permissionはUI表示用であり、Storeが必ず認可する。
 
-Reactの参加URLは `/family/join#<token>` とする。公開routeでfragmentを削除し、保護route `/app/family/join` へ移る。tokenをAPI path/queryへ付けずPOST bodyで渡す。ログイン遷移が必要なら短時間のsessionStorageへ一時退避して復帰後に削除し、URL fragmentも除去する。分析イベント・ログ・例外出力へ秘密を載せない。GETやリンクプレビューは招待を消費しない。
+- 原本は本人用APIで編集し、家族の汎用PATCHは作らない。家族detailの`source_transaction_id`は所有者だけ。他の家族はedit/delete/unshare不可。proxy APIにshared IDを渡しても拒否する。
+- member DTOは表示名/状態を返し、メール/Firebase UID/個人payment等は返さない。snapshotにはcaptured/corrected/excluded情報を付ける。
+- 家族参照の使用後は名前/カテゴリ/支払条件の変更を拒否し、active=falseだけ許可。新項目を作って旧項目を無効化する。
+- 家族用の入力先既定値はactive所属中だけ設定可能。退出/解除/archiveでpersonalへ戻し、取得失敗/確認中に家族へ切り替えない。
 
-### 記録・共有
+### 招待の秘密と再送
 
-| Method           | Path                                           | 目的・権限                         | 主な入力 → 出力                                                                   |
-| ---------------- | ---------------------------------------------- | ---------------------------------- | --------------------------------------------------------------------------------- |
-| GET              | `/api/v1/transactions`（追加）                 | 本人原本の一覧                     | month、sharing=all/private/shared、cursor → 原本一覧・共有状態                    |
-| GET/PATCH/DELETE | `/api/v1/transactions/{transactionId}`（拡張） | 本人原本だけ                       | responseにversion/共有状態。更新・削除にexpected_versionを追加                    |
-| POST             | `H/own-transactions`                           | 本人原本と共有参照の同時作成       | transaction + family references → entry（本人だけsource_transaction_id付き、201） |
-| GET              | `H/shares/{transactionId}`                     | 本人の共有状態を確認               | → state、entry ID、version、kind。未共有ならnone/version=0                        |
-| PUT              | `H/shares/{transactionId}`                     | 本人が既存原本を共有・分類自動対応 | 原本version、既存entryならentry version → 原本から家族側参照を自動解決したentry   |
-| DELETE           | `H/shares/{transactionId}`                     | 本人の共有解除                     | expected_version（query）→ 204。原本は残す                                        |
-| GET              | `H/entries`                                    | 家族一覧                           | month、payer=member ID/common、kind、cursor → entry一覧                           |
-| GET              | `H/entries/{entryId}`                          | 家族詳細                           | → 公開DTO、version、許可操作                                                      |
-| POST             | `H/proxy-transactions`                         | 所属者が代理/共通財布記録          | payer、transaction、家族側参照 → entry（201）                                     |
-| PATCH            | `H/proxy-transactions/{entryId}`               | 所属者。proxyのみ                  | expected_version、変更項目 → entry                                                |
-| DELETE           | `H/proxy-transactions/{entryId}`               | 所属者。proxyのみ                  | expected_version（query）→ 204                                                    |
-| POST             | `H/entries/{entryId}/corrections`              | 所属者。snapshotのみ               | expected_version、完全な公開内容または除外指定 → entry（201）                     |
-| GET              | `H/duplicate-candidates`                       | v1の重複候補                       | 日付、絶対額、sign、payer、任意の除外entry ID → 候補一覧                          |
+コードは32種の文字から10文字（表示例`ABCDE-FGHJK`）、リンクtokenは別256bit乱数。DBは秘密鍵HMAC等の照合値だけを保存し、鍵管理/更新を確認する。家族ロック下でactive人数＋有効招待を空き枠内に制限する。rate limitは複数APIでも成立させ、信頼するproxy headerを確認する。
 
-原本は本人用APIで編集し、家族用の汎用PATCH APIは作らない。family detailの `source_transaction_id` は所有者本人にのみ返す。他の家族へ返す `permissions` は can_edit=false/can_delete=false/can_unshare=false。代理APIへsharedのentry IDを渡してもStoreで拒否する。
+秘密は発行レスポンスで1度だけ返し、一覧/冪等結果へ保存しない。受信失敗は一覧確認後に再発行。同じ発行キーの再送は409 `INVITATION_ALREADY_ISSUED`、同じ承諾キーは本人へ成功結果を再返却する。previewのIDだけでacceptできず、秘密を再照合する。
 
-新規の本人共有登録は、個人APIのPOST後に共有APIを順に呼ぶ方式にしない。共有保存が失敗したのに個人記録だけが残る事故を防ぐため、own-transactionsで一括作成する。
+参加リンクは`/family/join#<token>`。公開routeでfragmentを除去し保護routeへ移る。ログイン跨ぎは短時間sessionStorageに退避し、復帰後削除。APIへはPOST bodyで送り、path/query/ログ/分析/例外へ秘密を載せない。GET/プレビューは消費しない。
 
-### 家族の参照情報と集計
+### エラーと互換性
 
-| Method         | Path                                                | 目的                                                        |
-| -------------- | --------------------------------------------------- | ----------------------------------------------------------- |
-| GET            | `H/categories`                                      | 家族サブカテゴリ。大カテゴリは既存の共通カテゴリAPIから取得 |
-| POST/PATCH     | `H/subcategories` / `H/subcategories/{id}`          | 家族サブカテゴリ作成・未使用項目の変更・無効化              |
-| GET/POST/PATCH | `H/payments` / `H/payments/{id}`（PATCHのみID付き） | 家族支払方法の一覧・作成・未使用項目変更・無効化            |
-| GET            | `H/analytics/overview`                              | 対象月の収入・支出・差額。家族予算は返さない                |
-| GET            | `H/analytics/categories`                            | 共通カテゴリ別支出                                          |
-| GET            | `H/analytics/payers`                                | 支払者別支出。家族共通も含め合計一致                        |
+既存v1の`status/code/message`を使用。401未認証、403閲覧可能だが操作不可、404閲覧権限なし、400型不正、422業務入力、409競合、429試行超過。招待無効/期限切れ/取消は受取人に共通422 `INVITATION_UNAVAILABLE`。詳細は管理者一覧で確認する。
 
-参照情報の使用後は名前・カテゴリ・支払条件の上書きを拒否し、必要なら新しい項目を作って旧項目を無効化する。active=falseだけは許可し、既存明細の表示を維持する。すべての家族参照IDの所属をAPIとFKで確認する。
+409は`VERSION_CONFLICT`・`HOUSEHOLD_FULL`・`ALREADY_IN_HOUSEHOLD`・`INVITATION_LIMIT_REACHED`・`SOURCE_ALREADY_SNAPSHOTTED`・`IDEMPOTENCY_CONFLICT`等。UIはcodeで案内しDBエラーを出さない。既存入力制約（1〜9,999,999円、名称1〜32文字等）を維持する。
 
-## 5. DTO・エラー・互換性
+旧path/JSON/statusを維持。既存v1のexpected_versionは移行期は省略可能、React新フォームと新家族変更APIは必須。旧APIを含む全原本書き込みで版を進め共有整合性を保つ。旧クライアントの無条件更新には競合検出を保証せず、所有/退出ロックは保証する。全面的な競合検出には旧API廃止の別計画が必要。
 
-### 家族記録レスポンスの共通項目
+## 移行・公開
 
-`entry_id`, `kind`, `version`, `transaction_date`, `transaction_time`, `transaction_name`, `amount`, `sign`, `signed_amount`, `category_id/name`, `household_sub_category_id/name`, `household_payment_id/name`, `fixed_flg`, `payer`, `created_by`, `updated_by`, `updated_at`, `permissions`。
+1. 追加DDL/設定/version/論理削除を再実行可能なmigrationで導入。既存原本は非共有、家族参照は空、個人設定の所有者は移さない。
+2. 旧/v1の全読み書きへ論理削除/共有処理を適用。GORM scope任せにせずTable/Raw/集計/候補/CSV/定期生成を確認し物理DELETEを残さない。
+3. 契約/生成物を同期し、公開前に全API instanceを互換処理へ更新する。
+4. Reactはpersonal初期値、明示作成/招待で開始。退出/控え/旧API整合まで完成後に公開する。
+5. migration前後の原本件数・user/月別signed sum・参照整合・共有0件を確認。再実行で重複しないことも確認する。
 
-snapshotには `captured_at`、`corrected`、`excluded_from_totals` を追加。原本owner IDや個人支払方法IDを家族用DTOに丸ごと埋め込まない。家族側のpayerはmember ID・表示名・active/leftで返し、メール・Firebase UIDは返さない。
+公開停止/互換APIへ切り戻せるようにする。家族データ/論理削除開始後に共有を知らない旧binaryへ戻さず控えを保持する。事前backup/復元手順を確認する。CockroachDBのpartial index・lock・制約・直列化再試行は実環境相当で確認し、PostgreSQLの成功を代用しない。
 
-```json
-{
-  "payer": { "kind": "member", "member_id": "12" },
-  "transaction": {
-    "transaction_date": "2026-09-28",
-    "transaction_name": "食料品",
-    "amount": 4800,
-    "sign": -1,
-    "category_id": "3",
-    "fixed_flg": false
-  },
-  "household_payment_id": "8",
-  "household_sub_category_id": null
-}
-```
+## 検証対象
 
-上はproxy作成の例。payer.kind=commonならmember_idなし。own-transactionsのtransactionは既存の個人用入力契約に従い、本人のcategory/subcategory/paymentを持つ。家族側の参照は別項目で指定する。新入力の金額1〜9,999,999円・名称1〜32文字など既存検証を維持する。
+[最小検証方針](DEVELOPMENT.md#検証)に従い、変更に該当する契約だけ選ぶ。次の一覧は毎回全てを実行する指示ではない。UI操作は必要箇所を手動確認する。
 
-新規APIのエラーは既存v1形式 `status / code / message` を使う。未認証401、閲覧可能な対象で操作権限がない場合403、対象への閲覧権限自体がなければ404、型不正400、業務入力不正422、競合409、試行超過429とする。招待の無効・期限切れ・取消済みは受取人には共通422 `INVITATION_UNAVAILABLE` とし、詳細は管理者一覧で確認する。
+- 認可行列（本人/家族/管理者/部外者/退出者）、非共有原本の非公開、他家族参照の拒否、個人ID漏れ防止。
+- 招待の二重使用/code-link競合/期限/取消/交代、同時作成/参加の1所属・3人制限、失敗時の非消費。
+- proxyで個人を書かないこと、共有作成の原子性、本人更新/削除と退出の競合・再試行、控えと原本の分離/合計維持、旧API整合。
+- 月跨ぎ・category変更時のsubcategory解除・人物合計・控え訂正/除外、解除/再共有・snapshot再共有拒否、冪等payload競合。
+- キャッシュの保存境界・退出/ログアウト破棄・遅延結果・入力先同期、migration再実行/既存保持・FK/CHECK/partial unique・全個人集計の論理削除。
 
-409の主なcodeは `VERSION_CONFLICT`、`HOUSEHOLD_FULL`、`ALREADY_IN_HOUSEHOLD`、`INVITATION_LIMIT_REACHED`、`SOURCE_ALREADY_SNAPSHOTTED`、`IDEMPOTENCY_CONFLICT`。UIはcodeで案内を分け、内部DBエラーを表示しない。
+Reactは関連テストを指定し、OpenAPI・型・色・buildは影響時だけ確認する。Goの検証は明示的に作業対象の場合だけ当該リポジトリ方針に従い、対象package/ケースに絞る。DB結合が必要なら専用DBと`MIGRATION_TEST_POSTGRES_DSN`を使い、未設定skipを成功扱いしない。一時API/DB/Emulator等は終了時に片付ける。
 
-既存v1のexpected_versionは導入期間は省略可能として既存利用者を壊さず、React新フォームでは必ず送る。家族の新規変更APIは必須。旧APIを含む原本の全書き込みでversionを進め、共有参照の整合を保つ。古いクライアントの無条件更新には競合検出を保証しないが、退出とのロック整合と所有権は保証する。厳密な全クライアント競合検出が必要なら旧API廃止を別途計画する。
+## 記録済み成果と制約
 
-## 6. データ移行・リリース
+2026-09-29: Reactの家族設定/参加/入力先/共有/代理/一覧/集計、Goの所属/招待/参照/共有/代理/控えを実装。OpenAPI/生成物を同期し個人一覧をv1へ移行。v2インポートは未実装。
 
-1. **追加DDL:** household系テーブルとusersの設定列、transactionのversion・更新日時・deleted_atを追加する。既存行は非共有原本のまま。共有行の自動生成はしない。
-2. **migration実装:** `schema.go`、制約定義、検証、必要な専用backfillへ追加する。partial index/CHECK/複合FKは現行の単純な制約ヘルパーで表現できるか確認し、必要箇所だけ拡張する。再実行可能にする。
-3. **互換APIを先行配備:** 旧/v1双方に論理削除フィルタと共有処理を入れる。GORMの自動scopeに頼らず、Table/Raw/集計/候補/CSV/定期生成の全経路を確認する。物理DELETEを残さない。
-4. **家族API・生成クライアント配備:** 追加契約と生成物を同じ変更単位で同期する。家族機能を公開する前に全APIインスタンスが新書き込み処理になっていることを確認する。
-5. **React公開:** 初期値はpersonal。家族作成・招待を明示操作で始める。個人だけの既存利用者の表示・集計を変えない。
-6. **移行検証:** 既存原本件数・ユーザー/月別signed sum・参照整合を前後比較し、共有件数が0であることを確認する。再migrationで重複が出ないことも確認する。
-
-個人の支払方法・分類・予算・定期収支の所有者を家族へ移行しない。家族作成時の支払方法・独自分類は空で開始し、共通大カテゴリだけ利用する。
-
-切り戻しは家族UIの公開停止と、新テーブルを理解する互換APIへの切り戻しを基本とする。家族データ作成後や論理削除開始後に、共有整合を知らない旧バイナリへ戻さない。家族の記録・控えは保持する。migration前のバックアップと復元手順を配備時に確認する。
-
-現行migrationにはCockroachDBを意識した分岐もあるため、実際の配備先とpartial index・ロック・制約対応をDDL確定前に確認する。PostgreSQL前提の本案を未検証で別DBへ適用しない。
-
-## 7. 実装ステップと完了条件
-
-| 順序 | 作業単位           | 主な成果・完了条件                                                           |
-| ---- | ------------------ | ---------------------------------------------------------------------------- |
-| 1    | 契約・DB定義       | 本計画をOpenAPI・migration定義へ落とす。DTOの公開範囲とエラーを確定          |
-| 2    | 所属と招待         | 最大3人・1家族、24時間/1回招待、取消・再発行・管理者交代をDB結合テストで保証 |
-| 3    | 原本と共有         | 論理削除、version、本人共有作成・解除・更新、全旧APIの整合。家族は閲覧のみ   |
-| 4    | 家族専用記録・集計 | proxy CRUD、重複候補、家族参照情報、共通投影による一覧と分析                 |
-| 5    | 退出・archive      | snapshot切替と訂正、再共有拒否、人数枠解放、退出前後の合計維持               |
-| 6    | React導線          | 作成→招待→参加→デフォルト設定→本人共有/代理入力→閲覧→退出を接続              |
-| 7    | 統合確認と公開準備 | 個人回帰、権限・同時操作・migration、手動操作、配備順と切り戻しを確認        |
-
-途中段階では家族機能を利用者へ公開せず、退出・控え・旧API整合まで完成してから公開する。作業単位はcommit/PR作成の指示ではない。
-
-Go側は `app/household` に必要なStore interfaceとdomain error、`app/handler/household` にDTO・検証・handler、`app/store_postgres` にDB処理を置く。routeは `handler/routes.go`、依存注入は既存handler root/db構成に従う。複数表を更新する操作をhandlerから別々のStore呼び出しへ分解しない。
-
-React側は `features/households`、設定page・参加page、既存transactions/home/analysisを変更する。feature間の直接importを増やさずpageで合成する。入力先と閲覧対象を分け、family APIのquery keyにはhousehold IDを含める。permissionはUIの操作表示に使うがAPIで必ず再検証する。
-
-## 8. 検証計画
-
-[既存テスト方針](ARCHITECTURE.md#テスト)に従い、UI表示・操作の自動テストは追加しない。以下はドメイン・API・DB・永続化の契約として検証する。
-
-- 所有者/他メンバー/管理者/部外者/退出者の認可行列。原本・共有参照の変更、代理変更、snapshot訂正を別々に検証。
-- 同時招待承諾、同一コードの二重使用、コードとリンクの競合、期限境界、取消と承諾の競合、管理者交代後の失効。
-- 家族作成と参加の同時実行でも1所属、slot制約で4人目拒否。参加失敗時に招待だけ消費しない。
-- 他家族のpayer/payment/subcategoryの指定拒否。個人の参照IDが家族DTOへ漏れない。
-- 代理変更で個人transactionへのINSERT/UPDATE/DELETEが発生しない。共有作成の途中失敗で原本だけ残らない。
-- 原本の本人更新と退出・削除の競合、snapshot再試行、旧API経由の更新。原本と控えが分離し、退出前後の両集計が一致。
-- 日付の月跨ぎ、category変更によるfamily subcategory解除、人物別合計、控えの訂正/除外の集計一致。
-- 共有解除・再共有、再参加時のsnapshot再共有拒否。冪等キー再送と異なるpayload拒否。
-- 家族キャッシュの永続化防止、ログアウト・退出時の破棄、遅延レスポンスの混入防止、デフォルト設定の同期。
-- migration初回/再実行/既存データ保持、FK・CHECK・partial unique、論理削除の全個人集計への適用。
-
-実装後のコマンドはReactで `pnpm contract:test`、`pnpm api:generate`、生成差分確認、`pnpm typecheck`、`pnpm lint`、`pnpm test`、`pnpm build`。Goはappで `go vet ./...`、`go test ./...`、`go build ./...` と変更Goファイルのgofmt確認。DB統合はテスト専用DBと `MIGRATION_TEST_POSTGRES_DSN` を用意して `go test -tags=integration ./db/migration ./store_postgres` を実行し、DSN未設定のskipを成功検証と扱わない。
-
-手動ではモバイル/デスクトップの招待・ログイン復帰、本人共有の閲覧専用表示、代理編集、削除確認、退出後の個人保持と家族控え、期限切れ/満員/入力エラーを確認する。
-
-## 9. 今回の成果と未実施
-
-Reactの家族設定・招待参加・入力先選択・共有/代理記録・家族一覧/集計と、Go APIの所属・招待・参照情報・原本共有・代理編集・退出時の控えを実装した。OpenAPIと生成クライアントを更新し、個人一覧をv1へ移行した。v2の代理インポートは未実装。
-
-2026-09-29の検証結果:
-
-- React: 型検査、30ファイル/110テスト、OpenAPI 492 assertions、buildが成功。lintはエラーなし（既存CSV画面の3警告）。buildはbundleサイズの警告あり。
-- Orval: 188ファイルを再生成し、2回目の生成結果が同一であることを確認。生成時にformatterを実行して差分を安定させる。
-- Go: gofmt、vet、全テスト、buildが成功。専用PostgreSQL 17 DBのmigration/Store結合テストも成功（DSN設定済み、skipなし）。
-- 手動: 専用Auth Emulatorと一時DBで家族作成、デフォルト保存、入力先切り替え時の金額/名称保持、本人共有/代理登録、個人合計の重複防止、本人原本編集の家族への反映、招待codeで参加、別メンバーの原本閲覧専用、代理共同編集、モバイル入力/一覧を確認。
-- 退出時の控えと訂正/除外、archive、再参加、期限切れ/取消/同時承諾はAPI/DB契約テストで検証。招待リンクからの未認証ログイン復帰と全退出操作の画面確認は未実施。UI表示/操作の自動テストは追加していない。
-
-検証用の一時HTML・API・DB・Auth Emulatorは終了時に片付ける。既存の利用者DBへmigrationを適用していない。
-
-本番へのmigration・デプロイは未実施。`HOUSEHOLD_INVITATION_SECRET`（32byte以上）の配備が必要。現在の本番DBであるCockroachDBでのDDL、partial unique、直列化再試行は公開前に実環境相当で検証する。PostgreSQLでの成功をCockroachDB検証済みとは扱わない。
-
-v1の一覧は100件ずつ取得する。集計/重複候補は該当月の全ページを走査し、明細の投影で追加queryを行う。大量データでの性能検証とSQL集計への移行、冪等性/家族イベントデータの保存期間と掃除は今後の運用課題。
+- 当時の検証: React型・30ファイル110テスト・OpenAPI 492 assertions・build成功。lintエラーなし、CSV既存3警告/bundle警告あり。Orval 188ファイルの再生成一致。
+- Goのgofmt/vet/全テスト/build、専用PostgreSQL 17のmigration/Store結合が成功（skipなし）。過去の結果であり、今後の全体実行指示ではない。
+- 手動で作成/既定値/入力切替の値保持/本人共有/代理/個人合計/原本反映/code参加/他人原本の閲覧専用/代理共同編集/モバイル入力一覧を確認。控え/訂正/除外/archive/再参加/無効招待/同時承諾はAPI/DB契約で確認。未認証リンクからの復帰と全退出操作の画面確認は未実施。
+- 利用者DBへのmigration/本番配備は未実施。`HOUSEHOLD_INVITATION_SECRET`（32byte以上）とCockroachDB実環境相当の検証が公開前に必要。
+- 一覧は100件/page、集計/重複候補は月の全pageを走査し明細投影に追加queryあり。大量データ性能・SQL集計、冪等データの保存期間/掃除は運用課題。

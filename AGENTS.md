@@ -1,33 +1,13 @@
 # MoneyHooks React Agent Guide
 
-このファイルはリポジトリ全体に適用します。
+リポジトリ全体に適用する。
 
-## 作業方針
+- 依頼に関係するコード・設定・契約を確認してから変更する。不明点は調査してから質問する。
+- `docs/`を一括で読まない。[資料索引](docs/README.md)から必要な文書・節だけ読む。コードで分かる情報を文書に重複させない。
+- 指定外の機能追加、広範なリファクタリング、将来用の抽象化を避け、既存の構成・命名を優先する。
+- テストの追加・変更前に[テスト方針](docs/ARCHITECTURE.md#テスト)を確認する。UI表示・操作のテストは追加しない。
+- 検証は変更に必要な最小範囲だけ行う。追加・変更したテストを優先し、影響する既存テストだけ補う。全テストや型検査・lint・buildの一括実行を既定にしない。文書のみなら差分・リンク確認でよい。具体的な選び方は[開発ガイド](docs/DEVELOPMENT.md#検証)を参照する。
+- 完了時は実行した検証と結果、必要だが未実行・失敗した項目を簡潔に報告する。
+- 明示依頼がなければbranch作成、commit、push、PR作成、tag操作を行わない。
 
-- 依頼内容と変更対象を確認し、関連する既存コードを読んでから作業する。
-- `docs/` を一括で読まない。判断に必要な資料だけを参照し、参照先が不明な場合は [README.md](README.md) または [docs/README.md](docs/README.md) から探す。
-- 不明点は、コード、設定、契約、関連資料から確認できる範囲を調査してから質問する。
-- ユーザーが指定していない機能追加、広範なリファクタリング、別リポジトリの変更を行わない。
-- 既存の構成、命名、実装パターンを優先し、必要性が確認できない共通化や将来向けの抽象化を追加しない。
-- テストの追加・変更を計画する前に [テスト方針](docs/ARCHITECTURE.md#テスト) を確認する。UIの表示・操作を検証するテストは追加せず、UIを介さずに検証できる契約を対象にする。既存のUIテストを追加の前例にしない。
-- 変更範囲に応じて型検査、lint、テスト、buildを実行し、未実行または失敗した確認項目を報告する。
-- ユーザーから明示的に依頼されない限り、branch作成、commit、push、PR作成、tag操作を行わない。
-
-## 資料マップ
-
-すべてを事前に読まず、作業中に詳細情報が必要になった場合だけ該当資料を参照してください。
-
-| 確認したい内容                                                | 参照先                                       |
-| ------------------------------------------------------------- | -------------------------------------------- |
-| 対象機能、画面、スコープ外、金額・日付・ID、UI方針            | [docs/PRODUCT.md](docs/PRODUCT.md)           |
-| 採用技術、コード配置、依存方向、状態管理、認証・API・UIの境界 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
-| テストの追加・変更・レビューで許可する検証対象              | [docs/ARCHITECTURE.md#テスト](docs/ARCHITECTURE.md#テスト) |
-| ローカル環境、環境変数、検証コマンド、トラブルシューティング  | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)   |
-| 確定済みのフロントエンド判断と理由                            | [docs/DECISIONS.md](docs/DECISIONS.md)       |
-| branch戦略、commit message、PR、release、hotfix               | [docs/GIT_WORKFLOW.md](docs/GIT_WORKFLOW.md) |
-
-資料の概要から探す場合は [docs/README.md](docs/README.md) を参照してください。APIのpathやschemaを確認する場合は、必要な箇所だけ [`contracts/openapi.yaml`](contracts/openapi.yaml) を参照してください。
-
-## 関連リポジトリ
-
-Go APIの実装は `/Users/yusukematsumoto/source/moneyHook_api` で参照できます。このリポジトリの作業として変更するのは、ユーザーが明示的に対象へ含めた場合だけにしてください。
+API契約は[`contracts/openapi.yaml`](contracts/openapi.yaml)の必要箇所を参照する。Go実装は`/Users/yusukematsumoto/source/moneyHook_api`で参照できるが、変更はユーザーが明示的に対象へ含めた場合だけ行う。
