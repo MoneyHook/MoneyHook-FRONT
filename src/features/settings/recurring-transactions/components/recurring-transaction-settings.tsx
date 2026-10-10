@@ -34,7 +34,6 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from '@/shared/components/ui/empty'
-import { Skeleton } from '@/shared/components/ui/skeleton'
 
 import { SettingsSection } from '../../components/settings-section'
 import { useRecurringTransactionSettings } from '../api/use-recurring-transaction-settings'
@@ -45,6 +44,7 @@ import {
 } from '../model/recurring-transaction-settings'
 import { RecurringTransactionRuleEditor } from './recurring-transaction-rule-editor'
 import { RecurringTransactionRuleList } from './recurring-transaction-rule-list'
+import { RecurringTransactionSettingsSkeleton } from './recurring-transaction-settings-skeleton'
 
 type EditorState =
   | { include: boolean; mode: 'add'; rule: null }
@@ -236,16 +236,7 @@ export function RecurringTransactionSettings({
       title="収支の自動入力"
       titleId="recurring-transaction-settings-title"
     >
-      {isLoading ? (
-        <div
-          aria-label="自動入力を読み込んでいます"
-          className="space-y-3"
-          role="status"
-        >
-          <Skeleton className="h-16 w-full" />
-          <Skeleton className="h-16 w-full" />
-        </div>
-      ) : null}
+      {isLoading ? <RecurringTransactionSettingsSkeleton /> : null}
       {hasError ? (
         <div className="space-y-4">
           <Alert variant="destructive">

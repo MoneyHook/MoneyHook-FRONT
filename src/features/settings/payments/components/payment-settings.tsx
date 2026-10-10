@@ -52,11 +52,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select'
-import { Skeleton } from '@/shared/components/ui/skeleton'
 
 import { SettingsSection } from '../../components/settings-section'
 import { usePaymentSettingsController } from '../hooks/use-payment-settings-controller'
 import { PaymentForm } from './payment-form'
+import { PaymentSettingsSkeleton } from './payment-settings-skeleton'
 import { SortablePaymentRow } from './sortable-payment-row'
 
 export function PaymentSettings({
@@ -110,16 +110,7 @@ export function PaymentSettings({
       title="支払い方法"
       titleId="payment-settings-title"
     >
-      {isLoading ? (
-        <div
-          aria-label="支払い方法を読み込んでいます"
-          className="space-y-3"
-          role="status"
-        >
-          <Skeleton className="h-16 w-full" />
-          <Skeleton className="h-16 w-full" />
-        </div>
-      ) : null}
+      {isLoading ? <PaymentSettingsSkeleton /> : null}
       {hasError ? (
         <div className="space-y-4">
           <Alert variant="destructive">
