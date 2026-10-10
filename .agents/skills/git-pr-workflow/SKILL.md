@@ -45,15 +45,11 @@ MoneyHooks Reactの現在の作業ツリーを、レビュー可能なコミッ�
 
 ## 検証する
 
-変更範囲に応じて次を選び、実行したコマンドと結果をPR本文に正確に記録する。`lint:fix`や全体formatなど、無関係な差分を大量に作る自動修正は実行しない。
+[開発ガイドの検証方針](../../../docs/DEVELOPMENT.md#検証)を正本とし、変更に必要な確認だけ選ぶ。追加・変更したテストと直接影響する既存テストをファイル/ケース指定で実行し、対象と件数を確認する。文書のみなら差分・リンク確認だけでよい。
 
-- TypeScript・Reactの変更: `pnpm typecheck`
-- source、設定、classの変更: `pnpm lint`
-- 挙動やコンポーネントの変更: `pnpm test`。可能なら対象を絞ったテストを先に実行する。
-- routing、build設定、依存関係、広範囲の変更: `pnpm build`
-- OpenAPI契約や生成クライアントの変更: `pnpm api:check`、必要に応じて`pnpm contract:test`
-- 認証・外部API・ブラウザフローの変更: EmulatorやAPIが利用可能な場合だけ`pnpm e2e`
-- 常に`git diff --check`と、`origin/develop...HEAD`の最終差分を確認する。
+型検査・対象ファイルのlint・build・契約検証・認証/API結合も影響時だけ選び、全テスト/全lint/E2Eを既定にしない。必要なrequired checksは成功させる。実行結果と必要だが未実行の確認をPRへ記録する。無関係な差分を作る`lint:fix`や全体formatは使わない。
+
+`git diff --check`と`origin/develop...HEAD`の最終差分を確認する。
 
 検証が失敗したら、依頼範囲内の原因だけを修正し、修正を別commitとして積んで再検証する。未解決、範囲外、環境依存の失敗が残る場合はpushとPR作成を行わず停止する。失敗を隠したままPRを作成しない。
 
