@@ -18,6 +18,7 @@ import {
 import { FamilyInvitations } from './family-invitations'
 import { FamilyLifecycleActions } from './family-lifecycle-actions'
 import { FamilyMembers } from './family-members'
+import { FamilySettingsSkeleton } from './family-skeletons'
 import { FamilyError, FamilyField, FamilySelect } from './fields'
 import { JoinFamily } from './join-family'
 
@@ -49,14 +50,7 @@ export function FamilySettings() {
         error={families.error || detail.error || action.error || settings.error}
       />
 
-      {families.isPending && (
-        <div
-          className="flex min-h-48 items-center justify-center rounded-2xl border bg-card p-5 text-sm text-muted-foreground"
-          role="status"
-        >
-          家族を読み込んでいます…
-        </div>
-      )}
+      {families.isPending && <FamilySettingsSkeleton />}
 
       {selected && !families.isPending && !families.isError && !current && (
         <div className="space-y-3 rounded-2xl border bg-card p-5 text-card-foreground sm:p-6">
@@ -134,6 +128,8 @@ export function FamilySettings() {
               )}
             </div>
           </section>
+
+          {detail.isPending && <FamilySettingsSkeleton showOverview={false} />}
 
           {detail.data && detail.data.family.state === 'active' && (
             <>

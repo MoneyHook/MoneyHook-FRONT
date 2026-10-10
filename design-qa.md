@@ -1,322 +1,62 @@
-# Analysis Overview Design QA
+# Design QA — 過去の確認記録
 
-## Evidence
+以下は当時の画面比較結果。現在の挙動や今後のテスト実行指示ではない。UIテスト追加/検証範囲は[現行方針](docs/DEVELOPMENT.md#検証)に従う。一時画像のパスは証跡記録で、保存されているとは限らない。
 
-- Source visual truth: `/Users/yusukematsumoto/source/moneyhooks-react/images/analytics/ChatGPT Image 2026年8月28日 22_44_49.png`
-- Mobile implementation, full page: `/Users/yusukematsumoto/source/moneyhooks-react/images/analytics/implementation-analysis-mobile.png`
-- Mobile implementation, viewport: `/Users/yusukematsumoto/source/moneyhooks-react/images/analytics/implementation-analysis-mobile-viewport.png`
-- Desktop implementation: `/Users/yusukematsumoto/source/moneyhooks-react/images/analytics/implementation-analysis-desktop.png`
-- State: authenticated light theme, overview tab, real local API sample data, fixed six-month range ending August 2026.
-- Browser: Codex in-app browser at `http://localhost:3000/app/analysis?view=overview`.
+## 分析画面の共通条件
 
-## Viewport and normalization
+実Go APIとAuth Emulatorの開発ユーザーで、2026年8月までの固定6か月を確認。基準画像は約2倍密度の生成モック、実装は426px幅を基準に縦スクロールで可読性を保持した。端末status bar/home indicatorは省き既存AppShellのナビを使う。1440×900のデスクトップも確認し、カテゴリ/固定費/支払方法はdarkも確認した。
 
-- Source: 853 × 1844 px. It was inspected both at native size and normalized to 426 × 921 px for mobile comparison (approximately 0.5 density scale).
-- Mobile viewport: 426 × 922 CSS px at device scale 1. The viewport screenshot is 426 × 922 px; the full-page implementation capture is 426 × 1461 px.
-- Desktop viewport: 1440 × 900 CSS px at device scale 1; the full-page capture is 1440 × 1699 px.
-- The source is a compact generated mobile mock rather than a literal browser viewport. The implementation intentionally scrolls vertically to preserve readable text, existing responsive breakpoints, and 44 px navigation targets.
+Geist/日本語fallback、tabular numerals、余白・境界・chart/icon・文言を比較。semantic token、Recharts、Lucideを使い、実API値を優先。分析accentと保存済みナビaccentは分離。各画面の最終記録はpassed、P0/P1/P2残件・console errorなし。
 
-## Full-view comparison
+画像名は`images/analytics/`配下。詳細は下の証跡一覧で探す。
 
-- Information order matches the source: title and tabs, period, summary, monthly trend, category and fixed breakdowns, period comparison, and highlights.
-- Neutral surfaces, thin borders, restrained shadows, green analysis accents, and five-color donut palettes match the source direction.
-- Mobile keeps the app-owned bottom navigation and omits the source device status bar and home indicator as required.
-- Desktop adapts the same hierarchy to the existing MoneyHooks sidebar without changing the mobile-first content order.
+## Overview
 
-## Focused comparison
+- URL: `/app/analysis?view=overview`。source 853×1844→426×921、mobile viewport 426×922/full 426×1461、desktop full 1440×1699。
+- 順序: tabs→期間→収支summary→月次trend→カテゴリ/固定費→期間比較→highlight。固定期間・tooltipは製品判断を優先。
+- 修正: 426pxの凡例/金額overflow（P1）と縦密度（P2）を改善。chart/paddingを調整し、400pxから比較/highlightを2列にした。最終document幅426px。
+- 当時確認: login、4tab・準備状態、reloadのURL復元、概要へ復帰。残りtabの実装は当時P3の後続事項。
+- source: `ChatGPT Image 2026年8月28日 22_44_49.png`。
+- captures: `implementation-analysis-mobile.png`、`implementation-analysis-mobile-viewport.png`、`implementation-analysis-desktop.png`。
 
-- Tabs and summary: labels, four-column distribution, selected underline, three summary metrics, numeric hierarchy, and fixed range presentation were compared directly. The fixed-range label replaces the source's interactive period affordance by product decision.
-- Trend chart: six monthly points, dashed horizontal grid, green line, compact labels, and static “支出” marker match the source. The implementation adds an accessible tooltip.
-- Breakdown cards: donut ordering, category legends, amounts, ratios, top-four-plus-other grouping, and detail links were compared at 426 px and 1440 px.
-- Change and highlight regions: semantic increase/decrease colors, comparison copy, icons, and responsive two-column composition were checked. No separate raster assets exist in the source, so image-quality comparison is not applicable.
+## Categories
 
-## Comparison history
+- URL: `/app/analysis?view=categories&category=1`。amount mode、食費選択。source 852×1846→426×923、mobile full 426×1586、desktop full 1440×1850、dark 1440×900。
+- 順序: summary→選択内訳→trend→取引。実データの食費subcategoryが1項目なので100%の1segmentを表示し、mockの4分割は作らない。
+- 修正: 長い名前/最終月ラベル切れと強い青の選択行（P2）を、列幅・折返し・chart余白・subtle greenで改善。overflowなし、darkはanimation完了後に確認。
+- 当時確認: 上位/全件、category選択、amount/ratio、月/週、URL/reload、最新3取引。未実装のfilter/全取引はdisabled。認証E2E 4件成功。
+- P3: rank依存のカテゴリ色/iconを、将来の全体metadata契約で固定する案。
+- source: `ChatGPT Image 2026年8月28日 22_44_54.png`。
+- captures: `implementation-analysis-categories-mobile.png`、`implementation-analysis-categories-desktop.png`、`implementation-analysis-categories-dark.png`。
 
-1. Initial mobile pass found a P1 overflow in both breakdown legends at 426 px. The donut and legend columns were too wide and amounts were clipped.
-2. The breakdown grid, chart size, legend typography, and amount layout were tightened. The revised 426 px capture has `scrollWidth === innerWidth === 426` and all legend content remains inside its cards.
-3. A second pass found P2 vertical density drift in the trend, changes, and highlight sections. Mobile chart height and panel padding were reduced, while changes and highlights switch to two columns from 400 px.
-4. The final mobile and desktop captures were rechecked after those fixes. No actionable P0, P1, or P2 differences remain.
+## Fixed Costs
 
-## Required fidelity surfaces
+- URL: `/app/analysis?view=fixed`、全カテゴリ/amount mode。source: `ChatGPT Image 2026年8月28日 22_45_00.png`。
+- 426×923、1024×900、769pxのSidebar開閉、1440×900/darkを確認。documentはviewport幅を維持し、832pxのtableだけ横scroll（mobile表示392px、1024時654px）。769px本文は513→約648px。
+- summary/donut/trend/table/取引の階層を維持。button/linkは40px以上、mobile controlは44px以上。
+- 当時確認: amount/ratioのURL/reload、不正カテゴリ補正、最後のカテゴリを除外不可、全選択でcanonical URL。1カテゴリ解除でtable 4→3行、取引24→18件、全体summaryは維持。初期5取引↔全24件。認証E2E 5件成功。
 
-- Fonts and typography: existing Geist/Hiragino/Yu Gothic stack, weights, tabular numerals, wrapping, and small-label hierarchy are consistent and readable.
-- Spacing and layout rhythm: card gaps, dividers, radii, mobile two-column regions, desktop max width, and fixed navigation clearance are consistent. There is no horizontal overflow at 426 px.
-- Colors and tokens: all UI colors use existing semantic tokens. Green is reserved for analysis selection and trends; expense and success colors remain semantically distinct.
-- Image and asset fidelity: the source contains charts and standard icons only. Recharts and Lucide are used; no placeholder, CSS illustration, or raster substitute is present.
-- Copy and content: source labels are preserved where applicable. “直近6か月” and preparation messages reflect the agreed fixed-period and partial-tab scope.
+## Payment Methods
 
-## Interaction and browser checks
+- URL: `/app/analysis?view=payments`、全method閉。source 853×1844→426×922、mobile viewport 426×923/full 426×1251、1024/1440 full高さ1542、dark 1543。
+- 順序: period→donut/凡例/detail CTA→月次trend→method詳細。実データはmockの6種に対し3種。汎用type iconを使いbrand logoは導入しない。
+- 6か月bucket、method別line・tooltip・折返し凡例、金額/ratio/count/平均を比較。1024pxの4tabsは各176px、overflowなし。修正iteration不要。
+- 当時確認: `payment=<id>`で最新5→全42件→閉、`#payment-details`へscroll、不正parameter補正、loading/empty/error/retry。認証E2E 5件成功。
+- P3: rank依存のicon/colorを全体metadata契約で固定する案。
+- source: `ChatGPT Image 2026年8月28日 22_45_02.png`。
+- captures: `implementation-analysis-payments-mobile.png`、`implementation-analysis-payments-mobile-viewport.png`、`implementation-analysis-payments-1024.png`、`implementation-analysis-payments-desktop.png`、`implementation-analysis-payments-dark.png`。
 
-- Tested login, overview loading, all four tab links, preparation states, URL persistence after reload, and return to overview.
-- Tested at 426 × 922 and 1440 × 900.
-- Browser console errors: none.
-- Mobile document width: 426 px with no horizontal overflow.
+## Login
 
-## Findings
+- source: `/tmp/codex-remote-attachments/01a05d08-9523-7002-9c6a-5b7321cf0542/375F854A-9BBE-49CF-AD4D-133174E11D4A/1-写真1.jpg`（1280×720）。
+- captures: `/private/tmp/moneyhooks-login-desktop.png`（1280×720）、`/private/tmp/moneyhooks-login-mobile.png`（390×844）。未認証、entrance animation完了後。
+- desktopはbrand header・左visual・右login card、mobileはvisualを隠す。既存logo、Geist、Googleのみの日本語copy、security/trust/feature情報、tokensを維持。
+- 修正: mobileの`ログイ / ン`を`MoneyHooksへ / ログイン`へ改行。当時の認証テストでhandler 1回・busy/error、目視でCTA/accessibilityを確認。最終passed、P0/P1/P2・console errorなし。
 
-- No actionable P0/P1/P2 findings remain.
-- Accepted deviation: the generated source compresses the full dashboard into a single phone image; the production implementation is vertically scrollable to preserve app accessibility and responsive conventions.
-- Accepted deviation: the global AppShell navigation continues to honor the user's accent setting, while analysis-specific tabs and charts use the requested green semantic accent.
+## Transaction Candidate Badge
 
-## Follow-up polish
-
-- P3: when the remaining analysis tabs are implemented, their real content can replace the preparation states without changing the tab contract.
-
-overview result: passed
-
----
-
-# Analysis Categories Design QA
-
-## Evidence
-
-- Source visual truth: `/Users/yusukematsumoto/source/moneyhooks-react/images/analytics/ChatGPT Image 2026年8月28日 22_44_54.png`
-- Mobile implementation: `/Users/yusukematsumoto/source/moneyhooks-react/images/analytics/implementation-analysis-categories-mobile.png`
-- Desktop implementation: `/Users/yusukematsumoto/source/moneyhooks-react/images/analytics/implementation-analysis-categories-desktop.png`
-- Dark-theme implementation: `/Users/yusukematsumoto/source/moneyhooks-react/images/analytics/implementation-analysis-categories-dark.png`
-- State: authenticated local development user, exact six-month API range ending August 2026, amount mode, top-category list, food category selected for the final mobile comparison.
-- Browser: Codex in-app browser at `/app/analysis?view=categories&category=1` backed by the real local API and Firebase Auth emulator.
-
-## Viewport and normalization
-
-- Source: 852 × 1846 px. It was treated as an approximately 2× generated mobile reference and normalized conceptually to 426 × 923 CSS px.
-- Mobile implementation: 426 × 923 CSS px at device scale 1; the full-page capture is 426 × 1586 px with `scrollWidth === innerWidth === 426`.
-- Desktop implementation: 1440 × 900 CSS px at device scale 1; the full-page capture is 1440 × 1850 px.
-- Dark-theme focused capture: 1440 × 900 px.
-- The source compresses the full dashboard into one phone image. The implementation intentionally scrolls vertically so text, charts, transaction rows, and 44 px controls remain readable; comparisons use equal mobile width and matching section states rather than treating the different document heights as scale drift.
-
-## Full-view comparison
-
-- The source and final mobile capture were opened together in the same comparison input at their native pixel dimensions.
-- Information order matches: analysis header and tabs, period, category summary, selected-category breakdown, selected-category trend, transaction list, and app navigation.
-- Neutral surfaces, subtle borders and shadows, green analytical state, multicolor category donut, green subcategory donut and trend, red expense amounts, and compact transaction rows match the visual direction.
-- The implementation omits the generated device status bar and home indicator and retains the app-owned bottom navigation. In full-page browser capture the fixed navigation appears at the viewport boundary; during normal scrolling it remains fixed at the physical viewport bottom.
-
-## Focused comparison
-
-- Header and summary: four equal tabs, selected underline, fixed period label, amount/ratio segmented control, donut center total, colored category icons, amount/ratio columns, and the all-category expander were checked at 426 px.
-- Breakdown and trend: title/total hierarchy, left-hand subcategory values, green donut, monthly green line, grid, point labels, and month/week/day selector were compared. Real seeded data has one food subcategory, so the implementation correctly shows one 100% segment rather than inventing the four mock values.
-- Transactions: heading, disabled filter affordance, three newest real transactions, payment labels, expense amounts, time, row chevrons, and disabled all-transactions affordance were checked against the source structure.
-- Desktop and dark theme preserve the same hierarchy without overflow, illegible token mappings, or missing chart segments.
-
-## Required fidelity surfaces
-
-- Fonts and typography: existing Geist plus Japanese system fallbacks, weights, tabular numerals, wrapping, and compact labels are consistent. Long live category names wrap instead of clipping.
-- Spacing and layout rhythm: 426 px has no horizontal overflow; card gaps, radii, divider rhythm, chart margins, fixed-navigation clearance, and desktop max width remain consistent with the existing app.
-- Colors and tokens: every added color is a semantic token defined for light and dark themes. Selected category state and trend use green analytical tokens, while global navigation continues to honor the saved accent setting.
-- Image quality and asset fidelity: the source contains charts and standard UI icons only. Recharts and the installed Lucide family are used; no raster placeholders, custom SVG art, CSS illustration, or generated assets are present.
-- Copy and content: source labels are retained where applicable. `直近6か月` reflects the agreed fixed-period scope, while disabled transaction-detail controls clearly expose their preparation state to assistive technology.
-
-## Interaction and browser checks
-
-- Tested top/all category expansion, category selection, amount/ratio switching, month/week grouping, URL preservation, and reload restoration against the real API.
-- Tested mobile 426 × 923, desktop 1440 × 900, and dark theme.
-- Tested authenticated routing and responsive navigation through the updated E2E suite: 4 passed.
-- Browser console warnings and errors: none.
-
-## Comparison history
-
-1. Initial mobile comparison found P2 category-name truncation for long live names and clipping on the final monthly value label. The mobile donut column and amount column were tightened, labels were allowed to wrap, and the chart right margin was increased. The final 426 px capture shows complete names and values with no horizontal overflow.
-2. Initial desktop comparison found a P2 full-width blue selected-category row that competed with the chart hierarchy. It was replaced with a subtle green analytical selection surface and the summary content was constrained to a calmer maximum width. The final desktop and mobile captures retain clear selection without dominating the panel.
-3. Dark theme was captured after chart animation completion and checked for token contrast and rendered donut segments. No dark-theme P0/P1/P2 issue remains.
-
-## Findings
-
-- No actionable P0, P1, or P2 findings remain.
-- Accepted deviation: real API seed values, category names, subcategories, and transaction dates replace the mock values instead of reproducing screenshot data.
-- Accepted deviation: the production page scrolls rather than compressing the complete dashboard into a single phone viewport.
-
-## Follow-up polish
-
-- P3: category colors are rank-based; a later product-wide category metadata contract could provide persistent per-category colors and icons across every screen.
-
-final result: passed
-
----
-
----
-
-# Analysis Fixed Costs Design QA
-
-## Evidence
-
-- Source visual truth: `/Users/yusukematsumoto/source/moneyhooks-react/images/analytics/ChatGPT Image 2026年8月28日 22_45_00.png`
-- State: authenticated local development user, exact six-month API range ending August 2026, all fixed-cost categories selected, amount mode.
-- Browser: Codex in-app browser at `/app/analysis?view=fixed`, backed by the real local API and Firebase Auth emulator.
-
-## Responsive and visual checks
-
-- Mobile was checked at 426 × 923 CSS px. The document remained exactly 426 px wide; the category trend table alone scrolls horizontally from a 392 px viewport to 832 px of table content.
-- Intermediate desktop width was checked at 1024 × 900. Switching from overview to fixed costs keeps all four tabs at 176 px, the main content at the available 768 px, and the document at exactly 1024 px; only the category table scrolls from a 654 px viewport to 832 px of content.
-- The 769 px desktop breakpoint was checked with the sidebar expanded and collapsed. The document remains equal to the viewport in both states, while the main content grows from 513 px to approximately 648 px when collapsed.
-- Desktop was checked at 1440 × 900 CSS px. Summary metrics, donut and legend, labeled monthly trend, complete category table, and transaction rows preserve the existing analysis hierarchy without horizontal overflow.
-- Dark theme was checked at 1440 × 900. Semantic chart, expense, border, muted, and selected-state colors remain legible and keep the same meaning as light theme.
-- Every visible button and the in-page transaction link measured at least 40 px high; mobile-specific controls use the planned 44 px minimum.
-
-## Interaction checks
-
-- Amount/ratio mode updates the URL and restores after reload.
-- Deselecting one category changed the table from four to three rows and the transaction count from 24 to 18 while retaining the full fixed-cost summary and overall trend.
-- Invalid category parameters normalize to all categories. The final selected category cannot be removed, and “すべて選択” returns to the canonical URL without `fixedCategory` parameters.
-- The initial transaction list shows five items, expands to all 24 fetched items, and collapses back to five.
-- Browser console warnings and errors: none.
-- Authenticated E2E: 5 passed, including fixed-tab navigation, reload restoration, and the 1024 px width regression check.
-
-## Findings
-
-- No actionable P0, P1, or P2 visual or interaction findings remain.
-- Accepted deviation: the source compresses the full dashboard into one generated phone image; the production implementation scrolls vertically and keeps the app-owned fixed mobile navigation.
-- Accepted deviation: live seeded values and category names replace mock data from the source.
-
-fixed result: passed
-
----
-
-# Analysis Payment Methods Design QA
-
-## Evidence
-
-- Source visual truth: `/Users/yusukematsumoto/source/moneyhooks-react/images/analytics/ChatGPT Image 2026年8月28日 22_45_02.png`
-- Mobile implementation, full page: `/Users/yusukematsumoto/source/moneyhooks-react/images/analytics/implementation-analysis-payments-mobile.png`
-- Mobile implementation, viewport: `/Users/yusukematsumoto/source/moneyhooks-react/images/analytics/implementation-analysis-payments-mobile-viewport.png`
-- Intermediate implementation: `/Users/yusukematsumoto/source/moneyhooks-react/images/analytics/implementation-analysis-payments-1024.png`
-- Desktop implementation: `/Users/yusukematsumoto/source/moneyhooks-react/images/analytics/implementation-analysis-payments-desktop.png`
-- Dark-theme implementation: `/Users/yusukematsumoto/source/moneyhooks-react/images/analytics/implementation-analysis-payments-dark.png`
-- State: authenticated local development user, exact six-month API range ending August 2026, all payment methods collapsed, real API sample data.
-- Browser: Codex in-app browser at `http://localhost:3000/app/analysis?view=payments`, backed by the real Go API and Firebase Auth emulator.
-
-## Viewport and normalization
-
-- Source: 853 × 1844 px, treated as an approximately 2× mobile reference and normalized to 426 × 922 CSS px.
-- Mobile: 426 × 923 CSS px at device scale 1. The viewport capture is 426 × 923 px and the full-page capture is 426 × 1251 px; `scrollWidth === innerWidth === 426`.
-- Intermediate desktop: 1024 × 900 CSS px; full-page capture 1024 × 1542 px. All four analysis tabs remain 176 px wide and the document remains exactly 1024 px wide.
-- Desktop: 1440 × 900 CSS px; full-page capture 1440 × 1542 px. Dark theme is 1440 × 1543 px.
-- The source compresses the full dashboard into one phone image. The implementation scrolls vertically so chart labels, detail rows, and minimum interaction targets remain readable.
-
-## Full-view comparison
-
-- The source and final 426 px implementation were opened together in the same comparison input at their native pixel dimensions.
-- Information order matches: analysis header and four tabs, period, payment-method donut and legend, detail CTA, monthly multi-series trend and legend, payment-method details, and app navigation.
-- Neutral surfaces, subtle borders and shadows, red/blue/green ranked series, red expense totals, compact type badges, donut center total, and row chevrons match the source direction.
-- The implementation retains the app-owned responsive sidebar/bottom navigation and omits the generated device status bar and home indicator.
-
-## Focused comparison
-
-- Summary: total-expense center label, ranked payment methods, method icons, amounts, ratios, and the detail anchor were checked at 426, 1024, and 1440 px.
-- Trend: six exact monthly buckets, dashed horizontal grid, one line per real payment method, dynamic y-axis, accessible tooltip, and wrapping legend were checked in light and dark themes.
-- Details: payment name, type, transaction count, amount, average amount, chevron state, and divider rhythm were checked against the source structure. Expanded rows use the API-provided transactions without changing the default collapsed visual.
-
-## Required fidelity surfaces
-
-- Fonts and typography: the existing Geist/Japanese system stack, tabular numerals, weights, line heights, and compact labels remain consistent with the other analysis tabs and readable at 426 px.
-- Spacing and layout rhythm: card gaps, radii, divider spacing, chart margins, mobile navigation clearance, and desktop max width are consistent. No tested viewport has horizontal overflow.
-- Colors and tokens: all payment icons, chart series, expense values, surfaces, and states use existing semantic tokens in light and dark themes.
-- Image quality and asset fidelity: the source contains charts and payment icons rather than photographic assets. Recharts and the installed Lucide icon family are used; there are no raster placeholders, custom SVGs, CSS drawings, or generated brand-logo approximations.
-- Copy and content: source section names and data labels are preserved. Real payment names, totals, ratios, counts, and averages replace mock values.
-
-## Interaction and browser checks
-
-- Clicking a payment row writes `payment=<id>` to the URL, expands exactly five latest transactions, can expand to all 42 seeded transactions, and collapses back to the canonical URL.
-- The summary CTA writes `#payment-details` and scrolls to the detail section. Invalid payment parameters normalize to no selection in component coverage.
-- Empty, loading, API failure, and retry states are covered with MSW.
-- Browser console warnings and errors: none.
-- Authenticated E2E: 5 passed, including payment-tab navigation, reload restoration, real API rendering, and 1024 px width stability.
-
-## Comparison history
-
-1. The first normalized 426 px comparison found no actionable P0/P1/P2 visual differences. The production page is taller than the compressed mock, but preserves the same section hierarchy, readable labels, and interaction targets without overflow.
-2. The same implementation was checked at 1024 and 1440 px and in dark theme. No responsive, contrast, clipping, or token regression was found, so no visual fix iteration was required.
-
-## Findings
-
-- No actionable P0, P1, or P2 findings remain.
-- Accepted deviation: real seeded data contains three payment methods instead of the mock's six and therefore drives the number, order, proportions, and chart scale.
-- Accepted deviation: generic type icons represent card, cash, and QR payment methods; branded logos are intentionally not introduced.
-- Accepted deviation: the existing fixed six-month range and saved application accent remain authoritative instead of introducing the mock's period picker or hard-coded green accent.
-
-## Follow-up polish
-
-- P3: a future product-wide payment metadata contract could provide persistent brand-safe icons and colors instead of rank-based presentation.
-
-final result: passed
-
----
-
----
-
-# Login screen Design QA
-
-## Evidence
-
-- Source visual truth: `/tmp/codex-remote-attachments/01a05d08-9523-7002-9c6a-5b7321cf0542/375F854A-9BBE-49CF-AD4D-133174E11D4A/1-写真1.jpg`
-- Implementation screenshots: `/private/tmp/moneyhooks-login-desktop.png`, `/private/tmp/moneyhooks-login-mobile.png`
-- Source dimensions: 1280 × 720 px
-- Implementation dimensions: 1280 × 720 px desktop, 390 × 844 px mobile
-- CSS viewport / density: 1280 × 720 and 390 × 844 CSS px, browser default density
-- State: unauthenticated login screen, initial entrance animation settled
-
-## Comparison
-
-- Full-view: passed. The desktop layout follows the reference's brand header, left-side financial visual, right-side login card, pale surfaces, and wide whitespace. The mobile layout collapses to a focused login card with the supporting visual hidden.
-- Focused regions: passed. Heading hierarchy, Google CTA, security consent copy, trust row, feature icons, and floating summary elements are aligned and readable.
-- Fonts and typography: passed. Existing Geist Variable stack is retained; heading weight, tracking, and Japanese line wrapping were checked at both viewports.
-- Spacing and layout rhythm: passed. Card padding, rounded corners, feature spacing, and mobile viewport fit were checked.
-- Colors and visual tokens: passed. Existing semantic tokens remain the source of truth; login-specific derived colors are defined in `tokens.css`.
-- Image quality and asset fidelity: passed. Existing MoneyHooks logo asset is retained and supporting visuals use the project's icon library and responsive UI composition.
-- Copy and content: passed. Existing Japanese login copy and Google-only authentication behavior are preserved.
-
-## Primary interactions tested
-
-- Google login button remains present and accessible.
-- Existing authentication tests confirm the Google sign-in handler is invoked once.
-- Error and busy states remain covered by the existing auth component behavior.
-- No browser console errors were observed during the visual check.
-
-## Comparison history
-
-- Initial implementation: mobile heading wrapped as `ログイ / ン` at 390 px.
-- Fix: forced the mobile title break to `MoneyHooksへ / ログイン`.
-- Post-fix evidence: `/private/tmp/moneyhooks-login-mobile.png`; no P0/P1/P2 findings remain.
-
-final result: passed
-
----
-
-# Transaction candidate Badge Design QA
-
-## Evidence
-
-- Source visual truth: `/var/folders/dp/_xcq39fs11l2lsjpd4jd4qvr0000gn/T/codex-clipboard-2d348dc8-03f3-42d8-8bcb-df7a6c3d7acc.png`
-- Implementation screenshots: `/private/tmp/moneyhooks-transaction-candidates-final-mobile.png`, `/private/tmp/moneyhooks-transaction-candidates-final-viewport.png`, `/private/tmp/moneyhooks-transaction-candidates-final-expanded-mobile.png`
-- Source dimensions: 1672 × 941 px composite reference containing normal and expanded mobile states.
-- Implementation dimensions: 390 × 1052 px full-page normal, 390 × 844 px focused viewport, and 390 × 1140 px full-page expanded state.
-- State: authenticated local development user, add transaction screen, light theme, initial six candidates and expanded twelve candidates.
-- Browser: Codex in-app browser at `http://localhost:3000/app/transactions/new`.
-
-## Comparison
-
-- The implementation uses a rounded bordered section, compact wrapping pill badges, category icon + transaction name, and a dashed circular expand affordance.
-- The surrounding form remains the existing product screen; source-only camera/memo/category-search/bottom-navigation details were outside this requested component scope.
-- Normal state shows six badges. “取引候補をもっと表示” adds six candidates per click, and clicking a badge preserves the existing form application behavior.
-
-## Required fidelity surfaces
-
-- Fonts and typography: existing Geist/Japanese stack and compact label hierarchy are retained; the Badge uses `h-9`, `text-sm`, and `px-3` for the requested large size.
-- Spacing and layout rhythm: badges wrap with consistent `gap-2`; the section uses the existing rounded surface and a compact `size-11` expand control.
-- Colors and tokens: outline, category icon colors, focus, and expand control use existing semantic tokens; no raw colors were added.
-- Image quality and asset fidelity: no raster assets were needed; existing Lucide category icons are used.
-- Copy and content: heading is `よく使う項目`; each candidate exposes only the category icon and transaction name.
-
-## Interaction and browser checks
-
-- Initial candidate count: 6; after one action: 12.
-- Clicking `家賃を候補から適用` populated the transaction name field.
-- Browser console errors: none.
-- Component and full test suites cover loading, error, empty, visibility, and application states.
-
-## Findings
-
-- No actionable P0, P1, or P2 findings remain.
-- Accepted deviation: the source expanded reference uses a bottom sheet, while the established product requirement uses six-at-a-time inline expansion. The visual language and affordance are matched without changing that behavior.
-
-final result: passed
+- source: `/var/folders/dp/_xcq39fs11l2lsjpd4jd4qvr0000gn/T/codex-clipboard-2d348dc8-03f3-42d8-8bcb-df7a6c3d7acc.png`（1672×941、通常/展開の合成）。
+- captures: `/private/tmp/moneyhooks-transaction-candidates-final-mobile.png`（390×1052）、`/private/tmp/moneyhooks-transaction-candidates-final-viewport.png`（390×844）、`/private/tmp/moneyhooks-transaction-candidates-final-expanded-mobile.png`（390×1140）。認証済み、light、`/app/transactions/new`。
+- 「よく使う項目」にカテゴリicon＋名称のoutline pill（h-9/text-sm/px-3、gap-2）、size-11の破線expand。既存tokens/Geist/Lucideを使用。
+- 初期6候補、1操作で12、家賃選択で名称へ適用。mockのbottom sheetに対し製品要件の6件ずつinline展開を優先。周囲のcamera/memo/検索/navは対象外。
+- 当時のテストはloading/error/empty/visibility/applicationを確認。最終passed、P0/P1/P2・console errorなし。

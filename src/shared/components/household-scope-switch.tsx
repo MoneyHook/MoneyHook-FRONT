@@ -6,6 +6,7 @@ type Scope = 'personal' | 'family'
 type Props = {
   hasActiveFamily?: boolean
   scope: Scope
+  size?: 'default' | 'sm'
 } & (
   | {
       personalHref: string
@@ -24,6 +25,7 @@ type Props = {
 export function HouseholdScopeSwitch({
   hasActiveFamily = false,
   scope,
+  size = 'default',
   personalHref,
   familyHref,
   onScopeChange,
@@ -39,7 +41,8 @@ export function HouseholdScopeSwitch({
     'inline-flex shrink-0 items-center overflow-hidden rounded-full border bg-background'
   const choices = items.map((item) => {
     const className = cn(
-      'inline-flex min-h-9 items-center justify-center px-4 py-1 text-sm font-medium whitespace-nowrap transition-colors outline-none first:border-r focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset disabled:cursor-not-allowed disabled:opacity-50',
+      'inline-flex items-center justify-center py-1 font-medium whitespace-nowrap transition-colors outline-none first:border-r focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset disabled:cursor-not-allowed disabled:opacity-50',
+      size === 'sm' ? 'min-h-7 px-3 text-xs' : 'min-h-9 px-4 text-sm',
       scope === item.scope
         ? 'bg-primary text-primary-foreground'
         : 'text-muted-foreground hover:bg-muted hover:text-foreground',

@@ -1,8 +1,5 @@
-import { Bell } from 'lucide-react'
-
 import { HouseholdScopeSwitch } from '@/shared/components/household-scope-switch'
 import { MonthPicker } from '@/shared/components/month-picker'
-import { Button } from '@/shared/components/ui/button'
 import { cn } from '@/shared/lib/utils'
 
 export function DashboardMonthHeader({
@@ -56,6 +53,7 @@ export function DashboardMonthHeader({
       </h1>
       <div className="flex flex-wrap items-center gap-1">
         <HouseholdScopeSwitch
+          size="sm"
           hasActiveFamily={hasActiveFamily}
           scope={scope}
           personalHref={personalHref}
@@ -73,14 +71,6 @@ export function DashboardMonthHeader({
           onChange={onChange}
           showCalendarIcon
         />
-        <Button
-          aria-label="通知（未対応）"
-          disabled
-          size="icon"
-          variant="ghost"
-        >
-          <Bell aria-hidden="true" />
-        </Button>
       </div>
     </header>
   )

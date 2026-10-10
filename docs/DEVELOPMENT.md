@@ -1,79 +1,55 @@
-# MoneyHooks React 開発ガイド
+# 開発ガイド
 
-## 必要な環境
+## 環境設定
 
-- `package.json`の`engines`を満たすNode.js
-- `packageManager`に記載されたpnpm
-- API連携を確認する場合は、互換性のあるGo API
-- 認証E2Eを実行する場合はFirebase Auth Emulator
+起動手順は[README](../README.md#起動)、必要な環境変数とデモ値は[`.env.example`](../.env.example)を参照する。`.env.local`はGit管理しない。Vite環境変数はブラウザへ配布されるため秘密情報を入れない。
 
-## セットアップ
+ローカル認証・API連携では以下を揃える。サービスの起動方法は各所有リポジトリを参照する。
 
-```bash
-pnpm install
-cp .env.example .env.local
-pnpm dev
-```
-
-Viteが表示したURLをブラウザで開きます。`.env.local`はGit管理しません。
-
-## 環境変数
-
-設定例と必要なkeyは [`.env.example`](../.env.example) を正本とします。
-
-| 変数                                | 用途                          |
-| ----------------------------------- | ----------------------------- |
-| `VITE_API_BASE_URL`                 | Go APIのベースURL             |
-| `VITE_FIREBASE_API_KEY`             | Firebase Web client設定       |
-| `VITE_FIREBASE_AUTH_DOMAIN`         | Firebase Auth domain          |
-| `VITE_FIREBASE_PROJECT_ID`          | Firebase project ID           |
-| `VITE_FIREBASE_APP_ID`              | Firebase App ID               |
-| `VITE_FIREBASE_STORAGE_BUCKET`      | 任意のFirebase Web client設定 |
-| `VITE_FIREBASE_MESSAGING_SENDER_ID` | 任意のFirebase Web client設定 |
-| `VITE_FIREBASE_AUTH_EMULATOR_URL`   | 任意のAuth Emulator URL       |
-
-Vite環境変数はブラウザへ配布されます。秘密情報やサーバーcredentialを保存しないでください。Emulator利用時はReactとGo APIのFirebase project IDを一致させます。
-
-`VITE_FIREBASE_AUTH_EMULATOR_URL`を設定すると、GoogleログインはFirebase Auth Emulatorが提供するローカルのモック認証ポップアップを表示します。任意のモックGoogleユーザーでログインするため、API側で事前投入された固定UIDのサンプルデータには依存しません。
+- Go API: `http://localhost:8080`、Auth Emulator: `http://localhost:9099`。
+- React・Go API・Emulatorのproject ID: `demo-moneyhooks`。
+- Go APIのCORS許可origin: Viteが表示したorigin。
+- `VITE_FIREBASE_AUTH_EMULATOR_URL`を設定するとモックGoogle認証ポップアップを使う。任意のモックユーザーでログインでき、固定UIDのサンプルデータは不要。
 
 ## 検証
 
-変更範囲に応じて実行します。テストの追加・変更は [テスト方針](ARCHITECTURE.md#テスト) に従い、UIを介さずに検証できる契約を対象にします。UIの表示や操作は手動で確認し、確認結果と未確認項目を報告してください。
+変更に必要な最小範囲だけ実行する。下表は選択肢であり、毎回全項目を実行する手順ではない。
+
+| 変更                         | 検証                                                                              |
+| ---------------------------- | --------------------------------------------------------------------------------- |
+| 文書のみ                     | `git diff --check`と変更したリンク・記述の確認。テスト・型検査・lint・buildは不要 |
+| テストのみ                   | 追加・変更したテストファイルを指定して実行                                        |
+| ロジック・API・永続化        | 追加・変更したテストと、変更した契約に直接関係する既存テストだけ実行              |
+| TypeScript・React            | 型への影響があれば`pnpm typecheck`。lintは`pnpm exec eslint <変更ファイル...>`    |
+| 色・class・style             | 対象ファイルのESLintと`node scripts/check-semantic-colors.mjs`                    |
+| routing・build設定・依存関係 | 必要なら`pnpm build`（型検査を含むため`typecheck`を重ねない）                     |
+| OpenAPI・生成クライアント    | `pnpm api:check`、契約への影響があれば`pnpm contract:test`、関連テスト            |
+| ブラウザ固有の認証/API結合   | 必要なPlaywrightファイル・ケースだけ指定。実Go APIとAuth Emulatorが必要           |
+
+対象テストの例:
 
 ```bash
-pnpm typecheck
-pnpm lint
-pnpm test
-pnpm build
-pnpm e2e
+pnpm exec vitest run src/features/transactions/model/new-transaction.test.ts
+pnpm exec vitest run src/shared/api/__tests__/http-client.test.ts -t '対象ケース名'
+pnpm exec playwright test e2e/auth-shell.spec.ts -g '対象ケース名'
 ```
 
-- `typecheck`: TypeScript project referencesの型検査
-- `lint`: ESLintとsemantic color check
-- `test`: Vitestによるロジック・契約の検証（既存のテスト一式を実行）
-- `build`: TypeScript buildとVite production build
-- `e2e`: Playwrightによる、ブラウザ環境が必要な認証/API結合の検証
+パス・ケース名は実在する対象に置き換え、出力の対象と件数で絞り込みを確認する。関連テストがなければその旨を報告し、無関係なテストで代用しない。[テスト方針](ARCHITECTURE.md#テスト)に従い、UIの表示・操作は必要箇所を手動確認する。
 
-`pnpm e2e`はFirebase Auth Emulatorと実Go APIを前提とします。Playwright設定では開発ユーザー用のmock credentialを有効にし、Authユーザーを削除せず、固定UIDとサンプルデータがAPI経由で利用できることを検証します。外部サービスの起動方法とデータ準備は、それぞれの所有リポジトリを参照してください。
+`pnpm test`・`pnpm lint`・`pnpm e2e`などの全体実行は、ユーザーの明示依頼、required checks、または全体への影響を具体的に確認した場合だけ行い、拡大理由を報告する。対象の検証が通れば、追加変更や未解決の懸念がない限り再実行・拡大しない。完了時は実行結果と、必要だが未実行・失敗した確認を簡潔に報告する。
+
+Playwright設定は開発ユーザー用mock credentialを有効にし、Authユーザーを削除せず固定UIDのAPIサンプルデータを検証する。通常ログインとはデータ準備条件が異なる。
 
 ## APIクライアント
 
-OpenAPI契約を変更した場合、生成コードと契約を確認します。
-
-```bash
-pnpm api:generate
-pnpm contract:test
-pnpm api:check
-```
-
-`pnpm api:generate`はOrvalで`src/shared/api/generated/`を更新した後、`scripts/clean-generated-imports.mjs`で未使用のschema importを除去します。TypeScriptの参照解析を使い、使用中のimportと型定義を維持します。生成物を手作業で編集しないでください。
+`pnpm api:generate`はOrval生成、未使用schema import除去、生成物のformatを行う。生成物は直接編集しない。`pnpm api:check`は再生成とGit差分確認を含むため、事前に同じ生成処理を重ねない。`pnpm contract:test`はOpenAPI契約のRubyテスト。
 
 ## よくある確認箇所
 
-| 症状                               | 確認箇所                                                                                                                                      |
-| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| 起動時に環境設定エラーになる       | `.env.local`の必須keyとURL形式                                                                                                                |
-| Googleログインが失敗する           | 通常環境はFirebase provider、Authorized domains、Web client設定。Emulator開発時は`VITE_FIREBASE_AUTH_EMULATOR_URL`とAuth Emulatorの起動を確認 |
-| ログイン後にAPIへ接続できない      | API URL、APIのCORS設定、Firebase project ID                                                                                                   |
-| Emulatorではなく本番認証へ接続する | `VITE_FIREBASE_AUTH_EMULATOR_URL`                                                                                                             |
-| semantic color checkが失敗する     | 生の色値をtokenへ移し、light/dark両方を定義したか                                                                                             |
+| 症状                     | 確認箇所                                                                  |
+| ------------------------ | ------------------------------------------------------------------------- |
+| 起動時に設定エラー       | `.env.local`の必須key・URL形式                                            |
+| Googleログイン失敗       | Firebase provider・Authorized domains・Web設定。Emulator時はURLと起動状態 |
+| API接続失敗              | API URL・CORS・project ID                                                 |
+| 本番認証へ接続してしまう | `VITE_FIREBASE_AUTH_EMULATOR_URL`                                         |
+| semantic color check失敗 | 生の色値をtokenへ移し、light/dark両方に定義                               |

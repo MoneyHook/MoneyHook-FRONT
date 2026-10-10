@@ -4,6 +4,7 @@ export {
   NewTransactionView,
   TransactionFormView,
 } from './components/new-transaction-view'
+export { TransactionFormSkeleton } from './components/transaction-form/transaction-form-skeleton'
 export { TransactionsCalendarPanel } from './components/transactions/transactions-calendar-panel'
 export { TransactionFilterButton } from './components/transactions/transactions-filter-controls'
 export { TransactionsListPanel } from './components/transactions/transactions-list-panel'
