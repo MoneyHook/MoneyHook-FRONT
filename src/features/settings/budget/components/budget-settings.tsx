@@ -9,11 +9,11 @@ import {
 } from '@/shared/components/ui/alert'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
-import { Skeleton } from '@/shared/components/ui/skeleton'
 
 import { SettingsSection } from '../../components/settings-section'
 import { useBudgetSettings } from '../api/use-budget-settings'
 import { validateBudgetAmount } from '../model/budget-settings'
+import { BudgetSettingsSkeleton } from './budget-settings-skeleton'
 
 const saveErrorMessage = '予算を保存できませんでした。もう一度お試しください。'
 
@@ -73,17 +73,7 @@ export function BudgetSettings({
       title="予算"
       titleId="budget-settings-title"
     >
-      {budgetQuery.isPending ? (
-        <div
-          aria-label="予算設定を読み込んでいます"
-          className="space-y-3"
-          role="status"
-        >
-          <Skeleton className="h-4 w-24" />
-          <Skeleton className="h-10 w-full max-w-md" />
-          <Skeleton className="h-4 w-56" />
-        </div>
-      ) : null}
+      {budgetQuery.isPending ? <BudgetSettingsSkeleton /> : null}
 
       {budgetQuery.isError ? (
         <div className="space-y-4">

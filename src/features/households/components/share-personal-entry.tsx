@@ -9,6 +9,7 @@ import {
   useHouseholdAction,
   useHouseholds,
 } from '../api/household-queries'
+import { FamilyShareSkeleton } from './family-skeletons'
 import { FamilyError } from './fields'
 
 export function SharePersonalEntry({
@@ -47,12 +48,7 @@ export function SharePersonalEntry({
       return r.data
     },
   })
-  if (families.isPending || query.isPending)
-    return (
-      <p role="status" className="px-5 py-3 text-sm">
-        共有状態を読み込んでいます…
-      </p>
-    )
+  if (families.isPending || query.isPending) return <FamilyShareSkeleton />
   if (families.isError || query.isError)
     return <FamilyError error={families.error || query.error} />
   if (!family || !transaction)

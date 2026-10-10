@@ -2,6 +2,7 @@ import { Plus, Share2 } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
 
+import { FamilyEntryDetailSkeleton } from '@/features/households'
 import {
   FamilyEntryDetail,
   FamilyField,
@@ -164,7 +165,9 @@ export function FamilyTransactionsView({
                 </Button>
               </div>
             )}
-            {entries.isPending && <TransactionsSkeleton view={view} />}
+            {entries.isPending && (
+              <TransactionsSkeleton view={view} month={month} family />
+            )}
             {error && (
               <ErrorState
                 title="家族の取引を表示できません"
@@ -286,9 +289,7 @@ export function FamilyTransactionsView({
               {selectedEntry?.amount.toLocaleString('ja-JP')}円
             </SheetDescription>
           </SheetHeader>
-          {selectedEntry && detail.isPending && (
-            <p role="status">家族の情報を読み込んでいます…</p>
-          )}
+          {selectedEntry && detail.isPending && <FamilyEntryDetailSkeleton />}
           {selectedEntry && detail.isError && (
             <ErrorState
               title="取引の詳細を表示できません"

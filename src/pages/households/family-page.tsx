@@ -10,6 +10,7 @@ import {
 import { DashboardMonthHeader } from '@/shared/components/dashboard-month-header'
 import { Button } from '@/shared/components/ui/button'
 
+import { FamilyPageSkeleton } from './family-page-skeleton'
 import { FamilyTransactionsView } from './family-transactions-view'
 
 export function FamilyPage({
@@ -38,9 +39,12 @@ export function FamilyPage({
 
   if (families.isPending)
     return (
-      <p role="status" className="p-6">
-        家族を読み込んでいます…
-      </p>
+      <FamilyPageSkeleton
+        analysis={analysis}
+        sharing={sharing}
+        month={month}
+        view={search.get('view')}
+      />
     )
   if (families.isError)
     return (

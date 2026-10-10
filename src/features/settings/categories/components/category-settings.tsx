@@ -15,12 +15,12 @@ import {
 } from '@/shared/components/ui/alert'
 import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
-import { Skeleton } from '@/shared/components/ui/skeleton'
 import { getCategoryPresentation } from '@/shared/lib/category-presentation'
 import { cn } from '@/shared/lib/utils'
 
 import { SettingsSection } from '../../components/settings-section'
 import { useCategorySettings } from '../api/use-category-settings'
+import { CategorySettingsSkeleton } from './category-settings-skeleton'
 
 function errorMessage(error: unknown) {
   return error instanceof Error
@@ -73,16 +73,7 @@ export function CategorySettings({
       title="カテゴリ・サブカテゴリ"
       titleId="category-settings-title"
     >
-      {categoriesQuery.isPending ? (
-        <div
-          aria-label="カテゴリを読み込んでいます"
-          className="space-y-4"
-          role="status"
-        >
-          <Skeleton className="h-32 w-full" />
-          <Skeleton className="h-32 w-full" />
-        </div>
-      ) : null}
+      {categoriesQuery.isPending ? <CategorySettingsSkeleton /> : null}
 
       {categoriesQuery.isError && !categoriesQuery.data ? (
         <div className="space-y-4">

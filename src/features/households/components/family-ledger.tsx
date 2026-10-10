@@ -11,11 +11,16 @@ import { useState } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
 
 import type { Household } from '@/shared/api/generated/model'
+import { LoadingState } from '@/shared/components/app-state'
 import { Button } from '@/shared/components/ui/button'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 
 import { api, householdKey, useFamilyData } from '../api/household-queries'
 import { FamilyEntryDetail } from './family-entry-detail'
+import {
+  FamilyEntriesSkeleton,
+  FamilySummarySkeleton,
+} from './family-skeletons'
 import { FamilyError, FamilyField, FamilySelect } from './fields'
 
 export function FamilyLedger({
@@ -124,15 +129,7 @@ export function FamilyLedger({
         </Button>
       )}
       {summary.isPending ? (
-        <div
-          role="status"
-          aria-label="収支を読み込んでいます"
-          className="grid grid-cols-3 gap-4 border-y py-6"
-        >
-          {[0, 1, 2].map((index) => (
-            <Skeleton key={index} className="h-16" />
-          ))}
-        </div>
+        <FamilySummarySkeleton />
       ) : (
         summary.data && (
           <dl className="grid grid-cols-1 gap-5 border-y py-6 sm:grid-cols-3 sm:gap-6">
@@ -198,6 +195,22 @@ export function FamilyLedger({
               </FamilySelect>
             </FamilyField>
           </div>
+          {summary.isPending && (
+            <LoadingState
+              label="支出の内訳を読み込んでいます"
+              className="space-y-5"
+            >
+              {[0, 1, 2].map((index) => (
+                <div key={index} className="space-y-1">
+                  <div className="flex justify-between">
+                    <Skeleton className="h-5 w-24" />
+                    <Skeleton className="h-5 w-20" />
+                  </div>
+                  <Skeleton className="h-2 w-full" />
+                </div>
+              ))}
+            </LoadingState>
+          )}
           {summary.data?.groups.length === 0 && (
             <p className="py-6 text-sm text-muted-foreground">
               この月の支出はありません。
@@ -289,7 +302,7 @@ export function FamilyLedger({
               収支・内訳は家族全体の月合計です。絞り込みは下の一覧に適用されます。
             </p>
           )}
-          {entries.isPending && <p role="status">記録を読み込んでいます…</p>}
+          {entries.isPending && <FamilyEntriesSkeleton />}
           {entries.data?.pages[0].entries.length === 0 && (
             <div className="rounded-lg border border-dashed px-4 py-10 text-center">
               <p className="font-medium">

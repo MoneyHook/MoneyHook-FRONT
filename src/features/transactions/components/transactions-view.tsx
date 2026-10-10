@@ -88,7 +88,10 @@ export function TransactionsView() {
               </div>
             ) : null}
             {controller.isPending ? (
-              <TransactionsSkeleton view={controller.view} />
+              <TransactionsSkeleton
+                view={controller.view}
+                month={controller.month}
+              />
             ) : null}
             {controller.isError ? (
               <ErrorState

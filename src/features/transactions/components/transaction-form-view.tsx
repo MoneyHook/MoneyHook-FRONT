@@ -21,7 +21,6 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu'
 import { RadioGroup, RadioGroupItem } from '@/shared/components/ui/radio-group'
-import { Skeleton } from '@/shared/components/ui/skeleton'
 import {
   Tooltip,
   TooltipContent,
@@ -32,6 +31,7 @@ import { cn } from '@/shared/lib/utils'
 import { useTransactionFormController } from '../hooks/use-transaction-form-controller'
 import type { TransactionFormExtension } from '../model/form-extension'
 import { TransactionFormFields } from './transaction-form/transaction-form-fields'
+import { TransactionFormSkeleton } from './transaction-form/transaction-form-skeleton'
 import { TransactionSelectionSheets } from './transaction-form/transaction-selection-sheets'
 
 export function TransactionFormView({
@@ -79,20 +79,10 @@ export function TransactionFormView({
 
   if (isLoading) {
     return (
-      <section
-        aria-label={`取引${isEdit ? '編集' : '追加'}画面を読み込んでいます`}
-        className="mx-auto w-full max-w-2xl px-4 py-5 sm:px-6"
-        role="status"
-      >
-        <div className="flex items-center justify-between">
-          <Skeleton className="size-10 rounded-full" />
-          <Skeleton className="h-7 w-32" />
-          <Skeleton className="h-8 w-12" />
-        </div>
-        <Skeleton className="mt-8 h-14 rounded-2xl" />
-        <Skeleton className="mt-7 h-56 rounded-2xl" />
-        <Skeleton className="mt-6 h-44 rounded-2xl" />
-      </section>
+      <TransactionFormSkeleton
+        isEdit={isEdit}
+        showCandidates={!isEdit && !extension.references}
+      />
     )
   }
 

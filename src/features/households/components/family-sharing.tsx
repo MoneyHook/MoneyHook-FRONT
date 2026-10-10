@@ -6,6 +6,7 @@ import type { Household } from '@/shared/api/generated/model'
 import { listV1Transactions } from '@/shared/api/generated/transaction/transaction'
 import { Button } from '@/shared/components/ui/button'
 
+import { FamilyEntriesSkeleton } from './family-skeletons'
 import { FamilyError } from './fields'
 import { SharePersonalEntry } from './share-personal-entry'
 
@@ -63,9 +64,7 @@ export function FamilySharing({ family }: { family: Household }) {
               再読み込み
             </Button>
           )}
-          {transactions.isPending && (
-            <p role="status">取引を読み込んでいます…</p>
-          )}
+          {transactions.isPending && <FamilyEntriesSkeleton sharing />}
           {transactions.data?.pages[0].transactions.length === 0 && (
             <p>この月の個人取引はありません。</p>
           )}
