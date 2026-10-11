@@ -14,12 +14,45 @@ import { invalidateTransactionQueries } from './invalidate-transaction-queries'
 
 export function useTransactionFormMutations() {
   const queryClient = useQueryClient()
-  const createMutation = useCreateV1Transaction()
-  const updateMutation = useUpdateV1Transaction()
+  const createMutation = useCreateV1Transaction({
+    mutation: {
+      onSuccess: async (response, { data }) => {
+        if (response.status !== 201) {
+          throw new Error(
+            '取引を保存できませんでした。もう一度お試しください。',
+          )
+        }
+
+        await invalidateTransactionQueries(queryClient)
+        if (data.transaction.sub_category_name) {
+          clearCategoryReferenceCache()
+          await queryClient.invalidateQueries({
+            queryKey: getGetCategoryWithSubCategoryListQueryKey(),
+          })
+        }
+      },
+    },
+  })
+  const updateMutation = useUpdateV1Transaction({
+    mutation: {
+      onSuccess: async (response, { transactionId }) => {
+        if (response.status !== 200) {
+          throw new Error(
+            '取引を保存できませんでした。もう一度お試しください。',
+          )
+        }
+
+        await invalidateTransactionQueries(queryClient)
+        await queryClient.invalidateQueries({
+          queryKey: getGetV1TransactionQueryKey(transactionId),
+        })
+      },
+    },
+  })
   const deleteMutation = useDeleteV1Transaction()
 
   const create = async (form: NewTransactionFormValues) => {
-    const response = await createMutation.mutateAsync({
+    await createMutation.mutateAsync({
       data: {
         transaction: {
           transaction_date: form.transactionDate,
@@ -35,24 +68,13 @@ export function useTransactionFormMutations() {
         },
       },
     })
-    if (response.status !== 201) {
-      throw new Error('取引を保存できませんでした。もう一度お試しください。')
-    }
-
-    await invalidateTransactionQueries(queryClient)
-    if (form.subcategoryName) {
-      clearCategoryReferenceCache()
-      await queryClient.invalidateQueries({
-        queryKey: getGetCategoryWithSubCategoryListQueryKey(),
-      })
-    }
   }
   const update = async (
     transactionId: string,
     form: NewTransactionFormValues,
     expectedVersion?: number,
   ) => {
-    const response = await updateMutation.mutateAsync({
+    await updateMutation.mutateAsync({
       transactionId,
       data: {
         expected_version: expectedVersion,
@@ -68,14 +90,6 @@ export function useTransactionFormMutations() {
           payment_id: form.paymentId,
         },
       },
-    })
-    if (response.status !== 200) {
-      throw new Error('取引を保存できませんでした。もう一度お試しください。')
-    }
-
-    await invalidateTransactionQueries(queryClient)
-    await queryClient.invalidateQueries({
-      queryKey: getGetV1TransactionQueryKey(transactionId),
     })
   }
   const remove = async (transactionId: string, expectedVersion?: number) => {

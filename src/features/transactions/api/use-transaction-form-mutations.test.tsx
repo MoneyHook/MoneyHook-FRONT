@@ -1,5 +1,9 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { act, renderHook } from '@testing-library/react'
+import {
+  QueryClient,
+  QueryClientProvider,
+  QueryObserver,
+} from '@tanstack/react-query'
+import { act, renderHook, waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -55,6 +59,108 @@ beforeEach(() => {
 })
 
 describe('transaction mutation cache refresh', () => {
+  it.each(['create', 'update', 'create-subcategory'] as const)(
+    '%s remains saving until dependent queries finish refreshing',
+    async (operation) => {
+      const queryClient = new QueryClient()
+      let finishRefresh!: (value: string[]) => void
+      const refresh = new Promise<string[]>((resolve) => {
+        finishRefresh = resolve
+      })
+      const queryKey =
+        operation === 'create-subcategory'
+          ? getGetCategoryWithSubCategoryListQueryKey()
+          : operation === 'update'
+            ? getGetV1TransactionQueryKey('42')
+            : getGetFrequentTransactionNamesQueryKey({ limit: 100 })
+      const queryFn = vi.fn(() => refresh)
+      const observer = new QueryObserver(queryClient, {
+        queryKey,
+        queryFn,
+        initialData: [] as string[],
+        staleTime: Infinity,
+      })
+      const unsubscribe = observer.subscribe(() => {})
+      const { result } = renderHook(() => useTransactionFormMutations(), {
+        wrapper: ({ children }: { children: ReactNode }) => (
+          <QueryClientProvider client={queryClient}>
+            {children}
+          </QueryClientProvider>
+        ),
+      })
+      const values = {
+        ...createNewTransactionValues(new Date(2026, 8, 1)),
+        transactionName: 'ランチ',
+        amount: '1200',
+        categoryId: '10',
+        subcategoryId: operation === 'create-subcategory' ? '' : '11',
+        subcategoryName: operation === 'create-subcategory' ? 'カフェ' : '',
+      }
+      const completed = vi.fn()
+      let saving!: Promise<void>
+      try {
+        act(() => {
+          saving = (
+            operation === 'update'
+              ? result.current.update('42', values)
+              : result.current.create(values)
+          ).then(completed)
+        })
+
+        await waitFor(() => {
+          expect(queryFn).toHaveBeenCalledOnce()
+          expect(result.current.isSaving).toBe(true)
+        })
+        expect(completed).not.toHaveBeenCalled()
+
+        await act(async () => {
+          finishRefresh([])
+          await saving
+        })
+        await waitFor(() => expect(result.current.isSaving).toBe(false))
+        expect(completed).toHaveBeenCalledOnce()
+      } finally {
+        finishRefresh([])
+        unsubscribe()
+        queryClient.clear()
+      }
+    },
+  )
+
+  it.each(['create', 'update'] as const)(
+    '%s releases the saving state after an API failure without refreshing caches',
+    async (operation) => {
+      server.use(
+        http.post('http://api.test/api/v1/transactions', () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+        http.patch('http://api.test/api/v1/transactions/42', () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      )
+      const queryClient = new QueryClient()
+      const invalidate = vi.spyOn(queryClient, 'invalidateQueries')
+      const { result } = renderHook(() => useTransactionFormMutations(), {
+        wrapper: ({ children }: { children: ReactNode }) => (
+          <QueryClientProvider client={queryClient}>
+            {children}
+          </QueryClientProvider>
+        ),
+      })
+      const values = createNewTransactionValues(new Date(2026, 8, 1))
+
+      await act(async () => {
+        await expect(
+          operation === 'update'
+            ? result.current.update('42', values)
+            : result.current.create(values),
+        ).rejects.toThrow()
+      })
+      await waitFor(() => expect(result.current.isSaving).toBe(false))
+      expect(invalidate).not.toHaveBeenCalled()
+    },
+  )
+
   it.each(['create', 'update', 'remove'] as const)(
     '%s refreshes transaction-dependent data without invalidating payment settings',
     async (operation) => {
