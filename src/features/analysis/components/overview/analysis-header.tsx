@@ -102,7 +102,7 @@ export function AnalysisHeader({
                 className="min-h-10"
                 onClick={() => selectMonth(getCurrentAnalysisMonth())}
                 type="button"
-                variant="outline"
+                variant="default"
               >
                 今月
               </Button>
@@ -110,7 +110,7 @@ export function AnalysisHeader({
                 className="min-h-10"
                 onClick={() => selectMonth(getPreviousAnalysisMonth())}
                 type="button"
-                variant="outline"
+                variant="secondary"
               >
                 先月
               </Button>
