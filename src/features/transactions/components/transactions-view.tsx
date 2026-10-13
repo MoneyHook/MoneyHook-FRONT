@@ -21,7 +21,13 @@ import { TransactionsViewTabs } from './transactions/transactions-view-tabs'
 
 export function TransactionsView() {
   const controller = useTransactionsController()
-  const [isHeaderCompact, setIsHeaderCompact] = useState(false)
+  const view = controller.view
+  const [headerState, setHeaderState] = useState({ view, compact: false })
+  const isHeaderCompact = headerState.view === view && headerState.compact
+
+  if (headerState.view !== view) {
+    setHeaderState({ view, compact: false })
+  }
 
   return (
     <>
@@ -64,13 +70,18 @@ export function TransactionsView() {
         >
           <TransactionsViewTabs compact={isHeaderCompact} />
           <div
+            key={controller.view}
             className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-2"
             data-slot="transactions-scroll-area"
             onScroll={(event) => {
               const { scrollTop } = event.currentTarget
-              setIsHeaderCompact((compact) =>
-                compact ? scrollTop > 0 : scrollTop > 16,
-              )
+              setHeaderState((state) => ({
+                view,
+                compact:
+                  state.view === view && state.compact
+                    ? scrollTop > 0
+                    : scrollTop > 16,
+              }))
             }}
           >
             {controller.data && controller.activeFilterCount ? (

@@ -8,9 +8,14 @@ import { AnalysisHeader } from './overview/analysis-header'
 import { OverviewContent } from './overview/overview-content'
 
 export function AnalysisDashboard() {
-  const [isHeaderCompact, setIsHeaderCompact] = useState(false)
   const { view, selection, setRange, getViewLink } =
     useAnalysisDashboardController()
+  const [headerState, setHeaderState] = useState({ view, compact: false })
+  const isHeaderCompact = headerState.view === view && headerState.compact
+
+  if (headerState.view !== view) {
+    setHeaderState({ view, compact: false })
+  }
 
   return (
     <section
@@ -25,13 +30,18 @@ export function AnalysisDashboard() {
         view={view}
       />
       <div
+        key={view}
         className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto overscroll-contain pt-4 pb-[calc(4.5rem+env(safe-area-inset-bottom))] sm:pt-5 md:pb-2"
         data-slot="analysis-scroll-area"
         onScroll={(event) => {
           const { scrollTop } = event.currentTarget
-          setIsHeaderCompact((compact) =>
-            compact ? scrollTop > 0 : scrollTop > 16,
-          )
+          setHeaderState((state) => ({
+            view,
+            compact:
+              state.view === view && state.compact
+                ? scrollTop > 0
+                : scrollTop > 16,
+          }))
         }}
       >
         {view === 'overview' ? (
