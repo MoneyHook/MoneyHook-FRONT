@@ -31,9 +31,10 @@ export function useUserSettings({ enabled = true } = {}) {
   })
   const query = useGetV1Settings({
     query: {
-      ...(enabled ? cache.queryOptions : {}),
+      initialData: enabled ? cache.queryOptions.placeholderData : undefined,
+      initialDataUpdatedAt: 0,
       // An earlier observer may have already started fetching this query.
-      placeholderData: enabled ? cache.queryOptions.initialData : undefined,
+      placeholderData: enabled ? cache.queryOptions.placeholderData : undefined,
       enabled,
       staleTime: 0,
       refetchOnMount: 'always',
