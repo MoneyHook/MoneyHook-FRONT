@@ -146,7 +146,7 @@ function SubcategorySelection({
               <>
                 <div
                   className={cn(
-                    'flex h-14 w-full items-center border-b border-input transition-colors focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50',
+                    'flex h-14 w-full items-center border-b border-input transition-colors focus-within:border-muted-foreground/60 focus-within:ring-1 focus-within:ring-muted-foreground/20',
                     errors.subcategoryName &&
                       'border-destructive focus-within:border-destructive focus-within:ring-destructive/20',
                   )}
