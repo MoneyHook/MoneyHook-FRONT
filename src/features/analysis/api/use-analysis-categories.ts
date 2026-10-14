@@ -1,8 +1,6 @@
-import { useEffect } from 'react'
-
 import type { V1CategoriesResponse } from '@/shared/api/generated/model'
-import { useGetV1AnalyticsCategories } from '@/shared/api/generated/transaction/transaction'
-import { usePersistedQueryData } from '@/shared/hooks/use-persisted-query-data'
+import { getGetV1AnalyticsCategoriesQueryOptions } from '@/shared/api/generated/transaction/transaction'
+import { usePersistedApiQuery } from '@/shared/hooks/use-persisted-api-query'
 
 import {
   buildAnalysisCategoriesViewModel,
@@ -28,17 +26,12 @@ export function useAnalysisCategories(
     end_date: range.endDate,
     group_by: 'day' as const,
   }
-  const cache = usePersistedQueryData({
+  const query = usePersistedApiQuery({
     isValue: isCategoriesResponse,
     parameters,
     resource: 'analysis-categories',
+    queryOptions: getGetV1AnalyticsCategoriesQueryOptions(parameters),
   })
-  const query = useGetV1AnalyticsCategories(parameters, {
-    query: cache.queryOptions,
-  })
-  useEffect(() => {
-    cache.persist(query.data)
-  }, [cache, query.data])
   const response = query.data?.status === 200 ? query.data.data : null
 
   return {

@@ -1,6 +1,5 @@
 import { useState } from 'react'
 
-import { useGetCategoryList } from '@/shared/api/generated/category/category'
 import type {
   HouseholdEntry,
   HouseholdEntryInput,
@@ -10,6 +9,7 @@ import type {
 import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Input } from '@/shared/components/ui/input'
+import { useCategories } from '@/shared/hooks/use-reference-queries'
 
 import { api, useHouseholdAction } from '../api/household-queries'
 import { FamilyError, FamilyField, FamilySelect } from './fields'
@@ -50,7 +50,7 @@ export function FamilyEntryEditor({
   const transaction = draft.transaction!
   const set = (values: Partial<typeof transaction>) =>
     setDraft({ ...draft, transaction: { ...transaction, ...values } })
-  const categories = useGetCategoryList()
+  const categories = useCategories()
   const action = useHouseholdAction()
   const correct = entry.kind === 'snapshot'
   return (

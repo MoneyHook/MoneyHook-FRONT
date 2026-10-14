@@ -1,11 +1,9 @@
 import { useQueryClient } from '@tanstack/react-query'
 
-import {
-  getGetCategoryWithSubCategoryListQueryKey,
-  useGetCategoryWithSubCategoryList,
-} from '@/shared/api/generated/category/category'
+import { getGetCategoryWithSubCategoryListQueryKey } from '@/shared/api/generated/category/category'
 import type { CategoryWithSubcategoryResponse } from '@/shared/api/generated/model'
 import { useEditSubCategory } from '@/shared/api/generated/sub-category/sub-category'
+import { useCategoriesWithSubcategories } from '@/shared/hooks/use-reference-queries'
 import { clearCategoryReferenceCache } from '@/shared/lib/category-reference-cache'
 
 type CategoryQueryData =
@@ -41,7 +39,7 @@ function updateVisibility(
 
 export function useCategorySettings() {
   const queryClient = useQueryClient()
-  const categoriesQuery = useGetCategoryWithSubCategoryList()
+  const categoriesQuery = useCategoriesWithSubcategories()
   const editMutation = useEditSubCategory()
 
   const setVisibility = async (subcategoryId: string, enable: boolean) => {

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
+  clearPersistedQueryData,
   clearPersistedUserData,
   createPersistedQueryKey,
   ensurePersistedUserDataOwner,
@@ -57,6 +58,19 @@ describe('persisted user data', () => {
 
     expect(localStorage.getItem(userKey)).toBeNull()
     expect(localStorage.getItem('moneyhooks:appearance:theme')).toBe('dark')
+  })
+
+  it('clears every parameter of one query resource while retaining other resources', () => {
+    const first = createPersistedQueryKey('budget', { month: '2026-09-01' })
+    const second = createPersistedQueryKey('budget', { month: '2026-10-01' })
+    const other = createPersistedQueryKey('home-summary', {})
+    for (const key of [first, second, other]) {
+      writePersistedQueryData(key, 1, {})
+    }
+    clearPersistedQueryData('budget')
+    expect(localStorage.getItem(first)).toBeNull()
+    expect(localStorage.getItem(second)).toBeNull()
+    expect(localStorage.getItem(other)).not.toBeNull()
   })
 
   it('separates query parameters and limits persisted query entries', () => {

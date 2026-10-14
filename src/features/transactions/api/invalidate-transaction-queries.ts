@@ -1,7 +1,11 @@
 import type { QueryClient } from '@tanstack/react-query'
 
 import { getGetFrequentTransactionNamesQueryKey } from '@/shared/api/generated/transaction/transaction'
-import { clearPersistedQueryData } from '@/shared/lib/persisted-user-data'
+import {
+  clearPersistedQueryData,
+  removePersistedUserData,
+} from '@/shared/lib/persisted-user-data'
+import { TRANSACTION_FORM_REFERENCE_CACHE_KEYS } from '@/shared/lib/transaction-reference-cache'
 
 // Aggregates can span multiple months. Invalidate every cached range, including
 // both the previous and new month when an edited transaction changes its date.
@@ -19,6 +23,9 @@ const transactionReadQueryKeys = [
 
 export async function invalidateTransactionQueries(queryClient: QueryClient) {
   clearPersistedQueryData()
+  removePersistedUserData(
+    TRANSACTION_FORM_REFERENCE_CACHE_KEYS.frequentTransactions,
+  )
   await Promise.all(
     transactionReadQueryKeys.map((queryKey) =>
       queryClient.invalidateQueries({ queryKey }),

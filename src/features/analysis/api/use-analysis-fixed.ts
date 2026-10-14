@@ -1,8 +1,6 @@
-import { useEffect } from 'react'
-
 import type { V1FixedResponse } from '@/shared/api/generated/model'
-import { useGetV1AnalyticsFixed } from '@/shared/api/generated/transaction/transaction'
-import { usePersistedQueryData } from '@/shared/hooks/use-persisted-query-data'
+import { getGetV1AnalyticsFixedQueryOptions } from '@/shared/api/generated/transaction/transaction'
+import { usePersistedApiQuery } from '@/shared/hooks/use-persisted-api-query'
 
 import { buildAnalysisFixedViewModel } from '../model/analysis-fixed'
 import type { AnalysisRange } from '../model/analysis-overview'
@@ -21,17 +19,12 @@ export function useAnalysisFixed(range: AnalysisRange) {
     end_date: range.endDate,
     group_by: 'month' as const,
   }
-  const cache = usePersistedQueryData({
+  const query = usePersistedApiQuery({
     isValue: isFixedResponse,
     parameters,
     resource: 'analysis-fixed',
+    queryOptions: getGetV1AnalyticsFixedQueryOptions(parameters),
   })
-  const query = useGetV1AnalyticsFixed(parameters, {
-    query: cache.queryOptions,
-  })
-  useEffect(() => {
-    cache.persist(query.data)
-  }, [cache, query.data])
   const response = query.data?.status === 200 ? query.data.data : null
 
   return {

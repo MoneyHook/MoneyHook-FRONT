@@ -1,17 +1,15 @@
-import { useEffect } from 'react'
-
-import { useGetV1Budget } from '@/shared/api/generated/budget/budget'
 import type {
   HomeResponse,
   V1FixedResponse,
   V1OverviewResponse,
 } from '@/shared/api/generated/model'
 import {
-  useGetHome,
-  useGetV1AnalyticsFixed,
-  useGetV1AnalyticsOverview,
+  getGetHomeQueryOptions,
+  getGetV1AnalyticsFixedQueryOptions,
+  getGetV1AnalyticsOverviewQueryOptions,
 } from '@/shared/api/generated/transaction/transaction'
-import { usePersistedQueryData } from '@/shared/hooks/use-persisted-query-data'
+import { useBudget } from '@/shared/hooks/use-budget'
+import { usePersistedApiQuery } from '@/shared/hooks/use-persisted-api-query'
 
 import {
   buildHomeDashboardViewModel,
@@ -62,64 +60,41 @@ export function useHomeDashboard(month: MonthContext) {
     end_date: month.endDate,
     group_by: 'month' as const,
   }
-  const currentOverviewCache = usePersistedQueryData({
+  const currentOverview = usePersistedApiQuery({
     isValue: isOverviewResponse,
     parameters: currentOverviewParameters,
     resource: 'home-overview',
+    queryOptions: getGetV1AnalyticsOverviewQueryOptions(
+      currentOverviewParameters,
+    ),
   })
-  const previousOverviewCache = usePersistedQueryData({
+  const previousOverview = usePersistedApiQuery({
     isValue: isOverviewResponse,
     parameters: previousOverviewParameters,
     resource: 'home-overview',
+    queryOptions: getGetV1AnalyticsOverviewQueryOptions(
+      previousOverviewParameters,
+    ),
   })
-  const currentHomeCache = usePersistedQueryData({
+  const currentHome = usePersistedApiQuery({
     isValue: isHomeResponse,
     parameters: currentHomeParameters,
     resource: 'home-summary',
+    queryOptions: getGetHomeQueryOptions(currentHomeParameters),
   })
-  const previousHomeCache = usePersistedQueryData({
+  const previousHome = usePersistedApiQuery({
     isValue: isHomeResponse,
     parameters: previousHomeParameters,
     resource: 'home-summary',
+    queryOptions: getGetHomeQueryOptions(previousHomeParameters),
   })
-  const fixedCache = usePersistedQueryData({
+  const fixed = usePersistedApiQuery({
     isValue: isFixedResponse,
     parameters: fixedParameters,
     resource: 'home-fixed',
+    queryOptions: getGetV1AnalyticsFixedQueryOptions(fixedParameters),
   })
-  const currentOverview = useGetV1AnalyticsOverview(currentOverviewParameters, {
-    query: currentOverviewCache.queryOptions,
-  })
-  const previousOverview = useGetV1AnalyticsOverview(
-    previousOverviewParameters,
-    { query: previousOverviewCache.queryOptions },
-  )
-  const currentHome = useGetHome(currentHomeParameters, {
-    query: currentHomeCache.queryOptions,
-  })
-  const previousHome = useGetHome(previousHomeParameters, {
-    query: previousHomeCache.queryOptions,
-  })
-  const fixed = useGetV1AnalyticsFixed(fixedParameters, {
-    query: fixedCache.queryOptions,
-  })
-  const budget = useGetV1Budget({ month: month.month })
-
-  useEffect(() => {
-    currentOverviewCache.persist(currentOverview.data)
-  }, [currentOverviewCache, currentOverview.data])
-  useEffect(() => {
-    previousOverviewCache.persist(previousOverview.data)
-  }, [previousOverviewCache, previousOverview.data])
-  useEffect(() => {
-    currentHomeCache.persist(currentHome.data)
-  }, [currentHomeCache, currentHome.data])
-  useEffect(() => {
-    previousHomeCache.persist(previousHome.data)
-  }, [previousHomeCache, previousHome.data])
-  useEffect(() => {
-    fixedCache.persist(fixed.data)
-  }, [fixedCache, fixed.data])
+  const budget = useBudget(month.month)
 
   const queries = [
     currentOverview,

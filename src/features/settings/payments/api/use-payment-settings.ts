@@ -6,21 +6,26 @@ import {
   useAddPaymentResource,
   useDeletePaymentResource,
   useEditPaymentResource,
-  useGetPaymentResources,
-  useGetPaymentTypes,
   useReorderPaymentResources,
 } from '@/shared/api/generated/payment/payment'
+import {
+  usePayments,
+  usePaymentTypes,
+} from '@/shared/hooks/use-reference-queries'
+import { removePersistedUserData } from '@/shared/lib/persisted-user-data'
+import { TRANSACTION_FORM_REFERENCE_CACHE_KEYS } from '@/shared/lib/transaction-reference-cache'
 
 export function usePaymentSettings() {
   const queryClient = useQueryClient()
   const invalidatePayments = async () => {
+    removePersistedUserData(TRANSACTION_FORM_REFERENCE_CACHE_KEYS.payments)
     await queryClient.invalidateQueries({
       queryKey: getGetPaymentResourcesQueryKey(),
     })
   }
   const mutationOptions = { mutation: { onSuccess: invalidatePayments } }
 
-  const paymentsQuery = useGetPaymentResources()
+  const paymentsQuery = usePayments()
   const reorderMutation = useReorderPaymentResources()
   const reorder = async (
     nextPayments: PaymentResourceListResponsePaymentListItem[],
@@ -52,7 +57,7 @@ export function usePaymentSettings() {
     deleteMutation: useDeletePaymentResource(mutationOptions),
     editMutation: useEditPaymentResource(mutationOptions),
     paymentsQuery,
-    paymentTypesQuery: useGetPaymentTypes(),
+    paymentTypesQuery: usePaymentTypes(),
     reorder,
     reorderMutation,
   }
