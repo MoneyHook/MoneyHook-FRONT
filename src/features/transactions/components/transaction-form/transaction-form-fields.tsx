@@ -189,6 +189,7 @@ export function TransactionFormFields({
                 errors.amount ? 'new-transaction-amount-error' : undefined
               }
               aria-invalid={errors.amount ? true : undefined}
+              autoComplete="off"
               className="h-14 max-w-44 border-0 px-0 text-right text-2xl font-semibold tracking-[-0.04em] tabular-nums shadow-none placeholder:text-muted-foreground/60 focus-visible:ring-0 sm:h-16"
               id="new-transaction-amount"
               inputMode="numeric"
