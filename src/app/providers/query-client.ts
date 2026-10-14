@@ -6,7 +6,7 @@ export function createAppQueryClient() {
   return new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 5 * 60 * 1000,
+        staleTime: 60 * 60 * 1000,
         refetchOnWindowFocus: true,
         retry: (failureCount, error) => {
           if (

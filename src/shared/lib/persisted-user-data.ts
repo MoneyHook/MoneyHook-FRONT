@@ -214,20 +214,29 @@ export function writePersistedQueryData<T>(
   }
 }
 
-export function clearPersistedQueryData(): void {
+export function clearPersistedQueryData(resource?: string): void {
   const storage = getStorage()
   if (!storage) {
     return
   }
 
   try {
+    const prefix = resource
+      ? `${PERSISTED_QUERY_DATA_PREFIX}${resource}:`
+      : PERSISTED_QUERY_DATA_PREFIX
     Array.from({ length: storage.length }, (_, index) => storage.key(index))
-      .filter((key): key is string =>
-        Boolean(key?.startsWith(PERSISTED_QUERY_DATA_PREFIX)),
-      )
+      .filter((key): key is string => Boolean(key?.startsWith(prefix)))
       .forEach((key) => storage.removeItem(key))
   } catch {
     // Best-effort cleanup; the next API response repopulates the cache.
+  }
+}
+
+export function getPersistedUserDataOwner(): string | null {
+  try {
+    return getStorage()?.getItem(OWNER_KEY) ?? null
+  } catch {
+    return null
   }
 }
 

@@ -155,6 +155,7 @@ export function TransactionNameInput({
       <PopoverContent
         align="end"
         side="bottom"
+        avoidCollisions={false}
         collisionPadding={16}
         className="w-80 max-w-[calc(100vw-2rem)] p-1"
         role="presentation"

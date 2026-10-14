@@ -152,6 +152,7 @@ export function FamilyTransactionsView({
         >
           <TransactionsViewTabs />
           <div
+            key={view}
             className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[calc(8rem+env(safe-area-inset-bottom))] md:pb-20"
             data-slot="transactions-scroll-area"
           >

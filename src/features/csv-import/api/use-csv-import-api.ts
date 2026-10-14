@@ -1,12 +1,12 @@
 import { useMutation } from '@tanstack/react-query'
 import { useMemo } from 'react'
 
-import { useGetCategoryWithSubCategoryList } from '@/shared/api/generated/category/category'
-import { useGetPaymentResources } from '@/shared/api/generated/payment/payment'
+import { addTransactionList } from '@/shared/api/generated/transaction/transaction'
 import {
-  addTransactionList,
-  useGetFrequentTransactionNames,
-} from '@/shared/api/generated/transaction/transaction'
+  useCategoriesWithSubcategories,
+  useFrequentTransactions,
+  usePayments,
+} from '@/shared/hooks/use-reference-queries'
 
 import { toTransactionList } from '../model/csv-import'
 import type { Categories } from '../types'
@@ -20,11 +20,9 @@ export function useCsvImportApi({
   onSuccess: () => void
   onError: () => void
 }) {
-  const categoriesQuery = useGetCategoryWithSubCategoryList()
-  const paymentsQuery = useGetPaymentResources()
-  const frequentTransactionsQuery = useGetFrequentTransactionNames({
-    limit: 100,
-  })
+  const categoriesQuery = useCategoriesWithSubcategories()
+  const paymentsQuery = usePayments()
+  const frequentTransactionsQuery = useFrequentTransactions()
   const categories = useMemo<Categories>(
     () =>
       categoriesQuery.data?.status === 200

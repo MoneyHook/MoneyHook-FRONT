@@ -1,9 +1,9 @@
 import {
-  useGetV1AnalyticsCategories,
-  useGetV1AnalyticsFixed,
-  useGetV1AnalyticsOverview,
+  getGetV1AnalyticsCategoriesQueryOptions,
+  getGetV1AnalyticsFixedQueryOptions,
+  getGetV1AnalyticsOverviewQueryOptions,
 } from '@/shared/api/generated/transaction/transaction'
-import { usePersistedQueryData } from '@/shared/hooks/use-persisted-query-data'
+import { usePersistedApiQuery } from '@/shared/hooks/use-persisted-api-query'
 
 import {
   type AnalysisRange,
@@ -51,39 +51,24 @@ export function useAnalysisOverview(range: AnalysisRange) {
     end_date: range.endDate,
     group_by: 'month' as const,
   }
-  const overviewCache = usePersistedQueryData({
+  const overview = usePersistedApiQuery({
     isValue: isOverviewResponse,
     parameters: overviewParameters,
     resource: 'analysis-overview',
+    queryOptions: getGetV1AnalyticsOverviewQueryOptions(overviewParameters),
   })
-  const categoriesCache = usePersistedQueryData({
+  const categories = usePersistedApiQuery({
     isValue: isCategoriesResponse,
     parameters: categoriesParameters,
     resource: 'analysis-categories',
+    queryOptions: getGetV1AnalyticsCategoriesQueryOptions(categoriesParameters),
   })
-  const fixedCache = usePersistedQueryData({
+  const fixed = usePersistedApiQuery({
     isValue: isFixedResponse,
     parameters: fixedParameters,
     resource: 'analysis-fixed',
+    queryOptions: getGetV1AnalyticsFixedQueryOptions(fixedParameters),
   })
-  const overview = useGetV1AnalyticsOverview(overviewParameters, {
-    query: overviewCache.queryOptions,
-  })
-  const categories = useGetV1AnalyticsCategories(categoriesParameters, {
-    query: categoriesCache.queryOptions,
-  })
-  const fixed = useGetV1AnalyticsFixed(fixedParameters, {
-    query: fixedCache.queryOptions,
-  })
-  useEffect(() => {
-    overviewCache.persist(overview.data)
-  }, [overviewCache, overview.data])
-  useEffect(() => {
-    categoriesCache.persist(categories.data)
-  }, [categoriesCache, categories.data])
-  useEffect(() => {
-    fixedCache.persist(fixed.data)
-  }, [fixedCache, fixed.data])
 
   const queries = [overview, categories, fixed]
   const isPending = queries.some((query) => query.isPending)
@@ -111,8 +96,6 @@ export function useAnalysisOverview(range: AnalysisRange) {
     refetch: () => Promise.all(queries.map((query) => query.refetch())),
   }
 }
-import { useEffect } from 'react'
-
 import type {
   V1CategoriesResponse,
   V1FixedResponse,
