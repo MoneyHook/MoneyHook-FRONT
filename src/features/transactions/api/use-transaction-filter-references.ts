@@ -1,11 +1,11 @@
-import { useGetCategoryWithSubCategoryList } from '@/shared/api/generated/category/category'
-import { useGetPaymentResources } from '@/shared/api/generated/payment/payment'
+import {
+  useCategoriesWithSubcategories,
+  usePayments,
+} from '@/shared/hooks/use-reference-queries'
 
 export function useTransactionFilterReferences(enabled: boolean) {
-  const categoriesQuery = useGetCategoryWithSubCategoryList({
-    query: { enabled },
-  })
-  const paymentsQuery = useGetPaymentResources({ query: { enabled } })
+  const categoriesQuery = useCategoriesWithSubcategories(enabled)
+  const paymentsQuery = usePayments(enabled)
 
   return {
     categories:

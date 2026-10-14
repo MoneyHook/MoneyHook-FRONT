@@ -1,8 +1,6 @@
-import { useEffect } from 'react'
-
 import type { V1PaymentsResponse } from '@/shared/api/generated/model'
-import { useGetV1AnalyticsPayments } from '@/shared/api/generated/transaction/transaction'
-import { usePersistedQueryData } from '@/shared/hooks/use-persisted-query-data'
+import { getGetV1AnalyticsPaymentsQueryOptions } from '@/shared/api/generated/transaction/transaction'
+import { usePersistedApiQuery } from '@/shared/hooks/use-persisted-api-query'
 
 import type { AnalysisRange } from '../model/analysis-overview'
 import { buildAnalysisPaymentsViewModel } from '../model/analysis-payments'
@@ -21,17 +19,12 @@ export function useAnalysisPayments(range: AnalysisRange) {
     end_date: range.endDate,
     group_by: 'month' as const,
   }
-  const cache = usePersistedQueryData({
+  const query = usePersistedApiQuery({
     isValue: isPaymentsResponse,
     parameters,
     resource: 'analysis-payments',
+    queryOptions: getGetV1AnalyticsPaymentsQueryOptions(parameters),
   })
-  const query = useGetV1AnalyticsPayments(parameters, {
-    query: cache.queryOptions,
-  })
-  useEffect(() => {
-    cache.persist(query.data)
-  }, [cache, query.data])
   const response = query.data?.status === 200 ? query.data.data : null
 
   return {

@@ -5,6 +5,7 @@ import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { V1CategoriesResponse } from '@/shared/api/generated/model'
+import { getGetV1AnalyticsCategoriesQueryKey } from '@/shared/api/generated/transaction/transaction'
 import {
   createPersistedQueryKey,
   readPersistedQueryData,
@@ -144,7 +145,7 @@ describe('home changes API integration', () => {
     )
   })
 
-  it('hides changes after a failed refresh even if persisted data is available, without failing the dashboard', async () => {
+  it('keeps persisted changes after a failed refresh without failing the dashboard', async () => {
     const parameters = createHomeChangeParameters(month)
     writePersistedQueryData(
       createPersistedQueryKey('analysis-categories', parameters.current),
@@ -192,7 +193,7 @@ describe('home changes API integration', () => {
         }),
       ),
     )
-    const { wrapper } = setup()
+    const { client, wrapper } = setup()
     const { result } = renderHook(
       () => ({
         dashboard: useHomeDashboard(month),
@@ -200,9 +201,23 @@ describe('home changes API integration', () => {
       }),
       { wrapper },
     )
-    await waitFor(() => expect(result.current.changes.isError).toBe(true))
+    await waitFor(() =>
+      expect(
+        client.getQueryState(
+          getGetV1AnalyticsCategoriesQueryKey(parameters.current),
+        )?.status,
+      ).toBe('error'),
+    )
+    await waitFor(() =>
+      expect(
+        client.getQueryState(
+          getGetV1AnalyticsCategoriesQueryKey(parameters.previous),
+        )?.status,
+      ).toBe('error'),
+    )
     await waitFor(() => expect(result.current.dashboard.data).not.toBeNull())
-    expect(result.current.changes.data).toBeNull()
+    expect(result.current.changes.data?.increase?.difference).toBe(3000)
+    expect(result.current.changes.isError).toBe(false)
     expect(result.current.dashboard.isError).toBe(false)
     expect(result.current.dashboard.isPending).toBe(false)
   })

@@ -20,7 +20,6 @@ import type {
   NewTransactionFormValues,
   TransactionFormExtension,
 } from '@/features/transactions'
-import { useGetCategoryList } from '@/shared/api/generated/category/category'
 import {
   householdDuplicates,
   householdOwn,
@@ -29,6 +28,7 @@ import {
 import type { HouseholdEntryInput } from '@/shared/api/generated/model'
 import { HouseholdScopeSwitch } from '@/shared/components/household-scope-switch'
 import { Button } from '@/shared/components/ui/button'
+import { useCategories } from '@/shared/hooks/use-reference-queries'
 import { useUserSettings } from '@/shared/hooks/use-user-settings'
 
 export function useRecordingScope(): TransactionFormExtension & {
@@ -47,7 +47,7 @@ export function useRecordingScope(): TransactionFormExtension & {
       (!requestedFamily || f.household_id === requestedFamily),
   )
   const detail = useFamilyData(family?.household_id ?? '')
-  const categories = useGetCategoryList()
+  const categories = useCategories()
   const [scopeOverride, setScope] = useState<'personal' | 'household' | null>(
     () =>
       search.get('scope') === 'personal'
