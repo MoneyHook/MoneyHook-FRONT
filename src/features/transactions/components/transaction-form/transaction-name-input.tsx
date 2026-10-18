@@ -9,6 +9,7 @@ import {
 import { cn } from '@/shared/lib/utils'
 
 import type { TransactionFormController } from '../../hooks/use-transaction-form-controller'
+import { useTransactionNameViewport } from '../../hooks/use-transaction-name-viewport'
 
 type Props = Pick<
   TransactionFormController,
@@ -40,11 +41,13 @@ export function TransactionNameInput({
 }: Props) {
   const listId = useId()
   const inputRef = useRef<HTMLInputElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
   const isComposing = useRef(false)
   const [open, setOpen] = useState(false)
   const [activeName, setActiveName] = useState<string | null>(null)
   const isOpen = open && !isEdit
+  useTransactionNameViewport(isOpen, inputRef, contentRef)
   const activeIndex = recommendedTransactions.findIndex(
     (transaction) => transaction.transaction_name === activeName,
   )
@@ -90,7 +93,7 @@ export function TransactionNameInput({
           aria-haspopup={isEdit ? undefined : 'listbox'}
           aria-invalid={errors.transactionName ? true : undefined}
           autoComplete="off"
-          className="ml-auto h-11 max-w-64 text-right text-xl placeholder:text-muted-foreground/60"
+          className="ml-auto h-11 max-w-64 scroll-mt-4 text-right text-xl placeholder:text-muted-foreground/60"
           id="new-transaction-name"
           maxLength={32}
           onBlur={() => setOpen(false)}
@@ -153,6 +156,7 @@ export function TransactionNameInput({
         />
       </PopoverAnchor>
       <PopoverContent
+        ref={contentRef}
         align="end"
         side="bottom"
         avoidCollisions={false}
@@ -183,7 +187,7 @@ export function TransactionNameInput({
           ref={listRef}
           aria-label="取引名の候補"
           aria-busy={isLoadingRecommendations}
-          className="max-h-[min(20rem,calc(var(--radix-popover-content-available-height)-2.5rem))] overflow-y-auto"
+          className="max-h-[var(--transaction-name-list-height,24rem)] overflow-y-auto overscroll-contain"
           id={listId}
           role="listbox"
         >
