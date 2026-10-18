@@ -1,7 +1,5 @@
 import { LoaderCircle } from 'lucide-react'
 
-import { Skeleton } from '@/shared/components/ui/skeleton'
-
 import { Brand } from '../brand'
 
 type FullScreenLoadingProps = {
@@ -25,7 +23,6 @@ export function FullScreenLoading({
             className="mx-auto size-5 animate-spin text-primary"
           />
           <p className="text-sm text-muted-foreground">{label}</p>
-          <Skeleton className="mx-auto h-1.5 w-32" />
         </div>
       </div>
     </main>
