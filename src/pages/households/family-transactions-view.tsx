@@ -117,6 +117,7 @@ export function FamilyTransactionsView({
           </h1>
           <div className="flex items-center gap-1">
             <HouseholdScopeSwitch
+              size="sm"
               hasActiveFamily={hasActiveFamily}
               scope="family"
               personalHref={`/app/transactions?month=${month.month}&view=${view}`}
@@ -247,7 +248,7 @@ export function FamilyTransactionsView({
               }
             >
               <option value="">すべて</option>
-              <option value="shared">個人原本の共有</option>
+              <option value="shared">個人の取引</option>
               <option value="proxy">代理記録</option>
               <option value="snapshot">控え</option>
             </FamilySelect>

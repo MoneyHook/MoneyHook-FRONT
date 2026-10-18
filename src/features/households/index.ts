@@ -17,5 +17,4 @@ export {
 export { FamilyTransactionsListPanel } from './components/family-transactions-list-panel'
 export { FamilyError, FamilyField, FamilySelect } from './components/fields'
 export { JoinFamily } from './components/join-family'
-export { SharePersonalEntry } from './components/share-personal-entry'
 export { buildFamilyPayerTotals } from './model/family-transactions'
