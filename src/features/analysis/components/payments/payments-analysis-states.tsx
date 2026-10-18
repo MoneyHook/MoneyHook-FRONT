@@ -21,7 +21,6 @@ export function PaymentsSkeleton() {
           <Skeleton className="mx-auto size-36 rounded-full border-12 border-muted bg-transparent sm:size-56 sm:border-20" />
           <AnalysisLegendSkeleton count={3} />
         </div>
-        <Skeleton className="mt-4 h-11 w-full rounded-xl" />
       </AnalysisPanel>
       <AnalysisPanel>
         <div className="flex flex-wrap items-center justify-between gap-2">

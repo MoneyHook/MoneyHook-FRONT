@@ -9,6 +9,7 @@ import type {
 import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Input } from '@/shared/components/ui/input'
+import { useConfirmation } from '@/shared/hooks/use-confirmation'
 import { useCategories } from '@/shared/hooks/use-reference-queries'
 
 import { api, useHouseholdAction } from '../api/household-queries'
@@ -51,6 +52,7 @@ export function FamilyEntryEditor({
   const set = (values: Partial<typeof transaction>) =>
     setDraft({ ...draft, transaction: { ...transaction, ...values } })
   const categories = useCategories()
+  const confirm = useConfirmation()
   const action = useHouseholdAction()
   const correct = entry.kind === 'snapshot'
   return (
@@ -71,9 +73,12 @@ export function FamilyEntryEditor({
             if (
               matches.status === 200 &&
               matches.data.length &&
-              !window.confirm(
-                '同じ日付・金額・支払い者の記録があります。この内容で保存しますか？',
-              )
+              !(await confirm({
+                title: '同じ内容の記録があります',
+                description:
+                  '同じ日付・金額・支払い者の記録があります。この内容で保存しますか？',
+                actionLabel: 'この内容で保存',
+              }))
             )
               return
             if (correct) await api.householdCorrect(id, entry.entry_id, draft)
@@ -234,7 +239,7 @@ export function FamilyEntryEditor({
       {correct && (
         <>
           <p className="text-xs text-muted-foreground">
-            家族用の訂正内容を保存します。個人の原本は変更しません。
+            家族用の訂正内容を保存します。個人の取引は変更しません。
           </p>
           <label className="flex items-center gap-2 text-sm">
             <Checkbox

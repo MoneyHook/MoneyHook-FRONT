@@ -8,8 +8,18 @@ import {
   YAxis,
 } from 'recharts'
 
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/shared/components/ui/tabs'
+
 import { formatCurrency } from '../../model/analysis-overview'
-import type { AnalysisPaymentsViewModel } from '../../model/analysis-payments'
+import type {
+  AnalysisPaymentsViewModel,
+  PaymentGroup,
+} from '../../model/analysis-payments'
 import { analysisChartColors } from '../analysis-chart-colors'
 import { AnalysisPanel } from './payments-analysis-panel'
 
@@ -88,95 +98,116 @@ function PaymentTrendTooltip({
 
 export function PaymentTrendPanel({
   data,
+  group,
+  onGroupChange,
 }: {
   data: AnalysisPaymentsViewModel
+  group: PaymentGroup
+  onGroupChange: (group: PaymentGroup) => void
 }) {
   const rows = buildTrendRows(data)
 
   return (
     <AnalysisPanel>
-      <div className="flex items-center justify-between gap-4">
-        <h2 className="text-base font-semibold sm:text-lg">
-          支払い方法別の支出推移
-        </h2>
-        <span className="rounded-lg bg-muted px-3 py-2 text-xs font-medium sm:text-sm">
-          月別
-        </span>
-      </div>
-      <div
-        aria-label="選択期間の支払い方法別支出推移グラフ"
-        className="mt-4 h-56 w-full sm:h-72"
+      <Tabs
+        className="gap-0"
+        value={group}
+        onValueChange={(value) => onGroupChange(value as PaymentGroup)}
       >
-        <ResponsiveContainer height="100%" width="100%">
-          <LineChart
-            data={rows}
-            margin={{ bottom: 0, left: 0, right: 14, top: 18 }}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-base font-semibold sm:text-lg">
+            支払い方法別の支出推移
+          </h2>
+          <TabsList aria-label="推移の集計単位">
+            <TabsTrigger value="month">月別</TabsTrigger>
+            <TabsTrigger value="week">週別</TabsTrigger>
+            <TabsTrigger value="day">日別</TabsTrigger>
+          </TabsList>
+        </div>
+        <TabsContent value={group}>
+          <div
+            aria-label="選択期間の支払い方法別支出推移グラフ"
+            className="mt-4 h-56 w-full sm:h-72"
           >
-            <CartesianGrid
-              stroke="var(--border)"
-              strokeDasharray="4 5"
-              vertical={false}
-            />
-            <XAxis
-              axisLine={false}
-              dataKey="label"
-              interval={0}
-              tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
-              tickLine={false}
-            />
-            <YAxis
-              axisLine={false}
-              tick={{ fill: 'var(--muted-foreground)', fontSize: 10 }}
-              tickFormatter={(value) => formatAxisAmount(Number(value))}
-              tickLine={false}
-              width={68}
-            />
-            <Tooltip
-              content={<PaymentTrendTooltip />}
-              cursor={{ stroke: 'var(--border)' }}
-            />
+            <ResponsiveContainer height="100%" width="100%">
+              <LineChart
+                data={rows}
+                margin={{ bottom: 0, left: 0, right: 14, top: 18 }}
+              >
+                <CartesianGrid
+                  stroke="var(--border)"
+                  strokeDasharray="4 5"
+                  vertical={false}
+                />
+                <XAxis
+                  axisLine={false}
+                  dataKey="label"
+                  interval={group === 'month' ? 0 : 'preserveStartEnd'}
+                  minTickGap={20}
+                  tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
+                  tickLine={false}
+                />
+                <YAxis
+                  axisLine={false}
+                  tick={{ fill: 'var(--muted-foreground)', fontSize: 10 }}
+                  tickFormatter={(value) => formatAxisAmount(Number(value))}
+                  tickLine={false}
+                  width={68}
+                />
+                <Tooltip
+                  content={<PaymentTrendTooltip />}
+                  cursor={{ stroke: 'var(--border)' }}
+                />
+                {data.payments.map((payment, index) => (
+                  <Line
+                    activeDot={{
+                      fill: analysisChartColors[
+                        index % analysisChartColors.length
+                      ],
+                      r: 5,
+                      strokeWidth: 0,
+                    }}
+                    dataKey={payment.id}
+                    dot={{
+                      fill: analysisChartColors[
+                        index % analysisChartColors.length
+                      ],
+                      r: 3.5,
+                      strokeWidth: 0,
+                    }}
+                    isAnimationActive
+                    key={payment.id}
+                    name={payment.name}
+                    stroke={
+                      analysisChartColors[index % analysisChartColors.length]
+                    }
+                    strokeWidth={2.25}
+                    type="monotone"
+                  />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          <ul
+            aria-label="支払い方法別支出推移の凡例"
+            className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-2 text-[0.6875rem] sm:text-xs"
+          >
             {data.payments.map((payment, index) => (
-              <Line
-                activeDot={{
-                  fill: analysisChartColors[index % analysisChartColors.length],
-                  r: 5,
-                  strokeWidth: 0,
-                }}
-                dataKey={payment.id}
-                dot={{
-                  fill: analysisChartColors[index % analysisChartColors.length],
-                  r: 3.5,
-                  strokeWidth: 0,
-                }}
-                isAnimationActive
-                key={payment.id}
-                name={payment.name}
-                stroke={analysisChartColors[index % analysisChartColors.length]}
-                strokeWidth={2.25}
-                type="monotone"
-              />
+              <li className="flex items-center gap-1.5" key={payment.id}>
+                <span
+                  aria-hidden="true"
+                  className="size-2.5 rounded-full"
+                  style={{
+                    backgroundColor:
+                      analysisChartColors[index % analysisChartColors.length],
+                  }}
+                />
+                {payment.name}
+              </li>
             ))}
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-      <ul
-        aria-label="支払い方法別支出推移の凡例"
-        className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-2 text-[0.6875rem] sm:text-xs"
-      >
-        {data.payments.map((payment, index) => (
-          <li className="flex items-center gap-1.5" key={payment.id}>
-            <span
-              aria-hidden="true"
-              className="size-2.5 rounded-full"
-              style={{
-                backgroundColor:
-                  analysisChartColors[index % analysisChartColors.length],
-              }}
-            />
-            {payment.name}
-          </li>
-        ))}
-      </ul>
+          </ul>
+        </TabsContent>
+      </Tabs>
     </AnalysisPanel>
   )
 }

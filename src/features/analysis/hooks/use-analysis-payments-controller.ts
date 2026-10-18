@@ -1,16 +1,20 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { useAnalysisPayments } from '../api/use-analysis-payments'
 import type { AnalysisRange } from '../model/analysis-overview'
-import { getSelectedPayment } from '../model/analysis-payments'
+import {
+  getSelectedPayment,
+  type PaymentGroup,
+} from '../model/analysis-payments'
 
 export function useAnalysisPaymentsController(range: AnalysisRange) {
   const navigate = useNavigate()
   const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
   const rawPaymentId = searchParams.get('payment')
-  const payments = useAnalysisPayments(range)
+  const [group, changeGroup] = useState<PaymentGroup>('month')
+  const payments = useAnalysisPayments(range, group)
   const selectedPayment = payments.data
     ? getSelectedPayment(payments.data.payments, rawPaymentId)
     : null
@@ -48,5 +52,12 @@ export function useAnalysisPaymentsController(range: AnalysisRange) {
     })
   }
 
-  return { payments, selectedPayment, setPayment, openTransaction }
+  return {
+    payments,
+    selectedPayment,
+    setPayment,
+    openTransaction,
+    group,
+    changeGroup,
+  }
 }

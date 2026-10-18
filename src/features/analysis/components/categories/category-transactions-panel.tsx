@@ -39,12 +39,17 @@ function TransactionRow({
     <Button
       variant="ghost"
       aria-label={`${item.name}を編集`}
-      className="grid h-auto w-full grid-cols-[minmax(5.8rem,auto)_auto_minmax(0,1fr)_auto] items-center gap-2 rounded-none border-0 px-1 py-3 text-left font-normal whitespace-normal transition-colors outline-none hover:bg-muted/45 focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-0 sm:grid-cols-[8rem_auto_minmax(0,1fr)_auto] sm:gap-4 sm:px-2 dark:hover:bg-muted/45"
+      className="grid h-auto w-full grid-cols-[3rem_auto_minmax(0,1fr)_auto] items-center gap-2 rounded-none border-0 px-1 py-3 text-left font-normal whitespace-normal transition-colors outline-none hover:bg-muted/45 focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-0 sm:grid-cols-[8rem_auto_minmax(0,1fr)_auto] sm:gap-4 sm:px-2 dark:hover:bg-muted/45"
       onClick={() => onOpen(item.id)}
       type="button"
     >
       <span className="text-[0.6875rem] font-medium sm:text-sm">
-        {formatTransactionDate(item.date)}
+        <span className="sm:hidden">
+          {item.date.split('-').slice(1).map(Number).join('/')}
+        </span>
+        <span className="hidden sm:inline">
+          {formatTransactionDate(item.date)}
+        </span>
       </span>
       <CategoryIcon name={categoryName} />
       <span className="min-w-0">

@@ -290,7 +290,7 @@ export function FamilyLedger({
                   }
                 >
                   <option value="">すべて</option>
-                  <option value="shared">個人原本の共有</option>
+                  <option value="shared">個人の取引</option>
                   <option value="proxy">代理記録</option>
                   <option value="snapshot">控え</option>
                 </FamilySelect>
@@ -343,7 +343,7 @@ export function FamilyLedger({
                     <span className="text-xs text-muted-foreground">
                       {
                         {
-                          shared: '原本共有',
+                          shared: '個人の取引',
                           proxy: '代理記録',
                           snapshot: '控え',
                         }[entry.kind]

@@ -5,8 +5,6 @@ import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { FamilyEntryDetailSkeleton } from '@/features/households'
 import {
   FamilyEntryDetail,
-  FamilyField,
-  FamilySelect,
   FamilyTransactionsListPanel,
   useFamilyData,
   useFamilyTransactions,
@@ -33,6 +31,7 @@ import {
 } from '@/shared/components/ui/sheet'
 import { Tabs, TabsContent } from '@/shared/components/ui/tabs'
 
+import { FamilyTransactionsFilterSheet } from './family-transactions-filter-sheet'
 import { buildFamilyTransactionsViewModel } from './family-transactions-model'
 
 export function FamilyTransactionsView({
@@ -117,9 +116,10 @@ export function FamilyTransactionsView({
           </h1>
           <div className="flex items-center gap-1">
             <HouseholdScopeSwitch
+              size="sm"
               hasActiveFamily={hasActiveFamily}
               scope="family"
-              personalHref={`/app/transactions?month=${month.month}&view=${view}`}
+              personalHref={`/app/home?month=${month.month}`}
               familyHref={returnTo}
             />
             <Button
@@ -211,65 +211,17 @@ export function FamilyTransactionsView({
         </Tabs>
       </section>
 
-      <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
-        <SheetContent
-          side="bottom"
-          className="max-h-[88svh] overflow-y-auto rounded-t-[2rem] px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:mx-auto sm:max-w-xl"
-        >
-          <SheetHeader className="px-0">
-            <SheetTitle>絞り込み</SheetTitle>
-            <SheetDescription>
-              一覧とカレンダーに表示する取引を絞り込みます。
-            </SheetDescription>
-          </SheetHeader>
-          <FamilyField label="支払い者">
-            <FamilySelect
-              value={draft.payer}
-              onChange={(event) =>
-                setDraft({ ...draft, payer: event.target.value })
-              }
-            >
-              <option value="">全員</option>
-              <option value="common">家族共通</option>
-              {detail.data?.members.map((member) => (
-                <option key={member.member_id} value={member.member_id}>
-                  {member.display_name}
-                  {member.state === 'left' ? '（退出済み）' : ''}
-                </option>
-              ))}
-            </FamilySelect>
-          </FamilyField>
-          <FamilyField label="記録の種類">
-            <FamilySelect
-              value={draft.kind}
-              onChange={(event) =>
-                setDraft({ ...draft, kind: event.target.value })
-              }
-            >
-              <option value="">すべて</option>
-              <option value="shared">個人原本の共有</option>
-              <option value="proxy">代理記録</option>
-              <option value="snapshot">控え</option>
-            </FamilySelect>
-          </FamilyField>
-          <div className="mt-2 flex justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setDraft({ payer: '', kind: '' })}
-            >
-              クリア
-            </Button>
-            <Button
-              onClick={() => {
-                updateSearch(draft)
-                setFilterOpen(false)
-              }}
-            >
-              適用する
-            </Button>
-          </div>
-        </SheetContent>
-      </Sheet>
+      <FamilyTransactionsFilterSheet
+        open={filterOpen}
+        onOpenChange={setFilterOpen}
+        draft={draft}
+        onDraftChange={setDraft}
+        members={detail.data?.members}
+        onApply={() => {
+          updateSearch(draft)
+          setFilterOpen(false)
+        }}
+      />
 
       <Sheet
         open={Boolean(selectedEntry)}

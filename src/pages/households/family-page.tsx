@@ -1,3 +1,4 @@
+import { ArrowLeft } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link, Navigate, useLocation, useSearchParams } from 'react-router-dom'
 
@@ -113,6 +114,19 @@ export function FamilyPage({
           })
         }}
       />
+      {sharing && (
+        <Button asChild className="mt-3 -ml-2" type="button" variant="ghost">
+          <Link
+            to={`/app/family?${new URLSearchParams({
+              household: family.household_id,
+              month: `${month}-01`,
+            })}`}
+          >
+            <ArrowLeft aria-hidden="true" />
+            家族の家計簿に戻る
+          </Link>
+        </Button>
+      )}
       <div className="mt-2 sm:mt-6">
         {sharing ? (
           <FamilySharing

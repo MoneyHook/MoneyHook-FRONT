@@ -84,7 +84,7 @@ export function JoinFamily({ token = '' }: { token?: string }) {
               {new Date(preview.expires_at).toLocaleString('ja-JP')}
             </p>
             <p className="text-xs leading-5 text-muted-foreground">
-              参加後は過去の家族記録も閲覧できます。個人原本の共有記録は閲覧のみ、代理記録は家族で共同編集できます。
+              参加後は過去の家族記録も閲覧できます。個人の取引記録は閲覧のみ、代理記録は家族で共同編集できます。
             </p>
             <Button
               className="h-10 w-full"
