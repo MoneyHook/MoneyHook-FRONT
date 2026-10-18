@@ -2,6 +2,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { type ReactNode, useState } from 'react'
 
 import { AuthProvider } from '@/features/auth'
+import { ConfirmationProvider } from '@/shared/components/confirmation-provider'
 import { Toaster } from '@/shared/components/ui/sonner'
 import { TooltipProvider } from '@/shared/components/ui/tooltip'
 import { useIsMobile } from '@/shared/hooks/use-mobile'
@@ -18,7 +19,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
       <AuthProvider>
         <AppearanceProvider>
           <TooltipProvider delayDuration={250}>
-            {children}
+            <ConfirmationProvider>{children}</ConfirmationProvider>
             <Toaster position={isMobile ? 'top-center' : 'bottom-right'} />
           </TooltipProvider>
         </AppearanceProvider>

@@ -1,5 +1,6 @@
 import type { Household } from '@/shared/api/generated/model'
 import { Button } from '@/shared/components/ui/button'
+import { useConfirmation } from '@/shared/hooks/use-confirmation'
 
 import { api, useHouseholdAction } from '../api/household-queries'
 import { FamilyError } from './fields'
@@ -11,10 +12,27 @@ export function FamilyLifecycleActions({
   family: Household
   memberCount: number
 }) {
+  const confirm = useConfirmation()
   const action = useHouseholdAction()
   const id = family.household_id
-  const confirmation = (message: string, fn: () => Promise<unknown>) => {
-    if (window.confirm(message)) void action.run(fn).catch(() => {})
+  const confirmation = (
+    title: string,
+    message: string,
+    fn: () => Promise<unknown>,
+  ) => {
+    void action
+      .run(async () => {
+        if (
+          await confirm({
+            title,
+            description: message,
+            actionLabel: title,
+            destructive: true,
+          })
+        )
+          await fn()
+      })
+      .catch(() => {})
   }
 
   return (
@@ -29,7 +47,7 @@ export function FamilyLifecycleActions({
       {family.role !== 'admin' ? (
         <div className="mt-2 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="max-w-xl text-xs leading-5 text-muted-foreground">
-            退出後は家族の記録を閲覧できません。あなたの個人原本は残り、家族には退出時点の控えが残ります。
+            退出後は家族の記録を閲覧できません。あなたの個人の取引は残り、家族には退出時点の控えが残ります。
           </p>
           <Button
             className="shrink-0"
@@ -37,7 +55,8 @@ export function FamilyLifecycleActions({
             disabled={action.busy}
             onClick={() =>
               confirmation(
-                '家族から退出します。原本は個人に残り、家族には控えが残ります。退出後は家族の記録を閲覧できません。',
+                '家族から退出',
+                '家族から退出します。個人の取引は残り、家族には控えが残ります。退出後は家族の記録を閲覧できません。',
                 () =>
                   api.householdLeave(id, {
                     expected_version: family.version,
@@ -51,7 +70,7 @@ export function FamilyLifecycleActions({
       ) : memberCount === 1 ? (
         <div className="mt-2 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="max-w-xl text-xs leading-5 text-muted-foreground">
-            家族を終了すると閲覧専用になります。共有原本は終了時点の控えに変わります。
+            家族を終了すると閲覧専用になります。共有していた取引は終了時点の控えに変わります。
           </p>
           <Button
             className="shrink-0"
@@ -59,7 +78,8 @@ export function FamilyLifecycleActions({
             disabled={action.busy}
             onClick={() =>
               confirmation(
-                'この家族を終了し、閲覧専用にします。共有原本は控えに変わります。',
+                '家族を終了',
+                'この家族を終了し、閲覧専用にします。共有していた取引は控えに変わります。',
                 () =>
                   api.householdArchive(id, {
                     expected_version: family.version,

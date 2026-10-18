@@ -28,8 +28,11 @@ import {
 import type { HouseholdEntryInput } from '@/shared/api/generated/model'
 import { HouseholdScopeSwitch } from '@/shared/components/household-scope-switch'
 import { Button } from '@/shared/components/ui/button'
+import { useConfirmation } from '@/shared/hooks/use-confirmation'
 import { useCategories } from '@/shared/hooks/use-reference-queries'
 import { useUserSettings } from '@/shared/hooks/use-user-settings'
+
+import { buildFamilyRecordingReferences } from './family-recording-references'
 
 export function useRecordingScope(): TransactionFormExtension & {
   isInitializing: boolean
@@ -70,6 +73,7 @@ export function useRecordingScope(): TransactionFormExtension & {
   // Resolve the initial default once, before mounting the form. Refetches must not change an active draft's destination.
   if (scopeOverride === null && !isInitializing) setScope(scope)
   const [payer, setPayer] = useState('own')
+  const confirm = useConfirmation()
   const action = useHouseholdAction()
   const request = useRequestKey()
   const navigate = useNavigate()
@@ -84,37 +88,13 @@ export function useRecordingScope(): TransactionFormExtension & {
         detail.data.family.state !== 'active' ||
         detail.isError))
   const references = proxy
-    ? {
-        categories: (categories.data?.status === 200
+    ? buildFamilyRecordingReferences(
+        categories.data?.status === 200
           ? (categories.data.data.category_list ?? [])
-          : []
-        ).map((c) => ({
-          ...c,
-          sub_category_list: [
-            {
-              sub_category_id: 'none',
-              sub_category_name: '指定なし',
-              enable: true,
-            },
-            ...(detail.data?.subcategories ?? [])
-              .filter((s) => s.active && s.category_id === c.category_id)
-              .map((s) => ({
-                sub_category_id: s.id,
-                sub_category_name: s.name,
-                enable: true,
-              })),
-          ],
-        })),
-        payments: (detail.data?.payments ?? [])
-          .filter((p) => p.active)
-          .map((p) => ({
-            payment_id: p.id,
-            payment_name: p.name,
-            payment_type_id: p.payment_type_id ?? '1',
-            payment_date: p.payment_date,
-            closing_date: p.closing_date ?? 31,
-          })),
-      }
+          : [],
+        detail.data?.subcategories ?? [],
+        detail.data?.payments ?? [],
+      )
     : undefined
   const onCreate =
     scope === 'household'
@@ -163,9 +143,12 @@ export function useRecordingScope(): TransactionFormExtension & {
             if (
               duplicates.status === 200 &&
               duplicates.data.length > 0 &&
-              !window.confirm(
-                '同じ日付・金額・支払い者の家族記録があります。重複ではないことを確認して登録しますか？',
-              )
+              !(await confirm({
+                title: '同じ内容の記録があります',
+                description:
+                  '同じ日付・金額・支払い者の家族記録があります。重複ではないことを確認して登録しますか？',
+                actionLabel: '登録する',
+              }))
             )
               return
             const r = proxy
