@@ -140,6 +140,27 @@ describe('analysis payments model', () => {
     expect(getSelectedPayment(model.payments, null)).toBeNull()
   })
 
+  it.each([
+    ['month', ['12月', '1月']],
+    ['week', ['12/28週', '1/4週']],
+    ['day', ['12/28', '1/4']],
+  ] as const)(
+    'formats %s buckets across year boundaries without changing amounts',
+    (group, labels) => {
+      const data = response()
+      data.payment_list[1].series = [
+        { bucket: '2026-12-28', expense_amount: 0 },
+        { bucket: '2027-01-04', expense_amount: 10_000 },
+      ]
+      const model = buildAnalysisPaymentsViewModel(data, range, group)
+      expect(model.payments[0].series.map((item) => item.label)).toEqual(labels)
+      expect(
+        model.payments[0].series.map((item) => item.expenseAmount),
+      ).toEqual([0, 10_000])
+      expect(model.totalExpenseAmount).toBe(data.total_expense_amount)
+    },
+  )
+
   it('keeps an empty response stable', () => {
     const empty = response()
     empty.total_expense_amount = 0

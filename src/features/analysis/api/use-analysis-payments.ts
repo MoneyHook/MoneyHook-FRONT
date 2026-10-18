@@ -3,7 +3,10 @@ import { getGetV1AnalyticsPaymentsQueryOptions } from '@/shared/api/generated/tr
 import { usePersistedApiQuery } from '@/shared/hooks/use-persisted-api-query'
 
 import type { AnalysisRange } from '../model/analysis-overview'
-import { buildAnalysisPaymentsViewModel } from '../model/analysis-payments'
+import {
+  buildAnalysisPaymentsViewModel,
+  type PaymentGroup,
+} from '../model/analysis-payments'
 
 function isPaymentsResponse(value: unknown): value is V1PaymentsResponse {
   return (
@@ -13,11 +16,14 @@ function isPaymentsResponse(value: unknown): value is V1PaymentsResponse {
   )
 }
 
-export function useAnalysisPayments(range: AnalysisRange) {
+export function useAnalysisPayments(
+  range: AnalysisRange,
+  group: PaymentGroup = 'month',
+) {
   const parameters = {
     start_date: range.startDate,
     end_date: range.endDate,
-    group_by: 'month' as const,
+    group_by: group,
   }
   const query = usePersistedApiQuery({
     isValue: isPaymentsResponse,
@@ -28,7 +34,9 @@ export function useAnalysisPayments(range: AnalysisRange) {
   const response = query.data?.status === 200 ? query.data.data : null
 
   return {
-    data: response ? buildAnalysisPaymentsViewModel(response, range) : null,
+    data: response
+      ? buildAnalysisPaymentsViewModel(response, range, group)
+      : null,
     error: query.error,
     isError: query.isError && !response,
     isPending: query.isPending && !response,
