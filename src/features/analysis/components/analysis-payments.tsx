@@ -11,8 +11,14 @@ import {
 } from './payments/payments-analysis-states'
 
 export function AnalysisPaymentsContent({ range }: { range: AnalysisRange }) {
-  const { payments, selectedPayment, setPayment, openTransaction } =
-    useAnalysisPaymentsController(range)
+  const {
+    payments,
+    selectedPayment,
+    setPayment,
+    openTransaction,
+    group,
+    changeGroup,
+  } = useAnalysisPaymentsController(range)
 
   if (payments.isPending) {
     return <PaymentsSkeleton />
@@ -41,7 +47,11 @@ export function AnalysisPaymentsContent({ range }: { range: AnalysisRange }) {
   return (
     <div className="mx-auto max-w-5xl space-y-3 sm:space-y-4">
       <PaymentSummaryPanel data={payments.data} />
-      <PaymentTrendPanel data={payments.data} />
+      <PaymentTrendPanel
+        data={payments.data}
+        group={group}
+        onGroupChange={changeGroup}
+      />
       <PaymentDetailsPanel
         data={payments.data}
         onOpen={openTransaction}

@@ -55,7 +55,7 @@ export function getTransactionRecommendations(
   input: string,
 ): FrequentTransactionResponseTransactionListItem[] {
   const query = normalizeTransactionName(input)
-  if (!query) return index.slice(0, 6).map(({ transaction }) => transaction)
+  if (!query) return index.slice(0, 12).map(({ transaction }) => transaction)
 
   return index
     .map(({ transaction, normalizedName }) => {
@@ -65,6 +65,6 @@ export function getTransactionRecommendations(
     })
     .filter(({ normalizedName }) => normalizedName.includes(query))
     .sort((a, b) => a.rank - b.rank)
-    .slice(0, 6)
+    .slice(0, 12)
     .map(({ transaction }) => transaction)
 }

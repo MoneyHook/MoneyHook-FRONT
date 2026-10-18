@@ -62,24 +62,42 @@ describe('transaction recommendations', () => {
     },
   )
 
-  it.each(['', ' 　\t'])('returns the top six in API order for %j', (input) => {
-    const transactions = Array.from({ length: 10 }, (_, index) =>
-      candidate(`候補${index}`),
-    )
-    expect(
-      getTransactionRecommendations(
-        createTransactionRecommendationIndex(transactions),
-        input,
-      ),
-    ).toEqual(transactions.slice(0, 6))
-  })
+  it.each(['', ' 　\t'])(
+    'returns the top twelve in API order for %j',
+    (input) => {
+      const transactions = Array.from({ length: 20 }, (_, index) =>
+        candidate(`候補${index}`),
+      )
+      expect(
+        getTransactionRecommendations(
+          createTransactionRecommendationIndex(transactions),
+          input,
+        ),
+      ).toEqual(transactions.slice(0, 12))
+    },
+  )
+
+  it.each(['', '候'])(
+    'keeps all candidates when fewer than twelve match %j',
+    (input) => {
+      const transactions = Array.from({ length: 8 }, (_, index) =>
+        candidate(`候補${index}`),
+      )
+      expect(
+        getTransactionRecommendations(
+          createTransactionRecommendationIndex(transactions),
+          input,
+        ),
+      ).toEqual(transactions)
+    },
+  )
 
   it('returns no recommendations when history is empty', () => {
     expect(getTransactionRecommendations([], '')).toEqual([])
     expect(getTransactionRecommendations([], 'ランチ')).toEqual([])
   })
 
-  it('accepts one character and limits recommendations to six', () => {
+  it('accepts one character and limits recommendations to twelve', () => {
     const transactions = Array.from({ length: 20 }, (_, index) =>
       candidate(`候補${index}`),
     )
@@ -88,7 +106,7 @@ describe('transaction recommendations', () => {
         createTransactionRecommendationIndex(transactions),
         '候',
       ),
-    ).toEqual(transactions.slice(0, 6))
+    ).toEqual(transactions.slice(0, 12))
   })
 
   it('reuses a normalized index without mutating the source data', () => {

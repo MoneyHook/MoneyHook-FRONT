@@ -1,4 +1,5 @@
 import type {
+  V1GroupByParameter,
   V1PaymentsResponse,
   V1TransactionResource,
 } from '@/shared/api/generated/model'
@@ -7,6 +8,8 @@ import type { AnalysisRange } from './analysis-overview'
 import { compareAnalysisTransactions } from './analysis-transactions'
 
 export const UNCLASSIFIED_PAYMENT_ID = 'unclassified'
+
+export type PaymentGroup = V1GroupByParameter
 
 export type PaymentSeriesItem = {
   bucket: string
@@ -43,10 +46,18 @@ export type AnalysisPaymentsViewModel = {
   payments: PaymentMethodItem[]
 }
 
-function formatSeries(item: { bucket: string; expense_amount: number }) {
+function formatSeries(
+  item: { bucket: string; expense_amount: number },
+  group: PaymentGroup,
+) {
+  const month = Number(item.bucket.slice(5, 7))
+  const day = Number(item.bucket.slice(8, 10))
   return {
     bucket: item.bucket,
-    label: `${Number(item.bucket.slice(5, 7))}月`,
+    label:
+      group === 'month'
+        ? `${month}月`
+        : `${month}/${day}${group === 'week' ? '週' : ''}`,
     expenseAmount: item.expense_amount,
   }
 }
@@ -78,6 +89,7 @@ export function getSelectedPayment(
 export function buildAnalysisPaymentsViewModel(
   response: V1PaymentsResponse,
   range: AnalysisRange,
+  group: PaymentGroup = 'month',
 ): AnalysisPaymentsViewModel {
   const payments = response.payment_list
     .map<PaymentMethodItem>((payment) => ({
@@ -89,7 +101,7 @@ export function buildAnalysisPaymentsViewModel(
       ratio: payment.ratio,
       transactionCount: payment.transaction_count,
       averageAmount: payment.average_amount,
-      series: payment.series.map(formatSeries),
+      series: payment.series.map((item) => formatSeries(item, group)),
       transactions: payment.transaction_list
         .map(buildTransaction)
         .sort(compareAnalysisTransactions),
