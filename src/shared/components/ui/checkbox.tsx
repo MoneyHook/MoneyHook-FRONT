@@ -1,6 +1,6 @@
 'use client'
 
-import { CheckIcon } from 'lucide-react'
+import { CheckIcon, MinusIcon } from 'lucide-react'
 import { Checkbox as CheckboxPrimitive } from 'radix-ui'
 import * as React from 'react'
 
@@ -20,7 +20,11 @@ function Checkbox({
       {...props}
     >
       <CheckboxPrimitive.Indicator className="flex items-center justify-center text-current">
-        <CheckIcon className="size-3.5" />
+        {props.checked === 'indeterminate' ? (
+          <MinusIcon className="size-3.5" />
+        ) : (
+          <CheckIcon className="size-3.5" />
+        )}
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>
   )

@@ -56,7 +56,7 @@ APIを正本とし、永続キャッシュは成功レスポンスの初期表�
 
 semantic color tokenを使い、生のHEX/RGB/HSL/色名は`app/styles/tokens.css`だけに置く。page・feature・shared・SVG・inline styleへの直書きを避け、不足tokenはlight/dark両方に定義する。検出は`scripts/check-semantic-colors.mjs`。
 
-shadcn primitiveは`shared/components/ui/`、共通の組み合わせは`shared/components/`。[UI方針](PRODUCT.md#ui方針)も参照する。
+shadcn primitiveは`shared/components/ui/`、共通の組み合わせは`shared/components/`。確認はshadcnの`AlertDialog`に統一し、ブラウザ標準の`alert`・`confirm`・`prompt`は使わない。非同期処理の途中で確認する場合は`useConfirmation`を使い、取り消し時は後続の保存・削除を実行しない。[UI方針](PRODUCT.md#ui方針)も参照する。
 
 ## テスト
 

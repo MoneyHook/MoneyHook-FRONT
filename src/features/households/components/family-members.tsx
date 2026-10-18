@@ -5,6 +5,7 @@ import type { Household, HouseholdMember } from '@/shared/api/generated/model'
 import { Badge } from '@/shared/components/ui/badge'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
+import { useConfirmation } from '@/shared/hooks/use-confirmation'
 import { cn } from '@/shared/lib/utils'
 
 import { api, useHouseholdAction } from '../api/household-queries'
@@ -31,11 +32,28 @@ export function FamilyMembers({
     value: string
     version: number
   } | null>(null)
+  const confirm = useConfirmation()
   const action = useHouseholdAction()
   const id = family.household_id
   const active = members.filter((member) => member.state === 'active')
-  const confirmation = (message: string, fn: () => Promise<unknown>) => {
-    if (window.confirm(message)) void action.run(fn).catch(() => {})
+  const confirmation = (
+    title: string,
+    message: string,
+    fn: () => Promise<unknown>,
+  ) => {
+    void action
+      .run(async () => {
+        if (
+          await confirm({
+            title,
+            description: message,
+            actionLabel: title,
+            destructive: title !== '管理者にする',
+          })
+        )
+          await fn()
+      })
+      .catch(() => {})
   }
 
   return (
@@ -233,6 +251,7 @@ export function FamilyMembers({
                       disabled={action.busy}
                       onClick={() =>
                         confirmation(
+                          '管理者にする',
                           `${member.display_name}さんへ管理者を交代します。未使用の招待は無効になります。`,
                           () =>
                             api.householdTransfer(id, {
@@ -251,7 +270,8 @@ export function FamilyMembers({
                       disabled={action.busy}
                       onClick={() =>
                         confirmation(
-                          `${member.display_name}さんの参加を解除します。共有原本の控えが家族に残ります。`,
+                          '参加を解除',
+                          `${member.display_name}さんの参加を解除します。共有していた取引の控えが家族に残ります。`,
                           () =>
                             api.householdRemoveMember(id, member.member_id, {
                               expected_version: family.version,

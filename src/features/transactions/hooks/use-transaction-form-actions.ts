@@ -57,13 +57,6 @@ export function useTransactionFormActions({
 
     try {
       if (isEdit && transactionId) {
-        if (
-          transaction?.shared &&
-          !window.confirm(
-            'この取引は家族に共有中です。変更内容は家族の記録・集計にも反映されます。更新しますか？',
-          )
-        )
-          return
         await mutations.update(transactionId, form, expectedVersion)
         toast.success('取引を更新しました。')
         navigate(returnTo, { replace: true })

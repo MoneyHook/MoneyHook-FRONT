@@ -1,14 +1,15 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 import type { Household } from '@/shared/api/generated/model'
 import { listV1Transactions } from '@/shared/api/generated/transaction/transaction'
 import { Button } from '@/shared/components/ui/button'
 
+import { useBulkSharing } from '../hooks/use-bulk-sharing'
+import { FamilySharingList } from './family-sharing-list'
 import { FamilyEntriesSkeleton } from './family-skeletons'
 import { FamilyError } from './fields'
-import { SharePersonalEntry } from './share-personal-entry'
 
 export function FamilySharing({ family }: { family: Household }) {
   const [search] = useSearchParams()
@@ -18,7 +19,23 @@ export function FamilySharing({ family }: { family: Household }) {
     rawMonth && /^\d{4}-(0[1-9]|1[0-2])$/.test(rawMonth)
       ? rawMonth
       : `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-  const [selected, setSelected] = useState('')
+  return (
+    <FamilySharingMonth
+      key={`${family.household_id}:${month}`}
+      family={family}
+      month={month}
+    />
+  )
+}
+
+function FamilySharingMonth({
+  family,
+  month,
+}: {
+  family: Household
+  month: string
+}) {
+  const bulk = useBulkSharing(family.household_id)
   const transactions = useInfiniteQuery({
     queryKey: [
       '/api/v1/transactions',
@@ -38,6 +55,10 @@ export function FamilySharing({ family }: { family: Household }) {
     },
     getNextPageParam: (last) => last.next_cursor ?? undefined,
   })
+  const rows = useMemo(
+    () => transactions.data?.pages.flatMap((page) => page.transactions) ?? [],
+    [transactions.data],
+  )
   return (
     <section className="space-y-6">
       <header className="space-y-1">
@@ -52,9 +73,6 @@ export function FamilySharing({ family }: { family: Household }) {
         </p>
       ) : (
         <>
-          <p className="text-sm text-muted-foreground">
-            自分の保存済み取引を家族に共有できます。共有中の取引は、個人の原本を更新すると家族にも反映されます。
-          </p>
           <FamilyError error={transactions.error} />
           {transactions.isError && (
             <Button
@@ -68,48 +86,18 @@ export function FamilySharing({ family }: { family: Household }) {
           {transactions.data?.pages[0].transactions.length === 0 && (
             <p>この月の個人取引はありません。</p>
           )}
-          <ul className="divide-y">
-            {transactions.data?.pages
-              .flatMap((page) => page.transactions)
-              .map((t) => (
-                <li key={t.transaction_id} className="py-3">
-                  <Button
-                    variant="ghost"
-                    className="h-auto w-full justify-between text-left whitespace-normal"
-                    aria-expanded={selected === t.transaction_id}
-                    onClick={() =>
-                      setSelected(
-                        selected === t.transaction_id ? '' : t.transaction_id,
-                      )
-                    }
-                  >
-                    <span>
-                      <span className="block text-xs text-muted-foreground">
-                        {t.transaction_date}
-                      </span>
-                      <span className="block">{t.transaction_name}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {t.shared ? '共有中' : '非共有'}
-                      </span>
-                    </span>
-                    <span className="shrink-0 tabular-nums">
-                      {t.signed_amount.toLocaleString('ja-JP')}円
-                    </span>
-                  </Button>
-                  {selected === t.transaction_id && (
-                    <SharePersonalEntry
-                      key={t.transaction_id}
-                      transactionId={t.transaction_id}
-                      householdId={family.household_id}
-                    />
-                  )}
-                </li>
-              ))}
-          </ul>
+          <FamilySharingList
+            transactions={rows}
+            busy={bulk.busy}
+            operation={bulk.operation}
+            results={bulk.results}
+            onShare={bulk.share}
+            onUnshare={bulk.unshare}
+          />
           {transactions.hasNextPage && (
             <Button
               variant="outline"
-              disabled={transactions.isFetchingNextPage}
+              disabled={bulk.busy || transactions.isFetchingNextPage}
               onClick={() => void transactions.fetchNextPage()}
             >
               続きを読み込む

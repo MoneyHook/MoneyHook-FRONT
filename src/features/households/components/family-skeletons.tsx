@@ -66,22 +66,6 @@ export function FamilyEntryDetailSkeleton() {
   )
 }
 
-export function FamilyShareSkeleton() {
-  return (
-    <LoadingState
-      label="共有状態を読み込んでいます"
-      className="mx-auto w-full max-w-2xl space-y-3 border-t px-5 py-5 pb-28"
-    >
-      <Skeleton className="h-6 w-40" />
-      <div className="space-y-1">
-        <Skeleton className="h-5 w-full" />
-        <Skeleton className="h-5 w-4/5" />
-      </div>
-      <Skeleton className="h-9 w-44" />
-    </LoadingState>
-  )
-}
-
 export function FamilySettingsSkeleton({
   showOverview = true,
 }: {
