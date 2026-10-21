@@ -1,147 +1,105 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import {
-  householdShare,
-  householdShareStatus,
-} from '@/shared/api/generated/household/household'
-import { getV1Transaction } from '@/shared/api/generated/transaction/transaction'
+import { householdBulkShare } from '@/shared/api/generated/household/household'
 
 import { sharePersonalTransactions } from './share-personal-transactions'
 
 vi.mock('@/shared/api/generated/household/household', () => ({
-  householdShare: vi.fn(),
-  householdShareStatus: vi.fn(),
+  householdBulkShare: vi.fn(),
+  householdBulkUnshare: vi.fn(),
+  householdShareStatus: vi.fn(() => {
+    throw new Error('単件取得は禁止')
+  }),
+  householdShare: vi.fn(() => {
+    throw new Error('単件更新は禁止')
+  }),
+  householdUnshare: vi.fn(() => {
+    throw new Error('単件更新は禁止')
+  }),
 }))
 vi.mock('@/shared/api/generated/transaction/transaction', () => ({
-  getV1Transaction: vi.fn(),
+  getV1Transaction: vi.fn(() => {
+    throw new Error('詳細取得は禁止')
+  }),
 }))
-
-const status = vi.mocked(householdShareStatus)
-const get = vi.mocked(getV1Transaction)
-const share = vi.mocked(householdShare)
+const update = vi.mocked(householdBulkShare)
 const headers = new Headers()
-
 beforeEach(() => {
   vi.resetAllMocks()
-  status.mockResolvedValue({
+  update.mockImplementation(async (_family, body) => ({
     status: 200,
-    data: { state: 'none', version: 0 },
+    data: {
+      results: body.transaction_ids.map((transaction_id) => ({
+        transaction_id,
+        outcome: 'shared' as const,
+      })),
+    },
     headers,
-  })
-  get.mockResolvedValue({
-    status: 200,
-    data: { transaction: { version: 4 } },
-    headers,
-  } as Awaited<ReturnType<typeof getV1Transaction>>)
-  share.mockResolvedValue({ status: 200, data: {}, headers } as Awaited<
-    ReturnType<typeof householdShare>
-  >)
+  }))
 })
-
 describe('sharePersonalTransactions', () => {
-  it('shares each unique transaction sequentially with current versions', async () => {
-    status.mockResolvedValueOnce({
-      status: 200,
-      data: { state: 'withdrawn', version: 3 },
-      headers,
-    })
-    const results = await sharePersonalTransactions('family', ['a', 'b', 'a'])
-    expect(results).toEqual([
-      { transactionId: 'a', outcome: 'shared' },
-      { transactionId: 'b', outcome: 'shared' },
+  it('sends unique IDs in one request without individual lookups', async () => {
+    expect(await sharePersonalTransactions('family', ['1', '2', '1'])).toEqual([
+      { transactionId: '1', outcome: 'shared' },
+      { transactionId: '2', outcome: 'shared' },
     ])
-    expect(share.mock.calls).toEqual([
-      ['family', 'a', { source_version: 4, expected_version: 3 }],
-      ['family', 'b', { source_version: 4, expected_version: undefined }],
+    expect(update.mock.calls).toEqual([
+      ['family', { transaction_ids: ['1', '2'] }],
     ])
-    expect(status.mock.invocationCallOrder[1]).toBeGreaterThan(
-      share.mock.invocationCallOrder[0],
-    )
   })
-
-  it('skips an already shared transaction without writing', async () => {
-    status.mockResolvedValue({
+  it('does not request an empty selection', async () => {
+    expect(await sharePersonalTransactions('family', [])).toEqual([])
+    expect(update).not.toHaveBeenCalled()
+  })
+  it('preserves partial failures and already completed results', async () => {
+    update.mockResolvedValueOnce({
       status: 200,
-      data: { state: 'active', kind: 'shared', version: 2 },
       headers,
-    })
-    expect(await sharePersonalTransactions('family', ['a'])).toEqual([
-      { transactionId: 'a', outcome: 'already-shared' },
-    ])
-    expect(get).not.toHaveBeenCalled()
-    expect(share).not.toHaveBeenCalled()
-  })
-
-  it('rejects snapshots even when active', async () => {
-    status.mockResolvedValue({
-      status: 200,
-      data: { state: 'active', kind: 'snapshot', version: 2 },
-      headers,
-    })
-    const results = await sharePersonalTransactions('family', ['a'])
-    expect(results[0]).toMatchObject({
-      outcome: 'failed',
-      message: expect.stringContaining('再共有できません'),
-    })
-    expect(share).not.toHaveBeenCalled()
-  })
-
-  it('retains a conflict reason and continues with the remaining transactions', async () => {
-    share.mockRejectedValueOnce(new Error('他の端末で更新されました。'))
-    const results = await sharePersonalTransactions('family', ['a', 'b'])
-    expect(results).toEqual([
-      {
-        transactionId: 'a',
-        outcome: 'failed',
-        message: '他の端末で更新されました。',
+      data: {
+        results: [
+          { transaction_id: '1', outcome: 'already-shared' },
+          {
+            transaction_id: '2',
+            outcome: 'failed',
+            code: 'NOT_FOUND',
+            message: '見つかりません',
+          },
+        ],
       },
-      { transactionId: 'b', outcome: 'shared' },
+    })
+    expect(await sharePersonalTransactions('family', ['1', '2'])).toEqual([
+      { transactionId: '1', outcome: 'already-shared' },
+      { transactionId: '2', outcome: 'failed', message: '見つかりません' },
     ])
   })
-
-  it('reads fresh versions when retrying a failed transaction', async () => {
-    share.mockRejectedValueOnce(new Error('競合'))
-    await sharePersonalTransactions('family', ['a'])
-    status.mockResolvedValue({
-      status: 200,
-      data: { state: 'withdrawn', version: 7 },
-      headers,
-    })
-    get.mockResolvedValue({
-      status: 200,
-      data: { transaction: { version: 9 } },
-      headers,
-    } as Awaited<ReturnType<typeof getV1Transaction>>)
-    await sharePersonalTransactions('family', ['a'])
-    expect(share).toHaveBeenLastCalledWith('family', 'a', {
-      source_version: 9,
-      expected_version: 7,
+  it('marks all submitted IDs as failed on a network error', async () => {
+    update.mockRejectedValueOnce(new Error('接続失敗'))
+    expect(await sharePersonalTransactions('family', ['1', '2'])).toEqual([
+      { transactionId: '1', outcome: 'failed', message: '接続失敗' },
+      { transactionId: '2', outcome: 'failed', message: '接続失敗' },
+    ])
+  })
+  it('splits only above 1000 and continues after a failed batch', async () => {
+    const ids = Array.from({ length: 1001 }, (_, i) => String(i + 1))
+    update.mockRejectedValueOnce(new Error('失敗'))
+    const results = await sharePersonalTransactions('family', ids)
+    expect(
+      update.mock.calls.map((call) => call[1].transaction_ids.length),
+    ).toEqual([1000, 1])
+    expect(results).toHaveLength(1001)
+    expect(
+      results.filter((result) => result.outcome === 'failed'),
+    ).toHaveLength(1000)
+    expect(results[1000]).toMatchObject({
+      transactionId: '1001',
+      outcome: 'shared',
     })
   })
-
-  it('does not resend after a lost response if the transaction is now shared', async () => {
-    share.mockRejectedValueOnce(new Error('接続できません'))
-    await sharePersonalTransactions('family', ['a'])
-    status.mockResolvedValue({
-      status: 200,
-      data: { state: 'active', kind: 'shared', version: 1 },
-      headers,
-    })
-    expect((await sharePersonalTransactions('family', ['a']))[0].outcome).toBe(
-      'already-shared',
+  it('sends exactly 1000 in one request', async () => {
+    await sharePersonalTransactions(
+      'family',
+      Array.from({ length: 1000 }, (_, i) => String(i + 1)),
     )
-    expect(share).toHaveBeenCalledTimes(1)
-  })
-
-  it('does not write when status lookup or transaction version is unavailable', async () => {
-    status.mockRejectedValueOnce(new Error('共有状態を取得できません'))
-    get.mockResolvedValue({
-      status: 200,
-      data: { transaction: {} },
-      headers,
-    } as Awaited<ReturnType<typeof getV1Transaction>>)
-    const results = await sharePersonalTransactions('family', ['a', 'b'])
-    expect(results.map((r) => r.outcome)).toEqual(['failed', 'failed'])
-    expect(share).not.toHaveBeenCalled()
+    expect(update).toHaveBeenCalledTimes(1)
   })
 })

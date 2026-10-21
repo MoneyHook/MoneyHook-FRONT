@@ -35,6 +35,8 @@ import type {
   AuthIdentityConflictResponse,
   Household,
   HouseholdAnalyticsParams,
+  HouseholdBulkSharingInput,
+  HouseholdBulkSharingResponse,
   HouseholdCredential,
   HouseholdDeleteProxyParams,
   HouseholdDuplicatesParams,
@@ -4435,6 +4437,375 @@ export const useHouseholdDeleteProxy = <
 > => {
   return useMutation(
     getHouseholdDeleteProxyMutationOptions(options),
+    queryClient,
+  )
+}
+export type householdBulkShareResponse200 = {
+  data: HouseholdBulkSharingResponse
+  status: 200
+}
+
+export type householdBulkShareResponse400 = {
+  data: V1BadRequestResponse
+  status: 400
+}
+
+export type householdBulkShareResponse401 = {
+  data: V1UnauthorizedResponse
+  status: 401
+}
+
+export type householdBulkShareResponse403 = {
+  data: V1ErrorResponse
+  status: 403
+}
+
+export type householdBulkShareResponse404 = {
+  data: V1NotFoundResponse
+  status: 404
+}
+
+export type householdBulkShareResponse409 = {
+  data: AuthIdentityConflictResponse
+  status: 409
+}
+
+export type householdBulkShareResponse422 = {
+  data: V1ErrorResponse
+  status: 422
+}
+
+export type householdBulkShareResponse500 = {
+  data: V1InternalErrorResponse
+  status: 500
+}
+
+export type householdBulkShareResponseSuccess =
+  householdBulkShareResponse200 & {
+    headers: Headers
+  }
+export type householdBulkShareResponseError = (
+  | householdBulkShareResponse400
+  | householdBulkShareResponse401
+  | householdBulkShareResponse403
+  | householdBulkShareResponse404
+  | householdBulkShareResponse409
+  | householdBulkShareResponse422
+  | householdBulkShareResponse500
+) & {
+  headers: Headers
+}
+
+export type householdBulkShareResponse =
+  householdBulkShareResponseSuccess | householdBulkShareResponseError
+
+export const getHouseholdBulkShareUrl = (householdId: Identifier) => {
+  return `/api/v1/households/${householdId}/shares/bulk`
+}
+
+/**
+ * 最新状態をサーバー側で確認し、取引ごとに独立して更新する。重複IDは初出順にまとめる。本人の取引だけ操作でき、控えは変更できない。既に目的の状態なら更新しない。部分失敗も200で各取引の結果を返す。
+ * @summary 選択した個人取引を一括共有する
+ */
+export const householdBulkShare = async (
+  householdId: Identifier,
+  householdBulkSharingInput: HouseholdBulkSharingInput,
+  options?: RequestInit,
+): Promise<householdBulkShareResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {}
+    if (h instanceof Headers) return Object.fromEntries(h.entries())
+    if (Array.isArray(h)) return Object.fromEntries(h)
+    return h
+  }
+  return apiFetch<householdBulkShareResponse>(
+    getHouseholdBulkShareUrl(householdId),
+    {
+      ...options,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getHeaders(options?.headers),
+      },
+      body: JSON.stringify(householdBulkSharingInput),
+    },
+  )
+}
+
+export const getHouseholdBulkShareMutationOptions = <
+  TError =
+    | V1BadRequestResponse
+    | V1UnauthorizedResponse
+    | V1ErrorResponse
+    | V1NotFoundResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof householdBulkShare>>,
+    TError,
+    HouseholdBulkShareMutationVariables,
+    TContext
+  >
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof householdBulkShare>>,
+  TError,
+  HouseholdBulkShareMutationVariables,
+  TContext
+> => {
+  const mutationKey = ['householdBulkShare']
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof householdBulkShare>>,
+    HouseholdBulkShareMutationVariables
+  > = (props) => {
+    const { householdId, data } = props ?? {}
+
+    return householdBulkShare(householdId, data)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type HouseholdBulkShareMutationResult = NonNullable<
+  Awaited<ReturnType<typeof householdBulkShare>>
+>
+export type HouseholdBulkShareMutationBody = HouseholdBulkSharingInput
+export type HouseholdBulkShareMutationError =
+  | V1BadRequestResponse
+  | V1UnauthorizedResponse
+  | V1ErrorResponse
+  | V1NotFoundResponse
+  | AuthIdentityConflictResponse
+  | V1InternalErrorResponse
+export type HouseholdBulkShareMutationVariables = {
+  householdId: Identifier
+  data: HouseholdBulkSharingInput
+}
+
+/**
+ * @summary 選択した個人取引を一括共有する
+ */
+export const useHouseholdBulkShare = <
+  TError =
+    | V1BadRequestResponse
+    | V1UnauthorizedResponse
+    | V1ErrorResponse
+    | V1NotFoundResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof householdBulkShare>>,
+      TError,
+      HouseholdBulkShareMutationVariables,
+      TContext
+    >
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof householdBulkShare>>,
+  TError,
+  HouseholdBulkShareMutationVariables,
+  TContext
+> => {
+  return useMutation(getHouseholdBulkShareMutationOptions(options), queryClient)
+}
+export type householdBulkUnshareResponse200 = {
+  data: HouseholdBulkSharingResponse
+  status: 200
+}
+
+export type householdBulkUnshareResponse400 = {
+  data: V1BadRequestResponse
+  status: 400
+}
+
+export type householdBulkUnshareResponse401 = {
+  data: V1UnauthorizedResponse
+  status: 401
+}
+
+export type householdBulkUnshareResponse403 = {
+  data: V1ErrorResponse
+  status: 403
+}
+
+export type householdBulkUnshareResponse404 = {
+  data: V1NotFoundResponse
+  status: 404
+}
+
+export type householdBulkUnshareResponse409 = {
+  data: AuthIdentityConflictResponse
+  status: 409
+}
+
+export type householdBulkUnshareResponse422 = {
+  data: V1ErrorResponse
+  status: 422
+}
+
+export type householdBulkUnshareResponse500 = {
+  data: V1InternalErrorResponse
+  status: 500
+}
+
+export type householdBulkUnshareResponseSuccess =
+  householdBulkUnshareResponse200 & {
+    headers: Headers
+  }
+export type householdBulkUnshareResponseError = (
+  | householdBulkUnshareResponse400
+  | householdBulkUnshareResponse401
+  | householdBulkUnshareResponse403
+  | householdBulkUnshareResponse404
+  | householdBulkUnshareResponse409
+  | householdBulkUnshareResponse422
+  | householdBulkUnshareResponse500
+) & {
+  headers: Headers
+}
+
+export type householdBulkUnshareResponse =
+  householdBulkUnshareResponseSuccess | householdBulkUnshareResponseError
+
+export const getHouseholdBulkUnshareUrl = (householdId: Identifier) => {
+  return `/api/v1/households/${householdId}/shares/bulk-unshare`
+}
+
+/**
+ * 最新状態をサーバー側で確認し、取引ごとに独立して更新する。重複IDは初出順にまとめる。本人の取引だけ操作でき、控えは変更できない。既に目的の状態なら更新しない。部分失敗も200で各取引の結果を返す。
+ * @summary 選択した個人取引の共有を一括解除する
+ */
+export const householdBulkUnshare = async (
+  householdId: Identifier,
+  householdBulkSharingInput: HouseholdBulkSharingInput,
+  options?: RequestInit,
+): Promise<householdBulkUnshareResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {}
+    if (h instanceof Headers) return Object.fromEntries(h.entries())
+    if (Array.isArray(h)) return Object.fromEntries(h)
+    return h
+  }
+  return apiFetch<householdBulkUnshareResponse>(
+    getHouseholdBulkUnshareUrl(householdId),
+    {
+      ...options,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getHeaders(options?.headers),
+      },
+      body: JSON.stringify(householdBulkSharingInput),
+    },
+  )
+}
+
+export const getHouseholdBulkUnshareMutationOptions = <
+  TError =
+    | V1BadRequestResponse
+    | V1UnauthorizedResponse
+    | V1ErrorResponse
+    | V1NotFoundResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof householdBulkUnshare>>,
+    TError,
+    HouseholdBulkUnshareMutationVariables,
+    TContext
+  >
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof householdBulkUnshare>>,
+  TError,
+  HouseholdBulkUnshareMutationVariables,
+  TContext
+> => {
+  const mutationKey = ['householdBulkUnshare']
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof householdBulkUnshare>>,
+    HouseholdBulkUnshareMutationVariables
+  > = (props) => {
+    const { householdId, data } = props ?? {}
+
+    return householdBulkUnshare(householdId, data)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type HouseholdBulkUnshareMutationResult = NonNullable<
+  Awaited<ReturnType<typeof householdBulkUnshare>>
+>
+export type HouseholdBulkUnshareMutationBody = HouseholdBulkSharingInput
+export type HouseholdBulkUnshareMutationError =
+  | V1BadRequestResponse
+  | V1UnauthorizedResponse
+  | V1ErrorResponse
+  | V1NotFoundResponse
+  | AuthIdentityConflictResponse
+  | V1InternalErrorResponse
+export type HouseholdBulkUnshareMutationVariables = {
+  householdId: Identifier
+  data: HouseholdBulkSharingInput
+}
+
+/**
+ * @summary 選択した個人取引の共有を一括解除する
+ */
+export const useHouseholdBulkUnshare = <
+  TError =
+    | V1BadRequestResponse
+    | V1UnauthorizedResponse
+    | V1ErrorResponse
+    | V1NotFoundResponse
+    | AuthIdentityConflictResponse
+    | V1InternalErrorResponse,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof householdBulkUnshare>>,
+      TError,
+      HouseholdBulkUnshareMutationVariables,
+      TContext
+    >
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof householdBulkUnshare>>,
+  TError,
+  HouseholdBulkUnshareMutationVariables,
+  TContext
+> => {
+  return useMutation(
+    getHouseholdBulkUnshareMutationOptions(options),
     queryClient,
   )
 }
