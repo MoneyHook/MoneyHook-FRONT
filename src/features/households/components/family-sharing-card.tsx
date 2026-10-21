@@ -1,3 +1,4 @@
+import { UserRound, Users } from 'lucide-react'
 import { useId } from 'react'
 
 import type { V1TransactionResource } from '@/shared/api/generated/model'
@@ -26,6 +27,7 @@ export function FamilySharingCard({
     isIncome: transaction.sign === 1,
   })
   const Icon = presentation.icon
+  const SharingIcon = transaction.shared ? Users : UserRound
 
   return (
     <Card className="block p-0">
@@ -59,9 +61,21 @@ export function FamilySharingCard({
                 {transaction.category_name} <span aria-hidden="true">›</span>{' '}
                 {transaction.sub_category_name}
               </span>
-              <span className="mt-0.5 block text-[0.6875rem] text-muted-foreground sm:text-xs">
-                {transaction.transaction_date}・
-                {transaction.shared ? '共有中' : '未共有'}
+              <span className="mt-0.5 flex flex-wrap items-center gap-x-1 text-[0.6875rem] text-muted-foreground sm:text-xs">
+                <span>{transaction.transaction_date}</span>
+                <span aria-hidden="true">・</span>
+                <span
+                  className={cn(
+                    'inline-flex items-center gap-1',
+                    transaction.shared && 'font-medium text-primary',
+                  )}
+                >
+                  <SharingIcon
+                    aria-hidden="true"
+                    className="size-3 shrink-0 sm:size-3.5"
+                  />
+                  {transaction.shared ? '共有中' : '未共有'}
+                </span>
               </span>
             </span>
             <span className="flex min-w-0 items-center gap-1.5 sm:gap-3">
