@@ -42,17 +42,20 @@ export function FamilyMembers({
     fn: () => Promise<unknown>,
   ) => {
     void action
-      .run(async () => {
-        if (
-          await confirm({
-            title,
-            description: message,
-            actionLabel: title,
-            destructive: title !== '管理者にする',
-          })
-        )
-          await fn()
-      })
+      .run(
+        async () => {
+          if (
+            await confirm({
+              title,
+              description: message,
+              actionLabel: title,
+              destructive: title !== '管理者にする',
+            })
+          )
+            await fn()
+        },
+        { householdList: true },
+      )
       .catch(() => {})
   }
 
@@ -184,11 +187,13 @@ export function FamilyMembers({
               disabled={action.busy || familyName === null}
               onClick={() =>
                 void action
-                  .run(() =>
-                    api.householdRename(id, {
-                      name: familyName?.value ?? family.name,
-                      expected_version: familyName?.version ?? family.version,
-                    }),
+                  .run(
+                    () =>
+                      api.householdRename(id, {
+                        name: familyName?.value ?? family.name,
+                        expected_version: familyName?.version ?? family.version,
+                      }),
+                    { householdList: true },
                   )
                   .then(() => setFamilyName(null))
                   .catch(() => {})

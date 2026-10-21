@@ -1,8 +1,9 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { renderHook, waitFor } from '@testing-library/react'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { act, renderHook, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { createAppQueryClient } from '@/app/providers/query-client'
 import {
   createPersistedQueryKey,
   ensurePersistedUserDataOwner,
@@ -14,7 +15,12 @@ import {
   isFamilyData,
   isHouseholdList,
 } from '../model/household-reference-cache'
-import { api, useFamilyData, useHouseholds } from './household-queries'
+import {
+  api,
+  invalidateHouseholdQueries,
+  useFamilyData,
+  useHouseholds,
+} from './household-queries'
 
 vi.mock('@/shared/api/generated/household/household', () => ({
   householdList: vi.fn(),
@@ -44,14 +50,13 @@ function success<T>(data: T) {
 }
 function wrapper({ children }: { children: ReactNode }) {
   return (
-    <QueryClientProvider
-      client={
-        new QueryClient({ defaultOptions: { queries: { retry: false } } })
-      }
-    >
+    <QueryClientProvider client={createAppQueryClient()}>
       {children}
     </QueryClientProvider>
   )
+}
+function useFamilyReferences() {
+  return useFamilyData(family.household_id)
 }
 beforeEach(() => {
   localStorage.clear()
@@ -59,6 +64,61 @@ beforeEach(() => {
 })
 
 describe('household reference persistence contract', () => {
+  it.each([
+    ['list', useHouseholds],
+    ['references', useFamilyReferences],
+  ] as const)(
+    'reuses fetched %s on remount and refreshes after changes',
+    async (resource, useRead) => {
+      vi.mocked(api.householdList).mockResolvedValue(success([family]))
+      vi.mocked(api.householdGet).mockResolvedValue(success(family))
+      vi.mocked(api.householdMembers).mockResolvedValue(success([]))
+      vi.mocked(api.householdPayments).mockResolvedValue(success([]))
+      vi.mocked(api.householdSubcategories).mockResolvedValue(success([]))
+      const requests =
+        resource === 'list'
+          ? [api.householdList]
+          : [
+              api.householdGet,
+              api.householdMembers,
+              api.householdPayments,
+              api.householdSubcategories,
+            ]
+      const client = createAppQueryClient()
+      const wrapper = ({ children }: { children: ReactNode }) => (
+        <QueryClientProvider client={client}>{children}</QueryClientProvider>
+      )
+      const useQueryStatus = () => {
+        const query = useRead()
+        return { isSuccess: query.isSuccess, isFetching: query.isFetching }
+      }
+      const first = renderHook(useQueryStatus, { wrapper })
+      await waitFor(() => {
+        expect(first.result.current.isSuccess).toBe(true)
+        expect(first.result.current.isFetching).toBe(false)
+      })
+      requests.forEach((request) => expect(request).toHaveBeenCalledTimes(1))
+      first.unmount()
+
+      const second = renderHook(useQueryStatus, { wrapper })
+      try {
+        await waitFor(() =>
+          expect(second.result.current.isFetching).toBe(false),
+        )
+        requests.forEach((request) => expect(request).toHaveBeenCalledTimes(1))
+        await act(async () => {
+          await invalidateHouseholdQueries(client, {
+            householdList: resource === 'list',
+          })
+        })
+        requests.forEach((request) => expect(request).toHaveBeenCalledTimes(2))
+      } finally {
+        second.unmount()
+        client.clear()
+      }
+    },
+  )
+
   it('restores a family list immediately and replaces it after fetching, removing departed-family cache', async () => {
     writePersistedQueryData(listKey, 1, [family])
     writePersistedQueryData(detailKey, 1, detail)

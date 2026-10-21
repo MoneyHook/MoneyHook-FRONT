@@ -21,17 +21,20 @@ export function FamilyLifecycleActions({
     fn: () => Promise<unknown>,
   ) => {
     void action
-      .run(async () => {
-        if (
-          await confirm({
-            title,
-            description: message,
-            actionLabel: title,
-            destructive: true,
-          })
-        )
-          await fn()
-      })
+      .run(
+        async () => {
+          if (
+            await confirm({
+              title,
+              description: message,
+              actionLabel: title,
+              destructive: true,
+            })
+          )
+            await fn()
+        },
+        { householdList: true, userSettings: true },
+      )
       .catch(() => {})
   }
 
