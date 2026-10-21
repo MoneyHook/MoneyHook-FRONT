@@ -146,10 +146,12 @@ export function FamilySettings() {
                   members={detail.data.members}
                   onDefaultScopeChange={(scope) =>
                     void action
-                      .run(() =>
-                        patchV1Settings({
-                          default_transaction_scope: scope,
-                        }),
+                      .run(
+                        () =>
+                          patchV1Settings({
+                            default_transaction_scope: scope,
+                          }),
+                        { userSettings: true },
                       )
                       .catch(() => {})
                   }
@@ -205,7 +207,9 @@ export function FamilySettings() {
                 event.preventDefault()
                 const body = { name, display_name: display }
                 void action
-                  .run(() => api.householdCreate(body, request(body)))
+                  .run(() => api.householdCreate(body, request(body)), {
+                    householdList: true,
+                  })
                   .then(() => request.complete(body))
                   .catch(() => {})
               }}

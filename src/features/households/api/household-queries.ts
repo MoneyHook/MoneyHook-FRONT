@@ -1,9 +1,11 @@
+import type { QueryClient } from '@tanstack/react-query'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
 import * as api from '@/shared/api/generated/household/household'
 import type { Household } from '@/shared/api/generated/model'
+import { getGetV1SettingsQueryKey } from '@/shared/api/generated/settings/settings'
 import { usePersistedQueryData } from '@/shared/hooks/use-persisted-query-data'
 import {
   clearPersistedQueryData,
@@ -48,9 +50,6 @@ export function useHouseholds() {
       cache.persist(r)
       return r.data
     },
-    staleTime: 0,
-    refetchOnMount: 'always',
-    refetchOnWindowFocus: 'always',
   })
 }
 export function useFamilyData(id: string) {
@@ -90,31 +89,48 @@ export function useFamilyData(id: string) {
       if (!signal.aborted) cache.persist({ status: 200, data })
       return data
     },
-    staleTime: 0,
-    refetchOnMount: 'always',
-    refetchOnWindowFocus: 'always',
   })
 }
+type HouseholdRefreshOptions = {
+  householdList?: boolean
+  userSettings?: boolean
+}
+
+export async function invalidateHouseholdQueries(
+  client: QueryClient,
+  { householdList = false, userSettings = false }: HouseholdRefreshOptions = {},
+) {
+  clearPersistedQueryData()
+  await client.invalidateQueries({
+    predicate: ({ queryKey }) => {
+      if (queryKey[0] === getGetV1SettingsQueryKey()[0]) return userSettings
+      if (queryKey[0] === householdKey[0] && queryKey.length === 1)
+        return householdList
+      return true
+    },
+  })
+  if (!householdList) return
+  // Drop cached families after leave/removal; retained families keep their observers.
+  const visible = new Set(
+    client.getQueryData<Household[]>(householdKey)?.map((f) => f.household_id),
+  )
+  client.removeQueries({
+    predicate: (q) =>
+      q.queryKey[0] === 'households' &&
+      q.queryKey.length > 1 &&
+      !visible.has(String(q.queryKey[q.queryKey[1] === 'entries' ? 2 : 1])),
+  })
+}
+
 export function useHouseholdAction() {
   const client = useQueryClient()
   const mutation = useMutation({
-    mutationFn: (action: () => Promise<unknown>) => action(),
-    onSuccess: async () => {
-      clearPersistedQueryData()
-      await client.invalidateQueries()
-      // Drop cached families after leave/removal; retained families keep their observers.
-      const visible = new Set(
-        client
-          .getQueryData<Household[]>(householdKey)
-          ?.map((f) => f.household_id),
-      )
-      client.removeQueries({
-        predicate: (q) =>
-          q.queryKey[0] === 'households' &&
-          q.queryKey.length > 1 &&
-          !visible.has(String(q.queryKey[q.queryKey[1] === 'entries' ? 2 : 1])),
-      })
-    },
+    mutationFn: ({
+      action,
+    }: { action: () => Promise<unknown> } & HouseholdRefreshOptions) =>
+      action(),
+    onSuccess: async (_, options) =>
+      invalidateHouseholdQueries(client, options),
     onError: (error) => {
       toast.error(
         error instanceof Error ? error.message : '保存できませんでした',
@@ -122,7 +138,10 @@ export function useHouseholdAction() {
     },
   })
   return {
-    run: mutation.mutateAsync,
+    run: (
+      action: () => Promise<unknown>,
+      options: HouseholdRefreshOptions = {},
+    ) => mutation.mutateAsync({ action, ...options }),
     busy: mutation.isPending,
     error: mutation.error,
   }

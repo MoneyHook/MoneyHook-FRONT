@@ -1,9 +1,10 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { renderHook, waitFor } from '@testing-library/react'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { act, renderHook, waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { createAppQueryClient } from '@/app/providers/query-client'
 import { getGetV1SettingsQueryKey } from '@/shared/api/generated/settings/settings'
 import {
   createPersistedQueryKey,
@@ -47,9 +48,7 @@ describe('user settings persistence contract', () => {
         return HttpResponse.json(fresh)
       }),
     )
-    const client = new QueryClient({
-      defaultOptions: { queries: { retry: false } },
-    })
+    const client = createAppQueryClient()
     // The appearance provider creates this query before the recording page mounts.
     client
       .getQueryCache()
@@ -66,6 +65,37 @@ describe('user settings persistence contract', () => {
     await waitFor(() =>
       expect(readPersistedQueryData(key, 1, isUserSettings)).toEqual(fresh),
     )
+  })
+
+  it('reuses fetched settings on remount and refreshes after a settings change', async () => {
+    const request = vi.fn(() => HttpResponse.json(cached))
+    server.use(http.get('http://api.test/api/v1/settings', request))
+    const client = createAppQueryClient()
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    )
+    const first = renderHook(() => useUserSettings(), { wrapper })
+    await waitFor(() => {
+      expect(first.result.current.isSuccess).toBe(true)
+      expect(first.result.current.isFetching).toBe(false)
+    })
+    expect(request).toHaveBeenCalledTimes(1)
+    first.unmount()
+
+    const second = renderHook(() => useUserSettings(), { wrapper })
+    try {
+      await waitFor(() => expect(second.result.current.isFetching).toBe(false))
+      expect(second.result.current.data?.data).toEqual(cached)
+      expect(request).toHaveBeenCalledTimes(1)
+
+      await act(async () => {
+        await client.invalidateQueries({ queryKey: getGetV1SettingsQueryKey() })
+      })
+      expect(request).toHaveBeenCalledTimes(2)
+    } finally {
+      second.unmount()
+      client.clear()
+    }
   })
 
   it('rejects invalid cache values', () => {

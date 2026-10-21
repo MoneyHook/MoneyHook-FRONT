@@ -34,6 +34,8 @@ class OpenApiContractTest < Minitest::Test
     "/api/v1/households/{householdId}/own-transactions" => %w[post],
     "/api/v1/households/{householdId}/proxy-transactions" => %w[post],
     "/api/v1/households/{householdId}/proxy-transactions/{entryId}" => %w[patch delete],
+    "/api/v1/households/{householdId}/shares/bulk" => %w[post],
+    "/api/v1/households/{householdId}/shares/bulk-unshare" => %w[post],
     "/api/v1/households/{householdId}/shares/{transactionId}" => %w[get put delete],
     "/api/v1/households/{householdId}/payments" => %w[get post],
     "/api/v1/households/{householdId}/payments/{referenceId}" => %w[patch],
@@ -46,6 +48,24 @@ class OpenApiContractTest < Minitest::Test
 
   def setup
     @spec = YAML.safe_load_file(SPEC_PATH, aliases: true)
+  end
+
+  def test_bulk_sharing_contract
+    schema = @spec.dig("components", "schemas", "HouseholdBulkSharingInput")
+    assert_equal ["transaction_ids"], schema.fetch("required")
+    assert_equal false, schema.fetch("additionalProperties")
+    ids = schema.dig("properties", "transaction_ids")
+    assert_equal 1, ids.fetch("minItems")
+    assert_equal 1000, ids.fetch("maxItems")
+    assert_equal({"$ref" => "#/components/schemas/Identifier"}, ids.fetch("items"))
+    %w[bulk bulk-unshare].each do |suffix|
+      operation = @spec.dig("paths", "/api/v1/households/{householdId}/shares/#{suffix}", "post")
+      assert_equal({"$ref" => "#/components/schemas/HouseholdBulkSharingInput"}, operation.dig("requestBody", "content", "application/json", "schema"))
+      assert_equal({"$ref" => "#/components/schemas/HouseholdBulkSharingResponse"}, operation.dig("responses", "200", "content", "application/json", "schema"))
+    end
+    result = @spec.dig("components", "schemas", "HouseholdBulkSharingResult")
+    assert_equal %w[transaction_id outcome], result.fetch("required")
+    assert_equal %w[shared already-shared unshared already-unshared failed], result.dig("properties", "outcome", "enum")
   end
 
   def test_local_references_resolve
@@ -70,7 +90,7 @@ class OpenApiContractTest < Minitest::Test
     end
 
     assert_equal V1_OPERATIONS, actual
-    assert_equal 47, actual.values.sum(&:length)
+    assert_equal 49, actual.values.sum(&:length)
   end
 
   def test_v1_operations_require_bearer_auth_and_declare_common_errors

@@ -23,7 +23,9 @@ export function useTransactionFormMutations() {
           )
         }
 
-        await invalidateTransactionQueries(queryClient)
+        await invalidateTransactionQueries(queryClient, {
+          householdReferences: false,
+        })
         if (data.transaction.sub_category_name) {
           clearCategoryReferenceCache()
           await queryClient.invalidateQueries({

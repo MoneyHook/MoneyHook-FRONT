@@ -59,6 +59,76 @@ beforeEach(() => {
 })
 
 describe('transaction mutation cache refresh', () => {
+  it('does not refetch family references or suggestions on create, fetching suggestions when next observed', async () => {
+    const queryClient = new QueryClient()
+    const familyQueryFn = vi.fn(async () => ['family'])
+    const suggestionsQueryFn = vi.fn(async () => ['new suggestion'])
+    const suggestionsKey = getGetFrequentTransactionNamesQueryKey({
+      limit: 100,
+    })
+    const familyObserver = new QueryObserver(queryClient, {
+      queryKey: ['households', 'family-1', 'settings'],
+      queryFn: familyQueryFn,
+      initialData: ['family'],
+      staleTime: Infinity,
+    })
+    const suggestionsOptions = {
+      queryKey: suggestionsKey,
+      queryFn: suggestionsQueryFn,
+      initialData: ['cached suggestion'],
+      staleTime: Infinity,
+    }
+    const suggestionsObserver = new QueryObserver(
+      queryClient,
+      suggestionsOptions,
+    )
+    const unsubscribeFamily = familyObserver.subscribe(() => {})
+    const unsubscribeSuggestions = suggestionsObserver.subscribe(() => {})
+    const { result, unmount } = renderHook(
+      () => useTransactionFormMutations(),
+      {
+        wrapper: ({ children }: { children: ReactNode }) => (
+          <QueryClientProvider client={queryClient}>
+            {children}
+          </QueryClientProvider>
+        ),
+      },
+    )
+    let unsubscribeNext = () => {}
+    try {
+      await act(async () => {
+        await result.current.create({
+          ...createNewTransactionValues(new Date(2026, 9, 1)),
+          transactionName: 'ランチ',
+          amount: '1200',
+          categoryId: '10',
+          subcategoryId: '11',
+        })
+      })
+      expect(familyQueryFn).not.toHaveBeenCalled()
+      expect(suggestionsQueryFn).not.toHaveBeenCalled()
+      expect(queryClient.getQueryState(suggestionsKey)?.isInvalidated).toBe(
+        true,
+      )
+      unsubscribeSuggestions()
+
+      const nextObserver = new QueryObserver(queryClient, suggestionsOptions)
+      unsubscribeNext = nextObserver.subscribe(() => {})
+      await waitFor(() => {
+        expect(queryClient.getQueryData(suggestionsKey)).toEqual([
+          'new suggestion',
+        ])
+      })
+      expect(suggestionsQueryFn).toHaveBeenCalledOnce()
+    } finally {
+      unsubscribeNext()
+      unsubscribeFamily()
+      unsubscribeSuggestions()
+      unmount()
+      queryClient.clear()
+    }
+  })
+
   it.each(['create', 'update', 'create-subcategory'] as const)(
     '%s remains saving until dependent queries finish refreshing',
     async (operation) => {
@@ -72,7 +142,7 @@ describe('transaction mutation cache refresh', () => {
           ? getGetCategoryWithSubCategoryListQueryKey()
           : operation === 'update'
             ? getGetV1TransactionQueryKey('42')
-            : getGetFrequentTransactionNamesQueryKey({ limit: 100 })
+            : ['/api/v1/transactions', { month: '2026-09-01', sharing: 'all' }]
       const queryFn = vi.fn(() => refresh)
       const observer = new QueryObserver(queryClient, {
         queryKey,
@@ -162,7 +232,7 @@ describe('transaction mutation cache refresh', () => {
   )
 
   it.each(['create', 'update', 'remove'] as const)(
-    '%s refreshes transaction-dependent data without invalidating payment settings',
+    '%s refreshes transaction-dependent data without invalidating settings or the household list',
     async (operation) => {
       const queryClient = new QueryClient()
       const dependentKeys = [
@@ -178,10 +248,23 @@ describe('transaction mutation cache refresh', () => {
         ['/api/v1/analytics/payments'],
         getGetFrequentTransactionNamesQueryKey({ limit: 20 }),
         getGetFrequentTransactionNamesQueryKey({ limit: 100 }),
+        ['households', 'entries', 'family-1', '2026-09', 'complete'],
       ]
+      const familyReferencesKey = ['households', 'family-1', 'settings']
       const paymentKey = getGetPaymentResourcesQueryKey()
+      const unchangedKeys = [
+        paymentKey,
+        ['/api/v1/settings'],
+        ['households'],
+        ['households', 'family-1', 'invites'],
+      ]
       const detailKey = getGetV1TransactionQueryKey('42')
-      for (const queryKey of [...dependentKeys, paymentKey, detailKey])
+      for (const queryKey of [
+        ...dependentKeys,
+        ...unchangedKeys,
+        familyReferencesKey,
+        detailKey,
+      ])
         queryClient.setQueryData(queryKey, { cached: true })
       const persistedKey = createPersistedQueryKey('home-overview', {
         month: '2026-09-01',
@@ -208,7 +291,11 @@ describe('transaction mutation cache refresh', () => {
       })
       for (const key of dependentKeys)
         expect(queryClient.getQueryState(key)?.isInvalidated).toBe(true)
-      expect(queryClient.getQueryState(paymentKey)?.isInvalidated).toBe(false)
+      for (const key of unchangedKeys)
+        expect(queryClient.getQueryState(key)?.isInvalidated).toBe(false)
+      expect(
+        queryClient.getQueryState(familyReferencesKey)?.isInvalidated,
+      ).toBe(operation !== 'create')
       expect(
         readPersistedQueryData(
           persistedKey,

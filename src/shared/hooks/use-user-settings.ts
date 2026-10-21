@@ -36,9 +36,6 @@ export function useUserSettings({ enabled = true } = {}) {
       // An earlier observer may have already started fetching this query.
       placeholderData: enabled ? cache.queryOptions.placeholderData : undefined,
       enabled,
-      staleTime: 0,
-      refetchOnMount: 'always',
-      refetchOnWindowFocus: 'always',
     },
   })
   useEffect(() => {

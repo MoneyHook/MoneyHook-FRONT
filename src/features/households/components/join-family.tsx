@@ -91,16 +91,19 @@ export function JoinFamily({ token = '' }: { token?: string }) {
               disabled={action.busy}
               onClick={() =>
                 void action
-                  .run(async () => {
-                    const r = await api.householdAccept(
-                      credential,
-                      request(credential),
-                    )
-                    if (r.status === 201) {
-                      sessionStorage.removeItem('household-invite')
-                      navigate('/app/settings/family', { replace: true })
-                    }
-                  })
+                  .run(
+                    async () => {
+                      const r = await api.householdAccept(
+                        credential,
+                        request(credential),
+                      )
+                      if (r.status === 201) {
+                        sessionStorage.removeItem('household-invite')
+                        navigate('/app/settings/family', { replace: true })
+                      }
+                    },
+                    { householdList: true },
+                  )
                   .catch(() => {})
               }
             >
