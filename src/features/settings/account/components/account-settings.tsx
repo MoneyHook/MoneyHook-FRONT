@@ -8,7 +8,9 @@ import {
   AvatarImage,
 } from '@/shared/components/ui/avatar'
 import { Button } from '@/shared/components/ui/button'
+import { Card } from '@/shared/components/ui/card'
 
+import { AppearanceSettings } from '../../appearance/components/appearance-settings'
 import { SettingsSection } from '../../components/settings-section'
 
 type AccountSettingsProps = {
@@ -38,14 +40,14 @@ export function AccountSettings({
   }
 
   return (
-    <SettingsSection
-      description="ログイン中のアカウント情報を確認できます。"
-      icon={CircleUserRound}
-      showHeader={showHeader}
-      title="アカウント"
-      titleId="account-settings-title"
-    >
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-6">
+      <SettingsSection
+        description="アカウント情報の確認や、テーマ・配色の変更ができます。"
+        icon={CircleUserRound}
+        showHeader={showHeader}
+        title="アカウント"
+        titleId="account-settings-title"
+      >
         <div className="flex min-w-0 items-center gap-3">
           <Avatar size="lg">
             {user?.photoURL ? (
@@ -68,17 +70,25 @@ export function AccountSettings({
             ) : null}
           </div>
         </div>
-        <Button
-          className="w-full sm:w-auto"
-          onClick={handleSignOut}
-          size="lg"
-          type="button"
-          variant="destructive"
-        >
-          <LogOut aria-hidden="true" />
-          ログアウト
-        </Button>
-      </div>
-    </SettingsSection>
+        <div className="mt-6">
+          <AppearanceSettings />
+        </div>
+      </SettingsSection>
+
+      <Card aria-label="ログアウト" className="block p-5 sm:p-6" role="region">
+        <div className="flex justify-end">
+          <Button
+            className="w-full sm:w-auto"
+            onClick={handleSignOut}
+            size="lg"
+            type="button"
+            variant="destructive"
+          >
+            <LogOut aria-hidden="true" />
+            ログアウト
+          </Button>
+        </div>
+      </Card>
+    </div>
   )
 }

@@ -7,7 +7,6 @@ import { useAuth } from '@/features/auth'
 import { FamilySettings } from '@/features/households'
 import {
   AccountSettings,
-  AppearanceSettings,
   BudgetSettings,
   CategorySettings,
   PaymentSettings,
@@ -15,6 +14,27 @@ import {
   SettingsSummary,
 } from '@/features/settings'
 import { Button } from '@/shared/components/ui/button'
+
+function useSettingsHeaderCompact() {
+  const [isHeaderCompact, setIsHeaderCompact] = useState(false)
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' })
+
+    const updateHeader = () => {
+      const scrollTop = window.scrollY
+      setIsHeaderCompact((compact) =>
+        compact ? scrollTop > 0 : scrollTop > 16,
+      )
+    }
+
+    updateHeader()
+    window.addEventListener('scroll', updateHeader, { passive: true })
+    return () => window.removeEventListener('scroll', updateHeader)
+  }, [])
+
+  return isHeaderCompact
+}
 
 function SettingsDetailPage({
   backLabel = '設定へ戻る',
@@ -29,65 +49,68 @@ function SettingsDetailPage({
   description: string
   title: string
 }) {
+  const isHeaderCompact = useSettingsHeaderCompact()
+
   return (
-    <div className="motion-route-enter mx-auto w-full max-w-5xl px-5 pt-5 pb-24 md:px-10 md:pt-8 md:pb-12">
-      <header className="border-b pb-4">
-        <Button asChild className="mb-4 -ml-2" type="button" variant="ghost">
+    <section
+      aria-labelledby="page-title"
+      className="motion-route-enter mx-auto w-full max-w-5xl px-5 pt-2 pb-24 sm:pt-4 md:px-10 md:pt-6 md:pb-12"
+    >
+      <header
+        className={`sticky top-0 z-10 border-b bg-background/95 backdrop-blur transition-[padding] duration-200 ease-out motion-reduce:transition-none ${isHeaderCompact ? 'py-1' : 'pt-2 pb-4 sm:pt-3'}`}
+        data-compact={isHeaderCompact || undefined}
+        data-slot="settings-detail-page-header"
+      >
+        <Button
+          asChild
+          className={`-ml-2 transition-[margin-bottom] duration-200 ease-out motion-reduce:transition-none ${isHeaderCompact ? 'mb-1' : 'mb-4'}`}
+          type="button"
+          variant="ghost"
+        >
           <Link to={backTo}>
             <ArrowLeft aria-hidden="true" />
             {backLabel}
           </Link>
         </Button>
-        <div className="space-y-1.5">
+        <div>
           <h1
             id="page-title"
-            className="text-xl font-semibold tracking-[-0.035em] md:text-2xl"
+            className={`font-semibold tracking-[-0.035em] transition-[font-size] duration-200 ease-out motion-reduce:transition-none ${isHeaderCompact ? 'text-base' : 'text-xl md:text-2xl'}`}
           >
             {title}
           </h1>
-          <p className="max-w-2xl text-sm leading-6 text-muted-foreground md:text-base">
+          <p
+            aria-hidden={isHeaderCompact}
+            className={`max-w-2xl overflow-hidden text-sm leading-6 text-muted-foreground transition-[max-height,opacity,margin] duration-200 ease-out motion-reduce:transition-none md:text-base ${isHeaderCompact ? 'mt-0 max-h-0 opacity-0' : 'mt-1.5 max-h-12 opacity-100'}`}
+          >
             {description}
           </p>
         </div>
       </header>
       <div className="pt-6 md:pt-8">{children}</div>
-    </div>
+    </section>
   )
 }
 
 export function SettingsPage() {
-  const [isHeaderCompact, setIsHeaderCompact] = useState(false)
-
-  useEffect(() => {
-    const updateHeader = () => {
-      setIsHeaderCompact(window.scrollY > 16)
-    }
-
-    updateHeader()
-    window.addEventListener('scroll', updateHeader, { passive: true })
-    return () => window.removeEventListener('scroll', updateHeader)
-  }, [])
-
-  useEffect(() => {
-    document.body.classList.add('settings-page-scrollbar-hidden')
-    return () =>
-      document.body.classList.remove('settings-page-scrollbar-hidden')
-  }, [])
+  const isHeaderCompact = useSettingsHeaderCompact()
 
   return (
     <section
       aria-labelledby="page-title"
-      className="motion-route-enter mx-auto w-full max-w-3xl px-5 pt-5 pb-24 md:px-10 md:pt-8 md:pb-12"
+      className="motion-route-enter mx-auto w-full max-w-3xl px-5 pt-2 pb-24 sm:pt-4 md:px-10 md:pt-6 md:pb-12"
     >
       <header
-        className={`transition-padding sticky top-0 z-10 flex gap-4 border-b bg-background/95 backdrop-blur duration-200 ease-out ${
-          isHeaderCompact ? 'items-center py-3' : 'items-start pb-4'
+        className={`sticky top-0 z-10 flex gap-4 border-b bg-background/95 backdrop-blur transition-[padding] duration-200 ease-out motion-reduce:transition-none ${
+          isHeaderCompact
+            ? 'items-center py-1'
+            : 'items-start pt-2 pb-4 sm:pt-3'
         }`}
         data-compact={isHeaderCompact || undefined}
         data-slot="settings-page-header"
       >
         <span
-          className={`flex size-10 shrink-0 items-center justify-center text-muted-foreground transition-[margin] duration-200 ease-out ${
+          className={`flex size-10 shrink-0 items-center justify-center text-muted-foreground transition-[margin] duration-200 ease-out motion-reduce:transition-none ${
             isHeaderCompact ? '' : 'mt-0.5'
           }`}
         >
@@ -96,13 +119,13 @@ export function SettingsPage() {
         <div className="min-w-0">
           <h1
             id="page-title"
-            className="text-xl font-semibold tracking-[-0.035em] md:text-2xl"
+            className={`font-semibold tracking-[-0.035em] transition-[font-size] duration-200 ease-out motion-reduce:transition-none ${isHeaderCompact ? 'text-base' : 'text-xl md:text-2xl'}`}
           >
             設定
           </h1>
           <p
             aria-hidden={isHeaderCompact}
-            className={`max-w-2xl overflow-hidden text-sm leading-6 text-muted-foreground transition-[max-height,opacity,margin,transform] duration-200 ease-out md:text-base ${
+            className={`max-w-2xl overflow-hidden text-sm leading-6 text-muted-foreground transition-[max-height,opacity,margin,transform] duration-200 ease-out motion-reduce:transition-none md:text-base ${
               isHeaderCompact
                 ? 'max-h-0 -translate-y-1 opacity-0'
                 : 'mt-1.5 max-h-12 translate-y-0 opacity-100'
@@ -134,7 +157,7 @@ export function AccountSettingsPage() {
   const { user, signOut } = useAuth()
   return (
     <SettingsDetailPage
-      description="ログイン中のアカウント情報を確認できます。"
+      description="アカウント情報の確認や、テーマ・配色の変更ができます。"
       title="アカウント"
     >
       <AccountSettings showHeader={false} user={user} signOut={signOut} />
@@ -182,17 +205,6 @@ export function RecurringTransactionSettingsPage() {
       title="収支の自動入力"
     >
       <RecurringTransactionSettings showHeader={false} />
-    </SettingsDetailPage>
-  )
-}
-
-export function AppearanceSettingsPage() {
-  return (
-    <SettingsDetailPage
-      description="テーマ、アクセントカラー、グラフカラーセットを変更できます。"
-      title="表示"
-    >
-      <AppearanceSettings />
     </SettingsDetailPage>
   )
 }

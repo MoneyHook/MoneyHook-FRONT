@@ -1,7 +1,6 @@
 export { CsvImportPage } from './csv-import-page'
 export {
   AccountSettingsPage,
-  AppearanceSettingsPage,
   BudgetSettingsPage,
   CategorySettingsPage,
   HouseholdSettingsPage,

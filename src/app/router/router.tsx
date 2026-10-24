@@ -11,7 +11,6 @@ import { LoginPage } from '@/pages/login'
 import { AppNotFoundPage, PublicNotFoundPage } from '@/pages/not-found'
 import {
   AccountSettingsPage,
-  AppearanceSettingsPage,
   BudgetSettingsPage,
   CategorySettingsPage,
   CsvImportPage,
@@ -92,7 +91,10 @@ export const router = createBrowserRouter([
             path: 'settings/recurring-transactions',
             element: <RecurringTransactionSettingsPage />,
           },
-          { path: 'settings/appearance', element: <AppearanceSettingsPage /> },
+          {
+            path: 'settings/appearance',
+            element: <Navigate replace to="/app/settings/account" />,
+          },
           { path: '*', element: <AppNotFoundPage /> },
         ],
       },
