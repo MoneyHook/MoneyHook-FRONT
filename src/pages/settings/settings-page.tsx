@@ -7,7 +7,6 @@ import { useAuth } from '@/features/auth'
 import { FamilySettings } from '@/features/households'
 import {
   AccountSettings,
-  AppearanceSettings,
   BudgetSettings,
   CategorySettings,
   PaymentSettings,
@@ -158,7 +157,7 @@ export function AccountSettingsPage() {
   const { user, signOut } = useAuth()
   return (
     <SettingsDetailPage
-      description="ログイン中のアカウント情報を確認できます。"
+      description="アカウント情報の確認や、テーマ・配色の変更ができます。"
       title="アカウント"
     >
       <AccountSettings showHeader={false} user={user} signOut={signOut} />
@@ -206,17 +205,6 @@ export function RecurringTransactionSettingsPage() {
       title="収支の自動入力"
     >
       <RecurringTransactionSettings showHeader={false} />
-    </SettingsDetailPage>
-  )
-}
-
-export function AppearanceSettingsPage() {
-  return (
-    <SettingsDetailPage
-      description="テーマ、アクセントカラー、グラフカラーセットを変更できます。"
-      title="表示"
-    >
-      <AppearanceSettings />
     </SettingsDetailPage>
   )
 }
