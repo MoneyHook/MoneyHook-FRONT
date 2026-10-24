@@ -1,4 +1,4 @@
-import { ChevronDown, LoaderCircle, Trash2, Upload, X } from 'lucide-react'
+import { ChevronDown, LoaderCircle, X } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 
 import { ErrorState } from '@/shared/components/app-state'
@@ -20,17 +20,12 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu'
-import { RadioGroup, RadioGroupItem } from '@/shared/components/ui/radio-group'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/shared/components/ui/tooltip'
 import { cn } from '@/shared/lib/utils'
 
 import { useTransactionFormController } from '../hooks/use-transaction-form-controller'
 import type { TransactionFormExtension } from '../model/form-extension'
 import { TransactionFormFields } from './transaction-form/transaction-form-fields'
+import { TransactionFormHeader } from './transaction-form/transaction-form-header'
 import { TransactionFormSkeleton } from './transaction-form/transaction-form-skeleton'
 import { TransactionSelectionSheets } from './transaction-form/transaction-selection-sheets'
 
@@ -38,16 +33,6 @@ export function TransactionFormView({
   transactionId,
   extension = {},
 }: { transactionId?: string; extension?: TransactionFormExtension } = {}) {
-  useEffect(() => {
-    if (transactionId) {
-      return
-    }
-
-    document.body.classList.add('transaction-form-scrollbar-hidden')
-    return () =>
-      document.body.classList.remove('transaction-form-scrollbar-hidden')
-  }, [transactionId])
-
   const controller = useTransactionFormController(transactionId, extension)
   const saveDetailsRef = useRef<HTMLDivElement>(null)
   const {
@@ -57,12 +42,10 @@ export function TransactionFormView({
     error,
     retry,
     goBack,
-    openCsvImport,
     isSaving,
     isDeleting,
     setDeleteDialogOpen,
     form,
-    handleSignChange,
     transaction,
     deleteDialogOpen,
     handleDelete,
@@ -126,105 +109,13 @@ export function TransactionFormView({
   return (
     <section
       aria-labelledby="transaction-page-title"
-      className={cn(
-        'mx-auto w-full max-w-2xl px-4 pt-3 sm:block sm:h-auto sm:overflow-visible sm:px-6 sm:pt-7 sm:pb-10',
-        extension.renderOptions
-          ? 'min-h-dvh pb-24'
-          : 'motion-route-enter flex h-dvh flex-col overflow-hidden',
-      )}
+      className="mx-auto w-full max-w-2xl px-4 pt-2 pb-24 sm:px-6 sm:pt-4 sm:pb-10 md:pt-6"
     >
-      <div className="shrink-0">
-        <header className="flex items-center justify-between gap-2 sm:gap-3">
-          <Button
-            aria-label="前の画面へ戻る"
-            className="size-8 sm:size-9"
-            onClick={goBack}
-            size="icon"
-            variant="ghost"
-          >
-            <X aria-hidden="true" className="size-6 sm:size-7" />
-          </Button>
-          {!isEdit && extension.renderTitle ? (
-            extension.renderTitle(controller.resetReferences, isSaving)
-          ) : (
-            <h1
-              className="text-lg font-semibold tracking-[-0.04em] sm:text-2xl"
-              id="transaction-page-title"
-            >
-              取引を{isEdit ? '編集' : '追加'}
-            </h1>
-          )}
-          <div className="flex min-w-8 items-center gap-1 sm:min-w-9">
-            {isEdit ? (
-              <Button
-                aria-label="取引を削除"
-                className="size-8 sm:size-9"
-                disabled={isSaving || isDeleting || extension.isBlocked}
-                onClick={() => setDeleteDialogOpen(true)}
-                size="icon"
-                type="button"
-                variant="destructive"
-              >
-                <Trash2 aria-hidden="true" className="size-5" />
-              </Button>
-            ) : extension.allowCsvImport !== false ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    aria-label="CSV取引をインポート"
-                    className="size-8 sm:size-9"
-                    onClick={openCsvImport}
-                    size="icon"
-                    type="button"
-                    variant="ghost"
-                  >
-                    <Upload aria-hidden="true" className="size-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  CSV取引をインポート
-                </TooltipContent>
-              </Tooltip>
-            ) : null}
-          </div>
-        </header>
-
-        <RadioGroup
-          aria-label="取引区分"
-          className="mt-3 grid grid-cols-2 rounded-2xl bg-muted-foreground/10 p-0.5 sm:mt-8 sm:p-1.5"
-          onValueChange={(value) => handleSignChange(Number(value) as -1 | 1)}
-          value={String(form.sign)}
-        >
-          {[
-            { sign: -1 as const, label: '支出' },
-            { sign: 1 as const, label: '収入' },
-          ].map((item) => {
-            const isSelected = form.sign === item.sign
-            return (
-              <div className="relative" key={item.sign}>
-                <RadioGroupItem
-                  className="peer sr-only"
-                  id={`transaction-sign-${item.sign}`}
-                  value={String(item.sign)}
-                />
-                <label
-                  className={cn(
-                    'flex min-h-10 cursor-pointer items-center justify-center rounded-xl px-3 text-sm font-semibold transition-colors peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50 sm:min-h-12 sm:px-4 sm:text-base',
-                    isSelected
-                      ? item.sign === -1
-                        ? 'bg-card text-expense shadow-sm'
-                        : 'bg-card text-income shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground',
-                  )}
-                  htmlFor={`transaction-sign-${item.sign}`}
-                >
-                  {item.label}
-                </label>
-              </div>
-            )
-          })}
-        </RadioGroup>
-      </div>
+      <TransactionFormHeader
+        key={transactionId ?? 'new'}
+        controller={controller}
+        extension={extension}
+      />
 
       {extension.renderOptions?.(form, controller.resetReferences)}
       <TransactionFormFields

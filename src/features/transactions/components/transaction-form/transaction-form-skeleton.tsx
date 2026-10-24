@@ -14,9 +14,9 @@ export function TransactionFormSkeleton({
   return (
     <LoadingState
       label={label}
-      className="mx-auto flex h-dvh w-full max-w-2xl flex-col overflow-hidden px-4 pt-3 sm:block sm:h-auto sm:overflow-visible sm:px-6 sm:pt-7 sm:pb-10"
+      className="mx-auto w-full max-w-2xl px-4 pt-2 pb-24 sm:px-6 sm:pt-4 sm:pb-10 md:pt-6"
     >
-      <div className="shrink-0">
+      <div className="pt-2 sm:pt-3">
         <div className="flex items-center justify-between">
           <Skeleton className="size-8 rounded-full sm:size-9" />
           <Skeleton
@@ -28,7 +28,7 @@ export function TransactionFormSkeleton({
         </div>
         <Skeleton className="mt-3 h-11 rounded-2xl sm:mt-8 sm:h-15" />
       </div>
-      <div className="scrollbar-hidden mt-3 min-h-0 flex-1 space-y-4 overflow-y-auto pb-24 sm:mt-8 sm:space-y-6 sm:overflow-visible sm:pb-0">
+      <div className="mt-3 space-y-4 sm:mt-8 sm:space-y-6">
         <Card className="block divide-y p-0">
           {[0, 1, 2].map((index) => (
             <div

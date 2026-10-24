@@ -1,5 +1,5 @@
 import { Plus, X } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { ErrorState } from '@/shared/components/app-state'
 import { Button } from '@/shared/components/ui/button'
@@ -22,68 +22,71 @@ import { TransactionsViewTabs } from './transactions/transactions-view-tabs'
 export function TransactionsView() {
   const controller = useTransactionsController()
   const view = controller.view
-  const [headerState, setHeaderState] = useState({ view, compact: false })
-  const isHeaderCompact = headerState.view === view && headerState.compact
+  const [isHeaderCompact, setIsHeaderCompact] = useState(false)
 
-  if (headerState.view !== view) {
-    setHeaderState({ view, compact: false })
-  }
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' })
+
+    const updateHeader = () => {
+      const scrollTop = window.scrollY
+      setIsHeaderCompact((compact) =>
+        compact ? scrollTop > 0 : scrollTop > 16,
+      )
+    }
+
+    updateHeader()
+    window.addEventListener('scroll', updateHeader, { passive: true })
+    return () => window.removeEventListener('scroll', updateHeader)
+  }, [view])
 
   return (
     <>
       <section
         aria-labelledby="transactions-page-title"
-        className={`motion-route-enter mx-auto flex h-svh min-h-0 w-full max-w-6xl flex-col overflow-hidden px-4 transition-[padding-top] duration-200 ease-out motion-reduce:transition-none sm:px-6 md:px-8 ${isHeaderCompact ? 'pt-1' : 'pt-2 md:pt-5'}`}
+        className="motion-route-enter mx-auto w-full max-w-6xl px-4 pt-2 pb-[calc(4.5rem+env(safe-area-inset-bottom))] sm:px-6 sm:pt-4 md:px-8 md:pt-6 md:pb-10"
       >
-        <header
-          className="flex shrink-0 items-center justify-between gap-4"
-          data-compact={isHeaderCompact || undefined}
-          data-slot="transactions-page-header"
-        >
-          <h1
-            className={`font-semibold tracking-[-0.04em] transition-[font-size] duration-200 ease-out motion-reduce:transition-none ${isHeaderCompact ? 'text-base' : 'text-xl sm:text-2xl'}`}
-            id="transactions-page-title"
-          >
-            取引
-          </h1>
-          <div className="flex items-center gap-1">
-            <div className="md:hidden">
-              <TransactionFilterButton
-                activeCount={controller.activeFilterCount}
-                onClick={controller.openMobileFilters}
-              />
-            </div>
-            <TransactionFilterButton
-              activeCount={controller.activeFilterCount}
-              className="hidden md:inline-flex"
-              onClick={controller.openDesktopFilters}
-            />
-          </div>
-        </header>
-
         <Tabs
-          className={`flex min-h-0 flex-1 flex-col gap-0 transition-[margin-top] duration-200 ease-out motion-reduce:transition-none ${isHeaderCompact ? 'mt-1' : 'mt-3 sm:mt-4'}`}
+          className="gap-0"
           onValueChange={(value) =>
             controller.changeView(value as typeof controller.view)
           }
           value={controller.view}
         >
-          <TransactionsViewTabs compact={isHeaderCompact} />
           <div
-            key={controller.view}
-            className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-2"
-            data-slot="transactions-scroll-area"
-            onScroll={(event) => {
-              const { scrollTop } = event.currentTarget
-              setHeaderState((state) => ({
-                view,
-                compact:
-                  state.view === view && state.compact
-                    ? scrollTop > 0
-                    : scrollTop > 16,
-              }))
-            }}
+            className={`sticky top-0 z-10 bg-background/95 backdrop-blur transition-[padding] duration-200 ease-out motion-reduce:transition-none ${isHeaderCompact ? 'pt-1' : 'pt-2 sm:pt-3'}`}
           >
+            <header
+              className="flex items-center justify-between gap-4"
+              data-compact={isHeaderCompact || undefined}
+              data-slot="transactions-page-header"
+            >
+              <h1
+                className={`font-semibold tracking-[-0.04em] transition-[font-size] duration-200 ease-out motion-reduce:transition-none ${isHeaderCompact ? 'text-base' : 'text-xl sm:text-2xl'}`}
+                id="transactions-page-title"
+              >
+                取引
+              </h1>
+              <div className="flex items-center gap-1">
+                <div className="md:hidden">
+                  <TransactionFilterButton
+                    activeCount={controller.activeFilterCount}
+                    onClick={controller.openMobileFilters}
+                  />
+                </div>
+                <TransactionFilterButton
+                  activeCount={controller.activeFilterCount}
+                  className="hidden md:inline-flex"
+                  onClick={controller.openDesktopFilters}
+                />
+              </div>
+            </header>
+            <div
+              className={`transition-[margin-top] duration-200 ease-out motion-reduce:transition-none ${isHeaderCompact ? 'mt-1' : 'mt-3 sm:mt-4'}`}
+            >
+              <TransactionsViewTabs compact={isHeaderCompact} />
+            </div>
+          </div>
+          <div key={view} data-slot="transactions-content">
             {controller.data && controller.activeFilterCount ? (
               <div className="space-y-3 pt-4 sm:pt-5">
                 <ActiveFilterChips

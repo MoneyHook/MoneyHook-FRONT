@@ -1,8 +1,20 @@
-import { Check, Monitor, Moon, Sun } from 'lucide-react'
+import {
+  ChartNoAxesColumn,
+  type LucideIcon,
+  Monitor,
+  Moon,
+  Palette,
+  Sun,
+} from 'lucide-react'
 import type { ReactNode } from 'react'
 
-import { Card } from '@/shared/components/ui/card'
-import { RadioGroup, RadioGroupItem } from '@/shared/components/ui/radio-group'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select'
 import {
   type AccentColor,
   type ChartPalette,
@@ -15,225 +27,180 @@ const themeOptions = [
   { value: 'system', label: 'システム', icon: Monitor },
 ] as const
 
-const accentOptions: ReadonlyArray<{
-  value: AccentColor
-  label: string
-  description: string
-}> = [
-  { value: 'blue', label: 'ブルー', description: 'MoneyHooksの標準色' },
-  { value: 'green', label: 'グリーン', description: '落ち着いた緑' },
-  { value: 'violet', label: 'バイオレット', description: '深みのある紫' },
-  { value: 'rose', label: 'ローズ', description: 'やわらかな赤' },
-  { value: 'black', label: 'ブラック', description: '引き締まった黒' },
+const accentOptions: ReadonlyArray<{ value: AccentColor; label: string }> = [
+  { value: 'blue', label: 'ブルー' },
+  { value: 'green', label: 'グリーン' },
+  { value: 'violet', label: 'バイオレット' },
+  { value: 'rose', label: 'ローズ' },
+  { value: 'black', label: 'ブラック' },
 ]
 
 const chartPaletteOptions: ReadonlyArray<{
   value: ChartPalette
   label: string
-  description: string
 }> = [
-  { value: 'default', label: '標準', description: '現行のブルー基調' },
-  {
-    value: 'colorful',
-    label: 'カラフル',
-    description: '色相を分けて比較しやすい配色',
-  },
-  {
-    value: 'monochrome',
-    label: 'モノトーン',
-    description: '濃淡で見分ける落ち着いた配色',
-  },
+  { value: 'default', label: '標準' },
+  { value: 'colorful', label: 'カラフル' },
+  { value: 'monochrome', label: 'モノトーン' },
 ]
 
-function AppearancePanel({
+function AppearanceRow({
   children,
-  description,
+  icon: Icon,
+  id,
   title,
 }: {
   children: ReactNode
-  description: string
+  icon: LucideIcon
+  id: string
   title: string
 }) {
-  const titleId = `appearance-${title}`
   return (
-    <Card aria-labelledby={titleId} className="block p-4 sm:p-5">
-      <div className="grid gap-5 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-8">
-        <div className="space-y-2">
-          <h2 className="text-xl font-semibold tracking-[-0.03em]" id={titleId}>
-            {title}
-          </h2>
-          <p className="text-sm leading-6 text-muted-foreground">
-            {description}
-          </p>
-        </div>
-        {children}
-      </div>
-    </Card>
+    <div className="flex min-h-21 items-center justify-between gap-3 py-6">
+      <label
+        className="flex min-w-0 items-center gap-2 text-xs sm:text-sm"
+        htmlFor={id}
+      >
+        <Icon aria-hidden="true" className="size-4 shrink-0" />
+        <span>{title}</span>
+      </label>
+      {children}
+    </div>
   )
 }
 
 function ThemePicker() {
   const { setTheme, theme } = useAppearance()
   return (
-    <RadioGroup
-      aria-label="テーマ"
-      className="grid grid-cols-3 gap-2 sm:gap-3"
+    <Select
       onValueChange={(value) => setTheme(value as typeof theme)}
       value={theme}
     >
-      {themeOptions.map((option) => {
-        const Icon = option.icon
-        return (
-          <div className="group relative block" key={option.value}>
-            <RadioGroupItem
-              className="peer sr-only"
-              id={`theme-${option.value}`}
+      <SelectTrigger
+        className="w-36 shrink-0 bg-card text-xs shadow-xs"
+        id="appearance-theme"
+      >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent align="end" className="min-w-36">
+        {themeOptions.map((option) => {
+          const Icon = option.icon
+          return (
+            <SelectItem
+              className="text-xs"
+              key={option.value}
               value={option.value}
-            />
-            <label
-              className="flex min-h-20 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-border bg-background px-1.5 py-2 text-center transition-colors peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50 peer-data-[state=checked]:border-foreground peer-data-[state=checked]:bg-muted hover:bg-muted sm:min-h-24 sm:gap-2 sm:px-3 sm:py-3"
-              htmlFor={`theme-${option.value}`}
             >
-              <Icon aria-hidden="true" className="size-5 sm:size-6" />
-              <span className="text-xs leading-4 font-semibold sm:text-sm sm:leading-5">
-                {option.label}
+              <span className="flex items-center gap-2">
+                <Icon aria-hidden="true" className="size-3.5 shrink-0" />
+                <span>{option.label}</span>
               </span>
-              {theme === option.value ? (
-                <Check
-                  aria-hidden="true"
-                  className="absolute top-2 right-2 size-4 text-foreground sm:top-3 sm:right-3 sm:size-5"
-                />
-              ) : null}
-            </label>
-          </div>
-        )
-      })}
-    </RadioGroup>
+            </SelectItem>
+          )
+        })}
+      </SelectContent>
+    </Select>
   )
 }
 
 function AccentColorPicker() {
   const { accent, setAccent } = useAppearance()
   return (
-    <RadioGroup
-      aria-label="アクセントカラー"
-      className="grid grid-cols-3 gap-2 sm:gap-3"
+    <Select
       onValueChange={(value) => setAccent(value as typeof accent)}
       value={accent}
     >
-      {accentOptions.map((option) => (
-        <div key={option.value} className="group relative block">
-          <RadioGroupItem
-            className="peer sr-only"
-            id={`accent-${option.value}`}
+      <SelectTrigger
+        className="w-36 shrink-0 bg-card text-xs shadow-xs"
+        id="appearance-accent"
+      >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent align="end" className="min-w-36">
+        {accentOptions.map((option) => (
+          <SelectItem
+            className="text-xs"
+            key={option.value}
             value={option.value}
-          />
-          <label
-            className="flex min-h-24 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-border bg-background px-1.5 py-2 text-center transition-colors peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50 peer-data-[state=checked]:border-foreground peer-data-[state=checked]:bg-muted hover:bg-muted sm:min-h-28 sm:gap-2 sm:px-3 sm:py-3"
-            htmlFor={`accent-${option.value}`}
           >
-            <span
-              aria-hidden="true"
-              className="size-6 shrink-0 rounded-full border border-foreground/15 shadow-sm sm:size-7"
-              style={{
-                backgroundColor: `var(--accent-swatch-${option.value})`,
-              }}
-            />
-            <span className="min-w-0">
-              <span className="block text-xs leading-4 font-semibold wrap-break-word sm:text-sm sm:leading-5">
-                {option.label}
-              </span>
-              <span className="mt-0.5 block text-[0.6875rem] leading-4 wrap-break-word text-muted-foreground sm:mt-1 sm:text-xs sm:leading-5">
-                {option.description}
-              </span>
-            </span>
-            {accent === option.value ? (
-              <Check
+            <span className="flex items-center gap-2">
+              <span
                 aria-hidden="true"
-                className="absolute top-2 right-2 size-4 text-foreground sm:top-3 sm:right-3 sm:size-5"
+                className="size-2 shrink-0 rounded-full border border-foreground/10"
+                style={{
+                  backgroundColor: `var(--accent-swatch-${option.value})`,
+                }}
               />
-            ) : null}
-          </label>
-        </div>
-      ))}
-    </RadioGroup>
+              <span>{option.label}</span>
+            </span>
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   )
 }
 
 function ChartPalettePicker() {
   const { chartPalette, setChartPalette } = useAppearance()
   return (
-    <RadioGroup
-      aria-label="グラフカラーセット"
-      className="grid grid-cols-3 gap-2 sm:gap-3"
+    <Select
       onValueChange={(value) => setChartPalette(value as typeof chartPalette)}
       value={chartPalette}
     >
-      {chartPaletteOptions.map((option) => (
-        <div key={option.value} className="group relative block">
-          <RadioGroupItem
-            className="peer sr-only"
-            id={`chart-palette-${option.value}`}
+      <SelectTrigger
+        className="w-40 shrink-0 bg-card text-xs shadow-xs"
+        id="appearance-chart-palette"
+      >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent align="end" className="min-w-40">
+        {chartPaletteOptions.map((option) => (
+          <SelectItem
+            className="text-xs"
+            key={option.value}
             value={option.value}
-          />
-          <label
-            className="flex min-h-24 cursor-pointer flex-col items-center justify-center rounded-xl border border-border bg-background px-1.5 py-2 text-center transition-colors peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50 peer-data-[state=checked]:border-foreground peer-data-[state=checked]:bg-muted hover:bg-muted sm:min-h-28 sm:px-3 sm:py-3"
-            htmlFor={`chart-palette-${option.value}`}
           >
-            <span
-              className="flex flex-nowrap items-center justify-center gap-0.5 sm:gap-1.5"
-              aria-hidden="true"
-            >
-              {[1, 2, 3, 4, 5].map((index) => (
-                <span
-                  className="size-3 rounded-full border border-foreground/10 shadow-sm sm:size-4"
-                  key={index}
-                  style={{
-                    backgroundColor: `var(--chart-palette-swatch-${option.value}-${index})`,
-                  }}
-                />
-              ))}
+            <span className="flex items-center gap-2">
+              <span aria-hidden="true" className="flex shrink-0 gap-0.5">
+                {[1, 2, 3, 4, 5].map((index) => (
+                  <span
+                    className="size-1.5 rounded-full"
+                    key={index}
+                    style={{
+                      backgroundColor: `var(--chart-palette-swatch-${option.value}-${index})`,
+                    }}
+                  />
+                ))}
+              </span>
+              <span>{option.label}</span>
             </span>
-            <span className="mt-2 block text-xs leading-4 font-semibold wrap-break-word sm:mt-3 sm:text-sm sm:leading-5">
-              {option.label}
-            </span>
-            <span className="mt-0.5 text-[0.6875rem] leading-4 wrap-break-word text-muted-foreground sm:mt-1 sm:text-xs sm:leading-5">
-              {option.description}
-            </span>
-            {chartPalette === option.value ? (
-              <Check
-                aria-hidden="true"
-                className="absolute top-2 right-2 size-4 text-foreground sm:top-3 sm:right-3 sm:size-5"
-              />
-            ) : null}
-          </label>
-        </div>
-      ))}
-    </RadioGroup>
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   )
 }
 
 export function AppearanceSettings() {
   return (
-    <div className="space-y-5">
-      <AppearancePanel
-        description="アプリ全体の見た目を切り替えます。"
-        title="テーマ"
-      >
+    <div className="divide-y border-y">
+      <AppearanceRow icon={Sun} id="appearance-theme" title="テーマ">
         <ThemePicker />
-      </AppearancePanel>
-      <AppearancePanel
-        description="ボタンや選択状態など、主要なUIのアクセント色を選択できます。"
+      </AppearanceRow>
+      <AppearanceRow
+        icon={Palette}
+        id="appearance-accent"
         title="アクセントカラー"
       >
         <AccentColorPicker />
-      </AppearancePanel>
-      <AppearancePanel
-        description="ホームと分析画面のグラフで使用する色を選択できます。"
+      </AppearanceRow>
+      <AppearanceRow
+        icon={ChartNoAxesColumn}
+        id="appearance-chart-palette"
         title="グラフカラーセット"
       >
         <ChartPalettePicker />
-      </AppearancePanel>
+      </AppearanceRow>
     </div>
   )
 }

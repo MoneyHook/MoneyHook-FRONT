@@ -60,3 +60,22 @@ Geist/日本語fallback、tabular numerals、余白・境界・chart/icon・文�
 - 「よく使う項目」にカテゴリicon＋名称のoutline pill（h-9/text-sm/px-3、gap-2）、size-11の破線expand。既存tokens/Geist/Lucideを使用。
 - 初期6候補、1操作で12、家賃選択で名称へ適用。mockのbottom sheetに対し製品要件の6件ずつinline展開を優先。周囲のcamera/memo/検索/navは対象外。
 - 当時のテストはloading/error/empty/visibility/applicationを確認。最終passed、P0/P1/P2・console errorなし。
+
+## Appearance Select — 2026-10-24
+
+- 対象: `/app/settings/appearance`。既存の設定値・選択肢・保存処理を維持し、shadcn/ui Select と区切り線付きの行に変更。
+- source visual truth: `/var/folders/dp/_xcq39fs11l2lsjpd4jd4qvr0000gn/T/codex-clipboard-1a190281-9c64-44b1-b757-d4cc9ebf29ec.png`（514×196）、`/var/folders/dp/_xcq39fs11l2lsjpd4jd4qvr0000gn/T/codex-clipboard-1c3fae5b-448d-4208-85b6-ffb5ca0952f6.png`（514×372）。
+- implementation screenshots: `/private/tmp/moneyhooks-appearance-theme-final.png`、`/private/tmp/moneyhooks-appearance-accent-final.png`（820×720）、`/private/tmp/moneyhooks-appearance-mobile-final.png`（390×844）。CSS viewport と画像寸法は同じ、密度1。320×640でも文書幅を確認。
+- full-view evidence: 上記のPC・モバイル画面でページタイトル、3行、操作メニュー、下部ナビを確認。
+- focused comparison evidence: `/private/tmp/moneyhooks-appearance-theme-comparison-final.png`、`/private/tmp/moneyhooks-appearance-accent-comparison-final.png`。実装の484px幅の設定領域を左右余白込み514pxで切り出し、元画像と同一入力上に並べて比較。拡大縮小なし。
+- state: テーマはシステム、アクセントは保存済みのブラック。テーマメニュー・アクセントメニューを別々に開いて比較。参考のパープル・7色に対し、既存の名称・5色を優先。画像のMarkdownエディタ・利用規約は対象外で、既存のグラフカラーセットを残す。
+- comparison history: 初回はラベルの太さ、セレクトの幅と背景にP2の差を確認（`/private/tmp/moneyhooks-appearance-theme-comparison.png`、`/private/tmp/moneyhooks-appearance-accent-comparison.png`）。標準の太さ、テーマ・アクセント幅144px、card背景へ修正し、上記final画像で再比較。長い既存名称とグラフ配色見本の可読性のため、幅は参考の116pxより広く維持。
+- fonts/typography: 既存のGeist・日本語fallbackを使用。ラベル14px、セレクト12pxで、全項目と選択中の名称を確認。
+- spacing/layout: 左ラベル・右セレクト、84pxの行、区切り線、右揃えのメニューを確認。390pxでは1行、320pxの長いラベルは改行し、横方向のはみ出しなし。
+- colors/tokens: background/card/popover/border/foregroundと既存の色見本tokenを使用。アプリの背景色は既存のテーマを優先。
+- image quality/assets: ラスター素材なし。既存のLucideアイコン、色設定を示すtokenの色見本を使用。
+- copy/content: テーマ・アクセントカラー・グラフカラーセットと全既存選択肢を維持。
+- interactions: 3つのSelectの開閉、選択中チェック、キーボード移動とEscapeによるキャンセル、labelとの関連付けを確認。設定値は変更せず、保存処理は既存のuseAppearanceへ接続することをコードで確認。ブラウザーのconsole errorなし。
+- findings: 未解決のP0/P1/P2なし。実機のタッチ操作・OSキーボード、保存APIの実送信は今回の見た目変更では検証対象外。
+- implementation checklist: 3項目の置換、既存token・保存接続の維持、PC・モバイル確認、型検査・対象ESLint・色・書式・差分チェックを完了。
+- final result: passed

@@ -1,7 +1,6 @@
 import {
   ChevronRight,
   CircleUserRound,
-  Monitor,
   Repeat2,
   Tags,
   Users,
@@ -72,7 +71,7 @@ export function SettingsSummary() {
     <div className="space-y-8">
       <SummaryGroup title="アカウント" titleId="settings-account-title">
         <SummaryCard
-          description="ログイン中のアカウント情報を確認できます。"
+          description="アカウント情報の確認や、テーマ・配色の変更ができます。"
           icon={CircleUserRound}
           title="アカウント"
           to="/app/settings/account"
@@ -112,15 +111,6 @@ export function SettingsSummary() {
           icon={Users}
           title="家族の家計"
           to="/app/settings/family"
-        />
-      </SummaryGroup>
-
-      <SummaryGroup title="アプリの設定" titleId="settings-app-title">
-        <SummaryCard
-          description="テーマやアクセントカラー、グラフの配色を設定します。"
-          icon={Monitor}
-          title="表示"
-          to="/app/settings/appearance"
         />
       </SummaryGroup>
     </div>
