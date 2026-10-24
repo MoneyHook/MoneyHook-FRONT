@@ -7827,6 +7827,7 @@ components:
             'transactions':
               {
                 'type': 'array',
+                'maxItems': 500,
                 'items':
                   { '$ref': '#/components/schemas/V1TransactionResource' },
               },
