@@ -93,7 +93,7 @@ export function TransactionNameInput({
           aria-haspopup={isEdit ? undefined : 'listbox'}
           aria-invalid={errors.transactionName ? true : undefined}
           autoComplete="off"
-          className="ml-auto h-11 max-w-64 scroll-mt-4 text-right text-xl placeholder:text-muted-foreground/60"
+          className="ml-auto h-11 max-w-64 scroll-mt-32 text-right text-xl placeholder:text-muted-foreground/60"
           id="new-transaction-name"
           maxLength={32}
           onBlur={() => setOpen(false)}
