@@ -42,43 +42,37 @@ export function AccountSettings({
   return (
     <div className="space-y-6">
       <SettingsSection
-        description="アカウント情報の確認や、テーマ・配色の変更ができます。"
+        description="ログイン中のアカウント情報を確認できます。"
         icon={CircleUserRound}
         showHeader={showHeader}
         title="アカウント"
         titleId="account-settings-title"
       >
-        <div className="flex min-w-0 items-center gap-3">
-          <Avatar size="lg">
-            {user?.photoURL ? (
-              <AvatarImage
-                alt=""
-                referrerPolicy="no-referrer"
-                src={user.photoURL}
-              />
-            ) : null}
-            <AvatarFallback>{initial}</AvatarFallback>
-          </Avatar>
-          <div className="min-w-0 space-y-0.5">
-            <p className="truncate font-medium">
-              {user?.displayName || 'MoneyHooksユーザー'}
-            </p>
-            {user?.email ? (
-              <p className="truncate text-sm text-muted-foreground">
-                {user.email}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <Avatar size="lg">
+              {user?.photoURL ? (
+                <AvatarImage
+                  alt=""
+                  referrerPolicy="no-referrer"
+                  src={user.photoURL}
+                />
+              ) : null}
+              <AvatarFallback>{initial}</AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 space-y-0.5">
+              <p className="truncate font-medium">
+                {user?.displayName || 'MoneyHooksユーザー'}
               </p>
-            ) : null}
+              {user?.email ? (
+                <p className="truncate text-sm text-muted-foreground">
+                  {user.email}
+                </p>
+              ) : null}
+            </div>
           </div>
-        </div>
-        <div className="mt-6">
-          <AppearanceSettings />
-        </div>
-      </SettingsSection>
-
-      <Card aria-label="ログアウト" className="block p-5 sm:p-6" role="region">
-        <div className="flex justify-end">
           <Button
-            className="w-full sm:w-auto"
+            className="shrink-0"
             onClick={handleSignOut}
             size="lg"
             type="button"
@@ -88,6 +82,10 @@ export function AccountSettings({
             ログアウト
           </Button>
         </div>
+      </SettingsSection>
+
+      <Card aria-label="表示設定" className="block p-5 sm:p-6" role="region">
+        <AppearanceSettings />
       </Card>
     </div>
   )

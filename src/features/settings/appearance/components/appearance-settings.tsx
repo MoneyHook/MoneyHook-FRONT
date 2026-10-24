@@ -183,7 +183,7 @@ function ChartPalettePicker() {
 
 export function AppearanceSettings() {
   return (
-    <div className="divide-y border-y">
+    <div className="divide-y">
       <AppearanceRow icon={Sun} id="appearance-theme" title="テーマ">
         <ThemePicker />
       </AppearanceRow>
