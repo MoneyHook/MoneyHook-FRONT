@@ -18,6 +18,7 @@
 import type { V1TransactionResource } from './v1TransactionResource'
 
 export interface V1TransactionPage {
+  /** @maxItems 500 */
   transactions: V1TransactionResource[]
   /** @nullable */
   next_cursor: string | null
