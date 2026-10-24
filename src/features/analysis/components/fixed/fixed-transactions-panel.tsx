@@ -91,7 +91,7 @@ export function TransactionsPanel({
   const visibleItems = expanded ? items : items.slice(0, 5)
 
   return (
-    <AnalysisPanel className="scroll-mt-4 p-0" id="fixed-transactions">
+    <AnalysisPanel className="scroll-mt-28 p-0" id="fixed-transactions">
       <div className="flex items-baseline justify-between gap-4 px-4 py-4 sm:px-6">
         <h2 className="text-base font-semibold sm:text-lg">固定費の取引一覧</h2>
         <span className="text-xs text-muted-foreground tabular-nums sm:text-sm">

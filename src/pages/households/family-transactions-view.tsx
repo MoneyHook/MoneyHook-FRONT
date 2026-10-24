@@ -1,5 +1,5 @@
 import { Plus, Share2 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
 
 import { FamilyEntryDetailSkeleton } from '@/features/households'
@@ -62,6 +62,23 @@ export function FamilyTransactionsView({
       : now,
   )
   const view = normalizeTransactionView(search.get('view'))
+  const [isHeaderCompact, setIsHeaderCompact] = useState(false)
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' })
+
+    const updateHeader = () => {
+      const scrollTop = window.scrollY
+      setIsHeaderCompact((compact) =>
+        compact ? scrollTop > 0 : scrollTop > 16,
+      )
+    }
+
+    updateHeader()
+    window.addEventListener('scroll', updateHeader, { passive: true })
+    return () => window.removeEventListener('scroll', updateHeader)
+  }, [view])
+
   const payer = search.get('payer') ?? ''
   const kind = search.get('kind') ?? ''
   const [filterOpen, setFilterOpen] = useState(false)
@@ -105,57 +122,65 @@ export function FamilyTransactionsView({
     <>
       <section
         aria-labelledby="family-transactions-title"
-        className="motion-route-enter mx-auto flex h-svh min-h-0 w-full max-w-6xl flex-col overflow-hidden px-4 pt-2 sm:px-6 md:px-8 md:pt-5"
+        className="motion-route-enter mx-auto w-full max-w-6xl px-4 pt-2 pb-[calc(8rem+env(safe-area-inset-bottom))] sm:px-6 sm:pt-4 md:px-8 md:pt-6 md:pb-20"
       >
-        <header className="flex shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-1">
-          <h1
-            id="family-transactions-title"
-            className="text-xl font-semibold tracking-[-0.04em] sm:text-2xl"
-          >
-            取引
-          </h1>
-          <div className="flex items-center gap-1">
-            <HouseholdScopeSwitch
-              size="sm"
-              hasActiveFamily={hasActiveFamily}
-              scope="family"
-              personalHref={`/app/home?month=${month.month}`}
-              familyHref={returnTo}
-            />
-            <Button
-              asChild
-              variant="ghost"
-              size="icon-lg"
-              aria-label="共有管理"
-            >
-              <Link to={`/app/family/sharing?${context}`}>
-                <Share2 aria-hidden="true" className="size-5" />
-              </Link>
-            </Button>
-            <TransactionFilterButton
-              activeCount={activeCount}
-              onClick={() => {
-                setDraft({ payer, kind })
-                setFilterOpen(true)
-              }}
-            />
-          </div>
-        </header>
-        <p className="mt-1 truncate text-xs text-muted-foreground">
-          {family.name}
-          {family.state === 'archived' ? '・終了した家族（閲覧専用）' : ''}
-        </p>
         <Tabs
-          className="mt-3 flex min-h-0 flex-1 flex-col gap-0 sm:mt-4"
+          className="gap-0"
           value={view}
           onValueChange={(value) => updateSearch({ view: value })}
         >
-          <TransactionsViewTabs />
           <div
-            key={view}
-            className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[calc(8rem+env(safe-area-inset-bottom))] md:pb-20"
-            data-slot="transactions-scroll-area"
+            className={`sticky top-0 z-10 bg-background/95 backdrop-blur transition-[padding] duration-200 ease-out motion-reduce:transition-none ${isHeaderCompact ? 'pt-1' : 'pt-2 sm:pt-3'}`}
           >
+            <header
+              className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1"
+              data-compact={isHeaderCompact || undefined}
+              data-slot="family-transactions-page-header"
+            >
+              <h1
+                id="family-transactions-title"
+                className={`font-semibold tracking-[-0.04em] transition-[font-size] duration-200 ease-out motion-reduce:transition-none ${isHeaderCompact ? 'text-base' : 'text-xl sm:text-2xl'}`}
+              >
+                取引
+              </h1>
+              <div className="flex items-center gap-1">
+                <HouseholdScopeSwitch
+                  size="sm"
+                  hasActiveFamily={hasActiveFamily}
+                  scope="family"
+                  personalHref={`/app/home?month=${month.month}`}
+                  familyHref={returnTo}
+                />
+                <Button
+                  asChild
+                  variant="ghost"
+                  size="icon-lg"
+                  aria-label="共有管理"
+                >
+                  <Link to={`/app/family/sharing?${context}`}>
+                    <Share2 aria-hidden="true" className="size-5" />
+                  </Link>
+                </Button>
+                <TransactionFilterButton
+                  activeCount={activeCount}
+                  onClick={() => {
+                    setDraft({ payer, kind })
+                    setFilterOpen(true)
+                  }}
+                />
+              </div>
+            </header>
+            <p className="mt-1 truncate text-xs text-muted-foreground">
+              {family.name}
+              {family.state === 'archived' ? '・終了した家族（閲覧専用）' : ''}
+            </p>
+            <div
+              className={`transition-[margin-top] duration-200 ease-out motion-reduce:transition-none ${isHeaderCompact ? 'mt-1' : 'mt-3 sm:mt-4'}`}
+            >
+              <TransactionsViewTabs compact={isHeaderCompact} />
+            </div>
+          </div>
+          <div key={view} data-slot="family-transactions-content">
             {activeCount > 0 && (
               <div className="flex flex-wrap items-center justify-between gap-2 pt-4 text-sm">
                 <p className="text-muted-foreground">
