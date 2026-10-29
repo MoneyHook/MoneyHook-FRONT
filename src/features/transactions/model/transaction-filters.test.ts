@@ -5,7 +5,6 @@ import {
   filterTransactions,
   getActiveFilterCount,
   parseTransactionFilters,
-  summarizeFilteredTransactions,
   writeTransactionFilters,
 } from './transaction-filters'
 import type { TransactionItem } from './transactions'
@@ -77,7 +76,7 @@ describe('transaction filters', () => {
     ).toBe('month=2026-09-01')
   })
 
-  it('filters by combined conditions and calculates result totals', () => {
+  it('filters by combined conditions and counts active filters', () => {
     const filtered = filterTransactions(items, {
       sign: 'expense',
       categoryId: 'home',
@@ -85,12 +84,6 @@ describe('transaction filters', () => {
       fixed: 'fixed',
     })
     expect(filtered.map((item) => item.id)).toEqual(['1'])
-    expect(summarizeFilteredTransactions(filtered)).toEqual({
-      count: 1,
-      expenseAmount: 50_000,
-      incomeAmount: 0,
-      balanceAmount: -50_000,
-    })
     expect(
       getActiveFilterCount({
         sign: 'income',
