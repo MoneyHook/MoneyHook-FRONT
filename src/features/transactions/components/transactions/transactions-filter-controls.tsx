@@ -5,15 +5,8 @@ import { Button } from '@/shared/components/ui/button'
 import { cn } from '@/shared/lib/utils'
 
 import { useTransactionFilterReferences } from '../../api/use-transaction-filter-references'
-import {
-  summarizeFilteredTransactions,
-  type TransactionFilters,
-} from '../../model/transaction-filters'
-import {
-  formatBalance,
-  formatCurrency,
-  type TransactionItem,
-} from '../../model/transactions'
+import type { TransactionFilters } from '../../model/transaction-filters'
+import type { TransactionItem } from '../../model/transactions'
 
 type FilterReferences = ReturnType<typeof useTransactionFilterReferences>
 
@@ -205,11 +198,13 @@ export function ActiveFilterChips({
   items,
   onRemove,
   references,
+  resultCount,
 }: {
   filters: TransactionFilters
   items: TransactionItem[]
   onRemove: (key: keyof TransactionFilters) => void
   references: FilterReferences
+  resultCount: number
 }) {
   const categoryName = filters.categoryId
     ? (references.categories.find(
@@ -241,7 +236,10 @@ export function ActiveFilterChips({
   ].filter(Boolean) as Array<{ key: keyof TransactionFilters; label: string }>
   if (!entries.length) return null
   return (
-    <div aria-label="適用中の絞り込み" className="flex flex-wrap gap-2">
+    <div
+      aria-label="適用中の絞り込み"
+      className="flex flex-wrap items-center gap-2"
+    >
       {entries.map((entry) => (
         <Button
           variant="ghost"
@@ -255,26 +253,9 @@ export function ActiveFilterChips({
           <X aria-hidden="true" className="size-3.5" />
         </Button>
       ))}
+      <span className="text-xs whitespace-nowrap text-muted-foreground tabular-nums">
+        検索結果 {resultCount}件
+      </span>
     </div>
-  )
-}
-
-export function FilterResultSummary({
-  summary,
-  sign,
-}: {
-  summary: ReturnType<typeof summarizeFilteredTransactions>
-  sign: TransactionFilters['sign']
-}) {
-  const detail =
-    sign === 'expense'
-      ? `支出 ${formatCurrency(summary.expenseAmount)}`
-      : sign === 'income'
-        ? `収入 ${formatCurrency(summary.incomeAmount)}`
-        : `支出 ${formatCurrency(summary.expenseAmount)}・収入 ${formatCurrency(summary.incomeAmount)}・収支 ${formatBalance(summary.balanceAmount)}`
-  return (
-    <p className="text-sm font-semibold tabular-nums sm:text-base">
-      {summary.count}件・{detail}
-    </p>
   )
 }

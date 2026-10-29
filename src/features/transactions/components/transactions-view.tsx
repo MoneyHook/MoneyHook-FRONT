@@ -11,7 +11,6 @@ import { EMPTY_TRANSACTION_FILTERS } from '../model/transaction-filters'
 import { TransactionsCalendarPanel } from './transactions/transactions-calendar-panel'
 import {
   ActiveFilterChips,
-  FilterResultSummary,
   TransactionFilterButton,
   TransactionsFilterPanel,
 } from './transactions/transactions-filter-controls'
@@ -88,16 +87,13 @@ export function TransactionsView() {
           </div>
           <div key={view} data-slot="transactions-content">
             {controller.data && controller.activeFilterCount ? (
-              <div className="space-y-3 pt-4 sm:pt-5">
+              <div className="pt-4 sm:pt-5">
                 <ActiveFilterChips
                   filters={controller.filters}
                   items={controller.data.items}
                   onRemove={controller.removeFilter}
                   references={controller.references}
-                />
-                <FilterResultSummary
-                  sign={controller.filters.sign}
-                  summary={controller.filterSummary}
+                  resultCount={controller.filteredData?.items.length ?? 0}
                 />
               </div>
             ) : null}

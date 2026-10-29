@@ -8,7 +8,6 @@ import {
   filterTransactions,
   getActiveFilterCount,
   parseTransactionFilters,
-  summarizeFilteredTransactions,
   type TransactionFilters,
   writeTransactionFilters,
 } from '../model/transaction-filters'
@@ -57,10 +56,6 @@ export function useTransactionsController() {
           )
         : null,
     [filters, transactions.data],
-  )
-  const filterSummary = useMemo(
-    () => summarizeFilteredTransactions(filteredData?.items ?? []),
-    [filteredData],
   )
   const selectedDate = transactions.data
     ? normalizeSelectedDate(rawDate, month, filteredData?.items ?? [])
@@ -181,7 +176,6 @@ export function useTransactionsController() {
     desktopFilterOpen,
     draftFilters,
     error: transactions.error,
-    filterSummary,
     filteredData,
     filters,
     isError: transactions.isError,
