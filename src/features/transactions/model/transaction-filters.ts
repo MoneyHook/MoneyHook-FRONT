@@ -17,13 +17,6 @@ export const EMPTY_TRANSACTION_FILTERS: TransactionFilters = {
   fixed: null,
 }
 
-export type TransactionFilterSummary = {
-  count: number
-  expenseAmount: number
-  incomeAmount: number
-  balanceAmount: number
-}
-
 export function parseTransactionFilters(
   params: URLSearchParams,
 ): TransactionFilters {
@@ -74,26 +67,6 @@ export function filterTransactions(
     if (filters.fixed === 'variable' && item.fixed) return false
     return true
   })
-}
-
-export function summarizeFilteredTransactions(
-  items: TransactionItem[],
-): TransactionFilterSummary {
-  const expenseAmount = items.reduce(
-    (total, item) => total + (item.sign === -1 ? item.amount : 0),
-    0,
-  )
-  const incomeAmount = items.reduce(
-    (total, item) => total + (item.sign === 1 ? item.amount : 0),
-    0,
-  )
-
-  return {
-    count: items.length,
-    expenseAmount,
-    incomeAmount,
-    balanceAmount: incomeAmount - expenseAmount,
-  }
 }
 
 export function getActiveFilterCount(filters: TransactionFilters) {
