@@ -4,6 +4,8 @@ import {
   House,
   LogOut,
   type LucideIcon,
+  PanelLeftClose,
+  PanelLeftOpen,
   Plus,
   Settings,
 } from 'lucide-react'
@@ -143,15 +145,22 @@ function DesktopSidebar({
   const { state, toggleSidebar } = useSidebar()
   const sidebarToggleLabel =
     state === 'expanded' ? 'サイドバーを閉じる' : 'サイドバーを開く'
+  const SidebarToggleIcon =
+    state === 'expanded' ? PanelLeftClose : PanelLeftOpen
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="h-16 justify-center border-b px-3">
-        <Brand
-          aria-label={sidebarToggleLabel}
-          className="group-data-[collapsible=icon]:[&_span:last-child]:hidden"
-          onClick={toggleSidebar}
-        />
+      <SidebarHeader className="h-16 justify-center border-b px-3 group-data-[collapsible=icon]:px-1">
+        <div className="relative">
+          <Brand
+            aria-label={sidebarToggleLabel}
+            className="peer w-full justify-start hover:opacity-100 motion-reduce:transition-none group-data-[collapsible=icon]:[&_span:last-child]:hidden [&>*]:transition-opacity [&>*]:duration-150 [&>*]:ease-out hover:[&>*]:opacity-0 focus-visible:[&>*]:opacity-0 motion-reduce:[&>*]:transition-none"
+            onClick={toggleSidebar}
+          />
+          <span className="pointer-events-none absolute inset-y-0 left-0 flex w-9 items-center justify-center opacity-0 transition-opacity duration-150 ease-out peer-hover:opacity-100 peer-focus-visible:opacity-100 motion-reduce:transition-none">
+            <SidebarToggleIcon aria-hidden="true" className="size-5" />
+          </span>
+        </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup className="px-2 py-5">
