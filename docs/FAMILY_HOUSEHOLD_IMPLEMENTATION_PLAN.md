@@ -1,6 +1,6 @@
 # 家族の家計記録 v1 — 実装資料
 
-実装・検証記録の基準: 2026-09-29。本番migration/デプロイはこの記録では未実施。業務仕様は[機能仕様](FAMILY_HOUSEHOLD_DESIGN.md)、HTTP path/schemaは[OpenAPI](../contracts/openapi.yaml)、DDLはGo APIの`app/db/migration/household.go`を正本とする。Go側のパスは参照先であり、この資料だけで別リポジトリの変更を指示しない。
+業務仕様は[機能仕様](FAMILY_HOUSEHOLD_DESIGN.md)、HTTP path/schemaは[OpenAPI](../contracts/openapi.yaml)、DDLはGo APIの`app/db/migration/household.go`を正本とする。
 
 ## 構成と正本
 
@@ -28,7 +28,7 @@ DBはbigint ID、HTTPはstring。業務時刻は`timestamptz`、取引日は`dat
 - `api_idempotency`: user/operation/key、request digest、結果resource ID。同じDB transactionに保存、期限なし。
 - `household_invitation_attempt`: account/IPのHMAC bucket、attempts/expiry。各15分20回、期限切れは次の試行でリセット。
 
-操作履歴は保存せず旧`household_event`をmigrationで削除。控えの原本versionも保存せず旧`source_version`列を削除する。
+家族の操作履歴と控え作成時の原本versionは保存しない。
 
 - memberの`(household_id, user_no)`は一意。再参加は同member IDを再利用し、過去参照を保つ。
 - active userの一意索引で1所属。active slotは1〜3、非activeはnull。activeな`(household_id, slot_no)`を一意にして4人目を防ぐ。
@@ -86,36 +86,32 @@ DBはbigint ID、HTTPはstring。業務時刻は`timestamptz`、取引日は`dat
 
 409は`VERSION_CONFLICT`・`HOUSEHOLD_FULL`・`ALREADY_IN_HOUSEHOLD`・`INVITATION_LIMIT_REACHED`・`SOURCE_ALREADY_SNAPSHOTTED`・`IDEMPOTENCY_CONFLICT`等。UIはcodeで案内しDBエラーを出さない。既存入力制約（1〜9,999,999円、名称1〜32文字等）を維持する。
 
-旧path/JSON/statusを維持。既存v1のexpected_versionは移行期は省略可能、React新フォームと新家族変更APIは必須。旧APIを含む全原本書き込みで版を進め共有整合性を保つ。旧クライアントの無条件更新には競合検出を保証せず、所有/退出ロックは保証する。全面的な競合検出には旧API廃止の別計画が必要。
+旧path/JSON/statusを維持する。既存v1のexpected_versionは移行期は省略可能で、React新フォームと新家族変更APIでは必須。旧APIを含む全原本書き込みで版を進め、共有整合性を保つ。旧クライアントの無条件更新には競合検出を保証せず、所有/退出ロックは保証する。全面的な競合検出には旧API廃止の別計画が必要。
 
-## 移行・公開
+旧/v1の全経路で論理削除と共有処理を適用する。GORMのTable/Rawを含め、集計・候補・CSV・定期生成で削除済み取引を除外できることと、物理削除が残っていないことを確認する。
 
-1. 追加DDL/設定/version/論理削除を再実行可能なmigrationで導入。既存原本は非共有、家族参照は空、個人設定の所有者は移さない。
-2. 旧/v1の全読み書きへ論理削除/共有処理を適用。GORM scope任せにせずTable/Raw/集計/候補/CSV/定期生成を確認し物理DELETEを残さない。
-3. 契約/生成物を同期し、公開前に全API instanceを互換処理へ更新する。
-4. Reactはpersonal初期値、明示作成/招待で開始。退出/控え/旧API整合まで完成後に公開する。
-5. migration前後の原本件数・user/月別signed sum・参照整合・共有0件を確認。再実行で重複しないことも確認する。
+## 公開時の連携
 
-公開停止/互換APIへ切り戻せるようにする。家族データ/論理削除開始後に共有を知らない旧binaryへ戻さず控えを保持する。事前backup/復元手順を確認する。CockroachDBのpartial index・lock・制約・直列化再試行は実環境相当で確認し、PostgreSQLの成功を代用しない。
+DB移行・配備順・切り戻しは[Go開発ガイドの「家族機能の移行と公開」](https://github.com/MoneyHook/MoneyHook-API/blob/development/docs/DEVELOPMENT.md)を参照する。クライアント生成は[API契約の変更手順](DEVELOPMENT.md#api契約の変更)に従う。入力先の初期値は個人とし、家族機能は作成または招待参加で利用を開始する。
 
 ## 検証対象
 
-[最小検証方針](DEVELOPMENT.md#検証)に従い、変更に該当する契約だけ選ぶ。次の一覧は毎回全てを実行する指示ではない。UI操作は必要箇所を手動確認する。
+[Reactの検証手順](DEVELOPMENT.md#検証)に従い、変更に関係する契約を下記から選ぶ。
 
 - 認可行列（本人/家族/管理者/部外者/退出者）、非共有原本の非公開、他家族参照の拒否、個人ID漏れ防止。
 - 招待の二重使用/code-link競合/期限/取消/交代、同時作成/参加の1所属・3人制限、失敗時の非消費。
 - proxyで個人を書かないこと、共有作成の原子性、本人更新/削除と退出の競合・再試行、控えと原本の分離/合計維持、旧API整合。
 - 月跨ぎ・category変更時のsubcategory解除・人物合計・控え訂正/除外、解除/再共有・snapshot再共有拒否、冪等payload競合。
-- キャッシュの保存境界・退出/ログアウト破棄・遅延結果・入力先同期、migration再実行/既存保持・FK/CHECK/partial unique・全個人集計の論理削除。
+- キャッシュの保存境界・退出/ログアウト破棄・遅延結果・入力先同期。
+- 移行の再実行と既存データの保持、FK/CHECK/partial unique、全個人集計での論理削除済みデータの除外。
 
-Reactは関連テストを指定し、OpenAPI・型・色・buildは影響時だけ確認する。Goの検証は明示的に作業対象の場合だけ当該リポジトリ方針に従い、対象package/ケースに絞る。DB結合が必要なら専用DBと`MIGRATION_TEST_POSTGRES_DSN`を使い、未設定skipを成功扱いしない。一時API/DB/Emulator等は終了時に片付ける。
+Goの変更を含む場合のDB検証は[Go開発ガイドの「PostgreSQL統合テスト」](https://github.com/MoneyHook/MoneyHook-API/blob/development/docs/DEVELOPMENT.md)を参照する。検証用に起動した一時API・DB・Emulatorは終了時に片付ける。
 
-## 記録済み成果と制約
+## 2026-09-29の実装と検証
 
-2026-09-29: Reactの家族設定/参加/入力先/共有/代理/一覧/集計、Goの所属/招待/参照/共有/代理/控えを実装。OpenAPI/生成物を同期し個人一覧をv1へ移行。v2インポートは未実装。
+Reactの家族設定/参加/入力先/共有/代理/一覧/集計、Goの所属/招待/参照/共有/代理/控えを実装した。OpenAPIと生成物を同期し、個人一覧をv1へ移行した。v2インポート、利用者DBの移行、本番配備はこの時点で未実施。
 
 - 当時の検証: React型・30ファイル110テスト・OpenAPI 492 assertions・build成功。lintエラーなし、CSV既存3警告/bundle警告あり。Orval 188ファイルの再生成一致。
-- Goのgofmt/vet/全テスト/build、専用PostgreSQL 17のmigration/Store結合が成功（skipなし）。過去の結果であり、今後の全体実行指示ではない。
+- Goのgofmt/vet/全テスト/build、専用PostgreSQL 17のmigration/Store結合が成功（skipなし）。
 - 手動で作成/既定値/入力切替の値保持/本人共有/代理/個人合計/原本反映/code参加/他人原本の閲覧専用/代理共同編集/モバイル入力一覧を確認。控え/訂正/除外/archive/再参加/無効招待/同時承諾はAPI/DB契約で確認。未認証リンクからの復帰と全退出操作の画面確認は未実施。
-- 利用者DBへのmigration/本番配備は未実施。`HOUSEHOLD_INVITATION_SECRET`（32byte以上）とCockroachDB実環境相当の検証が公開前に必要。
-- 一覧は100件/page、集計/重複候補は月の全pageを走査し明細投影に追加queryあり。大量データ性能・SQL集計、冪等データの保存期間/掃除は運用課題。
+- 一覧は100件/pageで、集計と重複候補は月の全pageを走査し、明細の組み立てに追加クエリを使っていた。大量データでの性能・SQL集計、冪等データの保存期間と削除は運用課題として残った。
