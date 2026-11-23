@@ -1,81 +1,46 @@
 ---
 name: git-pr-workflow
-description: MoneyHooks Reactの現在の変更を運用規約に沿うブランチへ整理し、論理単位でコミットを分け、検証結果を記載したdevelop向けGitHub PRを作成する。明示的にbranch・commit・push・PRまで依頼されたときに使う。
+description: MoneyHooks ReactのGit関連の依頼に使う。状態・差分・履歴の確認、ブランチ操作、コミット、push、PR、タグなど、依頼に該当する手順を実行する。スキル名の明示は不要。
 ---
 
-# Git変更整理とPR作成
+# Git操作とPR作成
 
-MoneyHooks Reactの現在の作業ツリーを、レビュー可能なコミット列と`develop`向けのGitHub PRへ整理する。通常の実装依頼で自動的にbranch、commit、push、PRを実行してはいけない。このスキルを明示的に呼び出した依頼だけを対象にする。
+MoneyHooks ReactでGitに関する依頼を受けたら、依頼された成果に必要な手順を選ぶ。
+
+## 依頼ごとの実行範囲
+
+| 依頼 | 実行範囲 |
+| --- | --- |
+| 状態・差分・履歴・PRの確認 | 対象の状態を読み取って報告する。 |
+| ブランチ・push・タグなど単独の操作 | 指定された操作と、そのために必要な確認を行う。 |
+| コミット | 必要な作業ブランチを作成・切り替え、対象差分をローカルでコミットする。 |
+| PR作成、またはコミットとPR作成 | 必要な作業ブランチの作成・切り替え、対象差分のコミット、push、PR作成まで進める。これらの通常手順への個別確認は不要。 |
+
+ユーザーが対象・停止地点・制約を指定した場合はその指定を優先する。履歴の書き換え、force push、ブランチ削除、PRのマージなどは、それぞれ明示的に依頼された場合に限る。
 
 ## 実行前に確認する
 
-1. 現在のリポジトリのルートで作業していることを確認する。Go APIリポジトリや別のリポジトリへ変更を加えない。
-2. 次の資料を必要な範囲で読み、既存の指示を優先する。
-   - `AGENTS.md`
-   - `docs/GIT_WORKFLOW.md`
-   - `docs/DEVELOPMENT.md`
-3. `git status --short --branch`、`git diff`、`git diff --cached`、未追跡ファイル、現在のbranch固有のcommitを確認する。
-4. `git fetch origin develop`で`origin/develop`を更新する。fetch、認証、ネットワークに失敗した場合は、推測でbaseを決めず停止する。
-5. 対象変更の目的、影響範囲、必要な検証を確定する。複数の無関係な目的が混在していて、どの変更を今回のPRに含めるか判定できない場合は停止し、変更を混ぜない。
+1. リポジトリのルートと[作業方針](../../../AGENTS.md)を確認する。[Gitガイド](../../../docs/GIT_WORKFLOW.md)で統合先、ブランチ名、コミット形式、PR書式を確認する。
+2. `git status --short --branch`、`git diff`、`git diff --cached`、未追跡ファイル、現在のブランチ固有のコミットを確認する。無関係な変更があり、今回の範囲を判定できない場合は停止する。
+3. PR作成や最新の統合先を起点にする依頼では、`git fetch origin <統合先>`で追跡先を更新する。取得に失敗したら、その参照を必要とする操作を止めて状況を報告する。
 
-## branchを決める
+## ブランチを決める
 
-- 通常のbaseは最新の`origin/develop`とする。`main`や`develop`へ直接commitしない。
-- branch名は`<type>/<english-kebab-case-summary>`にする。`type`は変更の主目的に合わせて`feature`、`fix`、`refactor`、`docs`、`chore`、`build`、`ci`、`test`から選び、summaryは小文字英数字とhyphenだけで具体的に表す。
-- 現在のbranchが`main`または`develop`で、変更が未commitだけなら、未追跡ファイルを含めて安全に一時退避し、`origin/develop`から新branchを作って変更を戻す。復元時に競合したら変更を捨てずに停止する。
-- 現在の非base branchにある既存commitと未commit変更の目的が一致する場合は、そのbranchを再利用する。既存commitをrebase、reset、amend、削除しない。
-- 非base branchに無関係または目的不明の既存commitがある場合は、履歴を付け替えず停止する。無関係なcommitを含むPRを作らない。
-- 同名のlocalまたはremote branchが存在する場合は、目的と履歴を確認して同じ作業だと判断できるときだけ再利用する。別目的なら名前を勝手に流用せず停止する。
-- `gh pr list --head <branch> --state open`で既存PRを確認する。`develop`向けのopen PRがあれば重複作成せず、そのPRを検証結果とともに報告する。別baseのPRがあれば停止する。
+- コミット先が統合先や本番ブランチの場合は、作業ブランチを使う。ローカルコミットだけの依頼では現在のHEADを起点にできる。PR作成では取得した `origin/<統合先>` を確認し、HEADと一致するなら変更を保持したまま作業ブランチを作る。起点が異なり退避が必要な場合は未追跡ファイルも保護し、復元が競合したら変更を保った状態で停止する。
+- 現在の作業ブランチは、既存コミットと未コミット変更が同じ目的なら再利用する。同名のローカル・リモートブランチも目的と履歴を確認する。無関係または目的不明のコミットがあれば停止する。
+- PR作成時は `gh pr list --head <ブランチ> --state open`で既存PRを確認する。同じ統合先のPRは検証結果とともに報告する。別の取り込み先のPRがあれば停止する。
 
-## commitを論理単位に分ける
+## コミットを作る
 
-- 1 commitは1つのレビュー可能な論理変更にする。ファイル単位や行数単位で機械的に分割しない。
-- 実装、対応するテスト、ドキュメント、設定、生成コードは、それぞれ独立してレビューできる場合に分ける。依存関係があり分離すると成立しないテストは、対応する実装と同じ論理commitに含める。
-- 同じファイルに複数の目的が混在する場合はhunk単位でstageし、対象外の変更をcommitに含めない。既存の未commit変更や未追跡ファイルを削除しない。
-- 各commitの直前に`git diff --cached`と`git diff --cached --check`を確認し、意図した差分だけをstageする。
-- commit messageは次の形式にする。typeとscopeは英語の識別子、説明は具体的な日本語にする。
+コミットを含む依頼では、[検証方針](../../../docs/DEVELOPMENT.md#検証)から対象に必要な確認を選ぶ。ローカルコミットだけなら、結果とコミットIDを報告する。
 
-  ```text
-  <type>(<optional-scope>): <日本語による具体的な変更内容>
-  ```
+- 実装・テスト・文書・設定・生成物は独立してレビューできる場合に分ける。単独で成立しないテストや生成物は、対応する変更と同じコミットに含める。
+- 同じファイルに無関係な変更が混在する場合はhunk単位でstageする。対象外の差分と未追跡ファイルは作業ツリーに保つ。
+- 各コミットの直前に`git diff --cached`と`git diff --cached --check`を確認する。既存の履歴は保持し、検証で見つかった修正は新しいコミットにする。
 
-- 「更新」「修正」「作業」だけで終わる説明を避ける。既存commitを書き換えず、検証で見つかった追加修正は新しい論理commitとして積む。
-- commit順は、依存する実装が先、対応するテスト・ドキュメント・設定が後になるようにする。各commitの目的と含めなかった変更を作業中に記録する。
+## 検証してPRを作成する
 
-## 検証する
-
-[開発ガイドの検証方針](../../../docs/DEVELOPMENT.md#検証)を正本とし、変更に必要な確認だけ選ぶ。追加・変更したテストと直接影響する既存テストをファイル/ケース指定で実行し、対象と件数を確認する。文書のみなら差分・リンク確認だけでよい。
-
-型検査・対象ファイルのlint・build・契約検証・認証/API結合も影響時だけ選び、全テスト/全lint/E2Eを既定にしない。必要なrequired checksは成功させる。実行結果と必要だが未実行の確認をPRへ記録する。無関係な差分を作る`lint:fix`や全体formatは使わない。
-
-`git diff --check`と`origin/develop...HEAD`の最終差分を確認する。
-
-検証が失敗したら、依頼範囲内の原因だけを修正し、修正を別commitとして積んで再検証する。未解決、範囲外、環境依存の失敗が残る場合はpushとPR作成を行わず停止する。失敗を隠したままPRを作成しない。
-
-## pushとPRを作成する
-
-検証が成功し、対象変更がすべてcommitされ、対象外の変更や未追跡ファイルを誤ってcommitに含めていないことを確認してから実行する。対象外の変更は削除せず、作業ツリーに残してよい。
-
-1. `gh auth status`でGitHub認証を確認する。認証できない場合は停止する。
-2. `git diff --check`、`git diff --cached --check`、`git status --short`、`git log origin/develop..HEAD --oneline`、`git diff origin/develop...HEAD --stat`を最終確認する。
-3. `git push --set-upstream origin <branch>`で通常pushする。force pushは使わない。
-4. PRタイトルは全体の目的を表すConventional Commits形式にする。複数commitがあっても、PRタイトルは個別commitの羅列にしない。
-5. `gh pr create --base develop --head <branch>`でReady PRを作成する。PR本文は日本語で、次の見出しを必ず含める。
-
-   ```markdown
-   ## 変更概要
-   ## 影響範囲
-   ## 実行した確認
-   ## 未実行または失敗した確認
-   ```
-
-6. `gh pr view`でPRのURL、base、head、初期のcheck状態を確認し、ユーザーへ報告する。PRのmerge、Ready状態の変更、branch削除は行わない。
-
-## 安全上の禁止事項
-
-- `main`・`develop`への直接commitまたはpush
-- `git reset --hard`、`git checkout --`、force push、確認なしのrebase・履歴削除
-- 無関係な変更、秘密情報、`.env.local`、ログ、build成果物のcommit
-- 検証失敗を隠したpushまたはPR作成
-- MoneyHooks Reactの依頼に含まれていない別リポジトリの変更
+1. PR対象の差分に[検証方針](../../../docs/DEVELOPMENT.md#検証)を適用し、結果を記録する。差分が同じならコミット時の検証結果を使える。範囲内の失敗は修正して再検証する。未解決の失敗が残る場合はpushとPR作成を停止する。
+2. `gh auth status`で認証を確認する。`git diff --check`、`git diff --cached --check`、`git status --short`で残っている変更を確認する。`origin/<統合先>`とHEADのコミット一覧とPR差分も確認する。
+3. `git push --set-upstream origin <ブランチ>`でpushする。[GitガイドのPR書式](../../../docs/GIT_WORKFLOW.md#commitpr)に沿ってタイトルと本文を作り、`gh pr create --base <統合先> --head <ブランチ>`でReady PRを作成する。
+4. `gh pr view`でURL、取り込み先、作業ブランチ、初期のcheck状態を確認し、報告する。このスキルの作業範囲はPR作成と確認までとする。
